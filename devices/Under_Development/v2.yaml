@@ -158,6 +158,10 @@ sensor:
       - throttle: 1min
     on_value:
       then:
+        - lambda: |-
+            if (x > 4.10 && x > id(max_battery_voltage)) {
+              id(max_battery_voltage) = x;
+            }
         - component.update: battery_percentage
       
   - platform: template
@@ -168,24 +172,20 @@ sensor:
     unit_of_measurement: "%"
     icon: mdi:battery-medium
     filters:
-      - calibrate_linear:
-         method: exact
-         datapoints:
-          - 2.80 -> 0.0
-          - 3.10 -> 10.0
-          - 3.30 -> 20.0
-          - 3.45 -> 30.0
-          - 3.60 -> 40.0
-          - 3.70 -> 50.0
-          - 3.75 -> 60.0
-          - 3.80 -> 70.0
-          - 3.90 -> 80.0
-          - 4.00 -> 90.0
-          - 4.20 -> 100.0
       - lambda: |-
-          if (x > 100) return 100;
-          if (x < 0) return 0;
-          return x;
+          float max = (id(max_battery_voltage) == -1.0 ? 4.20 : id(max_battery_voltage));
+          if (x > max - 0.05) return 100.0;
+          float voltages[] =    {2.80, 3.10, 3.30, 3.45, 3.60, 3.70, 3.75, 3.80, 3.90, 4.00, max};
+          float percentages[] = {0.0,  10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0};
+          for (int i = 0; i < 10; i++) {
+            if (x < voltages[i + 1]) {
+              return percentages[i] + (percentages[i + 1] - percentages[i]) * (x - voltages[i]) / (voltages[i + 1] - voltages[i]);
+            }
+          }
+          return 100.0;
+      - clamp:
+          min_value: 0
+          max_value: 100
     on_value:
       then:
         - lambda: |-
@@ -820,6 +820,10 @@ globals:
     type: int
     restore_value: no
     initial_value: '-1'
+  - id: max_battery_voltage
+    type: float
+    restore_value: no
+    initial_value: '-1.0'
   - id: show_battery_status
     type: bool
     restore_value: yes
