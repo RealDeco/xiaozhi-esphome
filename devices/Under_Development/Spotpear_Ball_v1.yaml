@@ -90,7 +90,35 @@ substitutions:
 
   font_glyphsets: "GF_Latin_Core"
   font_family: Figtree
+  
+###### LANGUE / LANGUAGE SETTINGS ######################################################
+  ## Changez les valeurs à droite pour correspondre à votre langue
+  ## Change the values on the right to match your language
 
+  # Jours abrégés / Short days (3 lettres/letters)
+  mon: "Lun"    # Lun, Lun, Mon, Lun
+  tue: "Mar"    # Mar, Mar, Die, Mar
+  wed: "Mer"    # Mer, Mié, Mit, Mer
+  thu: "Jeu"    # Jeu, Jue, Don, Gio
+  fri: "Ven"    # Ven, Vie, Fre, Ven
+  sat: "Sam"    # Sam, Sáb, Sam, Sab
+  sun: "Dim"    # Dim, Dom, Son, Dom
+
+  # Mois abrégés / Short months (3 lettres/letters)
+  jan: "Jan"    # Jan, Ene, Jan, Gen
+  feb: "Fév"    # Fév, Feb, Feb, Feb
+  mar: "Mars"    # Mar, Mar, Mär, Mar
+  apr: "Avr"    # Avr, Abr, Apr, Apr
+  may_short: "Mai"  # Mai, May, Mai, Mag
+  jun: "Juin"    # Jun, Jun, Jun, Giu
+  jul: "Juil"    # Jul, Jul, Jul, Lug
+  aug: "Août"    # Aoû, Ago, Aug, Ago
+  sep: "Sep"    # Sep, Sep, Sep, Set
+  oct: "Oct"    # Oct, Oct, Okt, Ott
+  nov: "Nov"    # Nov, Nov, Nov, Nov
+  dec: "Déc"    # Déc, Dic, Dez, Dic
+
+##################################################################################  
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
@@ -533,6 +561,7 @@ voice_assistant:
         id: text_response
         state: "..."
     - script.execute: draw_display
+    - light.turn_on: led  # LED ON lors de l'écoute
   on_stt_vad_end:
     - lambda: id(voice_assistant_phase) = ${voice_assist_thinking_phase_id};
     - script.execute: draw_display
@@ -580,6 +609,7 @@ voice_assistant:
     - text_sensor.template.publish:
         id: text_response
         state: ""
+    - light.turn_off: led  # LED OFF à la fin
 
   on_error:
     - if:
@@ -1361,6 +1391,51 @@ text_sensor:
           std::string truncated = esphome::str_truncate(s.c_str(), 250);
           id(text_response_full).state = truncated.c_str();
         }
+  # Sensor pour les dates au format court uniquement
+  - id: formatted_date
+    platform: template
+    name: "Formatted Date"
+    lambda: |-
+      auto now = id(homeassistant_time).now();
+      
+      // Fonction pour obtenir le nom du jour abrégé
+      auto get_day_short = [](int day_of_week) -> std::string {
+        switch(day_of_week) {
+          case 1: return "${sun}";
+          case 2: return "${mon}";
+          case 3: return "${tue}";
+          case 4: return "${wed}";
+          case 5: return "${thu}";
+          case 6: return "${fri}";
+          case 7: return "${sat}";
+          default: return "";
+        }
+      };
+      
+      // Fonction pour obtenir le nom du mois abrégé
+      auto get_month_short = [](int month) -> std::string {
+        switch(month) {
+          case 1: return "${jan}";
+          case 2: return "${feb}";
+          case 3: return "${mar}";
+          case 4: return "${apr}";
+          case 5: return "${may_short}";
+          case 6: return "${jun}";
+          case 7: return "${jul}";
+          case 8: return "${aug}";
+          case 9: return "${sep}";
+          case 10: return "${oct}";
+          case 11: return "${nov}";
+          case 12: return "${dec}";
+          default: return "";
+        }
+      };
+      
+      std::string day_short = get_day_short(now.day_of_week);
+      std::string month_short = get_month_short(now.month);
+      
+      // Format : "Lun, 17 Aoû"
+      return day_short + ", " + std::to_string(now.day_of_month) + " " + month_short;
 
 color:
   - id: idle_color
@@ -1673,10 +1748,13 @@ display:
 
           // ---------- Date ----------
           if (id(clock_show_date).state) {
+            std::string date_text = id(formatted_date).state;
             if (id(clock_24h).state)
-              it.strftime(cx, cy + 14, id(font_big_date), clock_col, TextAlign::CENTER, "%a, %d %b", now);
+              // Utiliser le sensor de date formatée au lieu de strftime
+              it.printf(cx, cy + 14, id(font_big_date), clock_col, TextAlign::CENTER, "%s", date_text.c_str());
             else
-              it.strftime(cx, cy + 14, id(font_big_date), clock_col, TextAlign::CENTER, "%a, %b %d", now);
+              // Utiliser le sensor de date formatée au lieu de strftime
+              it.printf(cx, cy + 14, id(font_big_date), clock_col, TextAlign::CENTER, "%s", date_text.c_str());
           }
 
           if (id(show_battery_status).state) {
@@ -1860,10 +1938,12 @@ display:
             int date_y = top + panel_h + date_pad + extra_offset;
             if (date_y > safe_bottom) date_y = safe_bottom;
 
+            //// use formated_date
+            std::string date_text = id(formatted_date).state;
             if (id(clock_24h).state) {
-              it.strftime(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%a, %d %b", now);
+              it.printf(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%s", date_text.c_str());
             } else {
-              it.strftime(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%a, %b %d", now);
+              it.printf(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%s", date_text.c_str());
             }
           }
 
@@ -2211,10 +2291,12 @@ display:
             const int date_pad     = std::max(10, H / 20);
             const int extra_offset = std::max(6, H / 32);
             int date_y = top + DH + date_pad + extra_offset;
+            //// used formated_date
+            std::string date_text = id(formatted_date).state;
             if (id(clock_24h).state) {
-              it.strftime(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%a, %d %b", now);
+              it.printf(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%s", date_text.c_str());
             } else {
-              it.strftime(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%a, %b %d", now);
+              it.printf(cx, date_y, id(font_big_date), FG, TextAlign::CENTER, "%s", date_text.c_str());
             }
           }
 
