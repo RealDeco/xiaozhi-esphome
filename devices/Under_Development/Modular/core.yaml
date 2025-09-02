@@ -388,6 +388,7 @@ micro_wake_word:
   models:
     - okay_nabu
     - hey_jarvis
+    - hey_mycroft
     - alexa
   on_wake_word_detected:
     - script.execute: reset_screensaver
