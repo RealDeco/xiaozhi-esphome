@@ -58,14 +58,15 @@ sensor:
     entity_id: sensor.spotify_duration
     internal: true
 
-# Album art image
+# Album art image - FIXED: using placeholder URL
 image:
   - platform: online_image
     id: spotify_album_art
-    url: ""
+    url: https://raw.githubusercontent.com/1liminal1/xiaozhi-esphome/main/images/Other/240x240/clock.png
     resize: 160x160
     format: RGB565
     type: RGB565
+    update_interval: never
 
 # Fonts for Spotify
 font:
