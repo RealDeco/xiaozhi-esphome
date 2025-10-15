@@ -1,47 +1,43 @@
 substitutions:
-  name: esphome-web-0bac48
-  friendly_name: "Xiaozhi Ball V2"
-
-## Modular version Main v1.07
-
+  name: bmo-voice-assistant
+  friendly_name: "BMO Voice Assistant"
+  
+## Modular version Main v1.03
 ## SETTINGS ######################################################################################################################################
 
   imagewidth:  "240"
   imageheight: "240"
   rotate_display: "0"
-
-  startup_sound: "Home_Connected" # (options are: available, Home_Connected, Home_Connected_Male, Computer_Ready)
+  startup_sound: "videogames" # (options are: available, Home_Connected, Home_Connected_Male, Computer_Ready, videogames)
   clock_background_image: "clock" # (options are: clock, hacker, ha-girl, mission, starrysky)
-  imagemodel: "Gwen" # options are:
-
+  imagemodel: "BMO" # options are:
 # Alita, Alfred, Astrobot, Buzz, Casita, Cybergirl, Dory, EVE, Eyes, Eyes2, GLaDOS, Girl1, Guy1, Guy2, Gwen, HA-character, ha-girl, Hacker, Harley,
 # Jarvis, Luffy, Mario, Max, Prime, Robochibi, Robocop, Robot, Robotgirl, Shaun
 
-## PRESENCE / MOTION SENSORS ########## IF NOT USING THESE LEAVE THEM ALONE, SCRIPT WILL BREAK WITHOUT ###########################################
+## PRESENCE / MOTION SENSORS #####################################################################################################################
 
-  sensor1_entity: "binary_sensor.8266_presense_2_presence"
-  light1_entity: "light.livingroom_all_lights"
-  sensor1_label: "Tech Room"
-
-  sensor2_entity: "binary_sensor.esp32s3_1_presence"
-  light2_entity: "group.kitchen_lights"
+  sensor1_entity: "binary_sensor.foyer_presence_occupancy"
+  sensor1_label: "Foyer"
+  sensor2_entity: "binary_sensor.kitchen_occupancy"
   sensor2_label: "Kitchen"
-
-  sensor3_entity: "binary_sensor.esphome_web_1911bf_presence"
-  light3_entity: "light.mom_s_room"
+  sensor3_entity: "binary_sensor.living_room_occupancy"
   sensor3_label: "Living Room"
+  sensor4_entity: "binary_sensor.study_presence_occupancy"
+  sensor4_label: "Study"
+  sensor5_entity: "binary_sensor.bedroom_presence_occupancy"
+  sensor5_label: "Bedroom"
+  weather_entity: "weather.mascot"
 
-  sensor4_entity: "binary_sensor.notifier_2_presence"
-  light4_entity: "light.hue_toilet_light_light"
-  sensor4_label: "Toilet"
+## LIGHTS ########################################################################################################################################
 
-  sensor5_entity: "binary_sensor.8266_presense_presence"
-  light5_entity: "switch.nedis_smart_plug_tasmota1"
-  sensor5_label: "Hall"
-
-  weather_entity: "weather.forecast_home"
+  light1_entity: "light.hall_lights"         # Foyer
+  light2_entity: "light.kitchen_lights"      # Kitchen
+  light3_entity: "light.living_room_lights"  # Living Room
+  light4_entity: "light.study_lights"        # Study
+  light5_entity: "light.bedroom_array"       # Bedroom
 
 ##################################################################################################################################################
+
 
   font_glyphsets: "GF_Latin_Core"
   font_family: Figtree
@@ -63,15 +59,15 @@ psram:
 
 packages:
   core:
-    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    url: https://github.com/1liminal1/xiaozhi-esphome.git
     ref: main
-    refresh: 1d
+    refresh: 0s
     files:
       - devices/Under_Development/Modular/core.yaml
   hw:
-    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    url: https://github.com/1liminal1/xiaozhi-esphome.git
     ref: main
-    refresh: 1d
+    refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/ball_v2_hw.yaml
 
@@ -79,11 +75,18 @@ packages:
 micro_wake_word:
   id: mww
   models:
+    - okay_nabu
     - hey_jarvis
     - alexa
+    - model: "http://your-local-ha-ip/local/wake_words/hey_beemo.json"    
 #    - hey_mycroft
 #    - model: "https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/choo_choo_homie.json"
 #    - model: "https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/hey_home_assistant.json"
 #    - model: "https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/hey_peppa_pig.json"
 #    - model: "https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/okay_computer.json"
 ##################################################################################################################################################
+
+# Extend the OTA component from packages with your password
+ota:
+  - id: !extend ota_esphome
+    password: "your-password"
