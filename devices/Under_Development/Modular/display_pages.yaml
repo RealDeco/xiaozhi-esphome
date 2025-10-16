@@ -1594,12 +1594,13 @@
           it.filled_circle(120, 120, 120, id(spotify_dark));
           
           // Album art (160x160, centered at top)
-          if (id(spotify_album_art).has_image()) {
+          if (id(spotify_album_art_url).has_state() && 
+              id(spotify_album_art_url).state.length() > 0) {
             it.image(40, 30, id(spotify_album_art));
           } else {
             it.filled_rectangle(40, 30, 160, 160, Color(30, 30, 30));
             it.printf(120, 110, id(spotify_title_font), Color(100, 100, 100), 
-                     TextAlign::CENTER, "♪");
+                    TextAlign::CENTER, "♪");
           }
           
           // Song title
