@@ -1,0 +1,145 @@
+# ============================================================================
+# FILE: devices/Under_Development/Modular/spotify.yaml
+# Upload this to your GitHub repo
+# ============================================================================
+
+# Text sensors from Home Assistant
+text_sensor:
+  - platform: homeassistant
+    id: spotify_title
+    entity_id: sensor.spotify_title
+    internal: true
+    
+  - platform: homeassistant
+    id: spotify_artist
+    entity_id: sensor.spotify_artist
+    internal: true
+    
+  - platform: homeassistant
+    id: spotify_album
+    entity_id: sensor.spotify_album
+    internal: true
+    
+  - platform: homeassistant
+    id: spotify_album_art_url
+    entity_id: sensor.spotify_album_art
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if (id(spotify_album_art_url).has_state() && 
+                id(spotify_album_art_url).state.length() > 0) {
+              std::string url = !secret home_assistant_url;
+              url += id(spotify_album_art_url).state;
+              id(spotify_album_art).set_url(url);
+            }
+
+# Binary sensor for playing state
+binary_sensor:
+  - platform: homeassistant
+    id: spotify_is_playing
+    entity_id: binary_sensor.spotify_playing
+    internal: true
+
+# Numeric sensors
+sensor:
+  - platform: homeassistant
+    id: spotify_volume
+    entity_id: sensor.spotify_volume
+    internal: true
+    
+  - platform: homeassistant
+    id: spotify_position
+    entity_id: sensor.spotify_position
+    internal: true
+    
+  - platform: homeassistant
+    id: spotify_duration
+    entity_id: sensor.spotify_duration
+    internal: true
+
+# Album art image
+online_image:
+  - id: spotify_album_art
+    url: https://raw.githubusercontent.com/1liminal1/xiaozhi-esphome/main/images/Other/240x240/clock.png
+    resize: 160x160
+    format: PNG
+    type: RGB565
+    update_interval: never
+
+# Fonts for Spotify
+font:
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 700
+    id: spotify_title_font
+    size: 16
+    glyphs: ${allowed_characters}
+    
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 400
+    id: spotify_artist_font
+    size: 13
+    glyphs: ${allowed_characters}
+    
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 400
+    id: spotify_small_font
+    size: 11
+    glyphs: ${allowed_characters}
+    
+  - file: 
+      type: gfonts
+      family: Material+Symbols+Outlined
+      weight: 400
+    id: spotify_icons
+    size: 32
+    glyphs:
+      - "\U0000e037"  # play_arrow
+      - "\U0000e034"  # pause
+
+# Colors
+color:
+  - id: spotify_green
+    hex: "1ED760"
+  - id: spotify_dark
+    hex: "121212"
+  - id: spotify_grey
+    hex: "B3B3B3"
+
+# State tracking
+globals:
+  - id: show_spotify_page
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+# Scripts
+script:
+  - id: open_spotify_page
+    mode: restart
+    then:
+      - lambda: id(show_spotify_page) = true;
+      - display.page.show: spotify_page
+      - component.update: main_display
+
+  - id: close_spotify_page
+    mode: restart
+    then:
+      - lambda: id(show_spotify_page) = false;
+      - script.execute: draw_display
+
+# Switch to enable auto-show
+switch:
+  - platform: template
+    id: spotify_auto_show
+    name: "Spotify Auto Show"
+    icon: "mdi:spotify"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
