@@ -75,7 +75,9 @@ font:
       weight: 700
     id: spotify_title_font
     size: 16
-    glyphs: ${allowed_characters}
+    glyphsets:
+      - ${font_glyphsets}
+    ignore_missing_glyphs: true
     
   - file:
       type: gfonts
@@ -83,7 +85,9 @@ font:
       weight: 400
     id: spotify_artist_font
     size: 13
-    glyphs: ${allowed_characters}
+    glyphsets:
+      - ${font_glyphsets}
+    ignore_missing_glyphs: true
     
   - file:
       type: gfonts
@@ -91,7 +95,9 @@ font:
       weight: 400
     id: spotify_small_font
     size: 11
-    glyphs: ${allowed_characters}
+    glyphsets:
+      - ${font_glyphsets}
+    ignore_missing_glyphs: true
     
   - file: 
       type: gfonts
@@ -100,8 +106,9 @@ font:
     id: spotify_icons
     size: 32
     glyphs:
-      - "\U0000e037"  # play_arrow
-      - "\U0000e034"  # pause
+      - "\U0000e037"
+      - "\U0000e034"
+    ignore_missing_glyphs: true
 
 # Colors
 color:
