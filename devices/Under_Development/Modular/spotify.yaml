@@ -64,6 +64,9 @@ online_image:
           then:
             - delay: 100ms
             - component.update: main_display
+    on_error:
+      - lambda: |-
+          ESP_LOGE("spotify", "Failed to download album art");
 
 font:
   - file:
@@ -120,7 +123,7 @@ script:
                      id(spotify_album_art_url).state.length() > 10;
           then:
             - lambda: |-
-                ESP_LOGD("spotify", "Updating image URL: %s", id(spotify_album_art_url).state.c_str());
+                ESP_LOGD("spotify", "Image path: %s", id(spotify_album_art_url).state.c_str());
             - online_image.set_url:
                 id: spotify_album_art
                 url: !lambda |-
@@ -130,12 +133,12 @@ script:
     mode: restart
     then:
       - lambda: |-
-          ESP_LOGD("spotify", "=== Opening Spotify page ===");
+          ESP_LOGD("spotify", "Opening Spotify page");
           id(show_spotify_page) = true;
           id(show_clock) = false;
       - script.execute: reset_screensaver
       - script.execute: update_spotify_image
-      - delay: 1s
+      - delay: 1500ms
       - display.page.show: spotify_page
       - component.update: main_display
 
