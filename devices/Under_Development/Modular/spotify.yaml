@@ -48,16 +48,27 @@ sensor:
     entity_id: sensor.spotify_duration
     internal: true
 
-# Album art image
+# Album art image - CRITICAL: format must be 'jpeg' for Spotify images
 online_image:
   - id: spotify_album_art
     url: https://raw.githubusercontent.com/1liminal1/xiaozhi-esphome/main/images/Other/240x240/clock.png
     resize: 160x160
-    format: PNG
+    format: jpeg  # Changed from PNG to jpeg
     type: RGB565
     update_interval: never
+    on_download_finished:  # CRITICAL: This was missing!
+      - lambda: |-
+          ESP_LOGD("spotify", "Album art downloaded successfully");
+      - if:
+          condition:
+            lambda: 'return id(show_spotify_page);'
+          then:
+            - component.update: main_display
+    on_error:
+      - lambda: |-
+          ESP_LOGE("spotify", "Failed to download album art");
 
-# Fonts for Spotify (removed icon font since we're not using play/pause icon)
+# Fonts for Spotify
 font:
   - file:
       type: gfonts
@@ -116,7 +127,7 @@ script:
           id(show_clock) = false;
       - script.execute: reset_screensaver
       
-      # Fetch and update album art
+      # Update album art if URL available
       - if:
           condition:
             lambda: |-
@@ -124,17 +135,13 @@ script:
                      id(spotify_album_art_url).state.length() > 10;
           then:
             - lambda: |-
-                std::string url = id(spotify_album_art_url).state;
-                ESP_LOGD("spotify", "Fetching album art from: %s", url.c_str());
+                ESP_LOGD("spotify", "Album art URL: %s", id(spotify_album_art_url).state.c_str());
             - online_image.set_url:
                 id: spotify_album_art
                 url: !lambda 'return id(spotify_album_art_url).state;'
                 update: true
-          else:
-            - lambda: |-
-                ESP_LOGW("spotify", "No valid album art URL available");
       
-      - delay: 1s
+      - delay: 1500ms  # Give image time to download
       - display.page.show: spotify_page
       - component.update: main_display
 
@@ -156,7 +163,7 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     entity_category: config
 
-# Update display every 5 seconds when on Spotify page (reduced from 1s)
+# Update display when on Spotify page
 interval:
   - interval: 5s
     then:
