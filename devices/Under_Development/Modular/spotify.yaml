@@ -1,6 +1,5 @@
 # ============================================================================
 # FILE: devices/Under_Development/Modular/spotify.yaml
-# Upload this to your GitHub repo
 # ============================================================================
 
 # Text sensors from Home Assistant
@@ -24,13 +23,6 @@ text_sensor:
     id: spotify_album_art_url
     entity_id: sensor.spotify_album_art
     internal: true
-    on_value:
-      then:
-        - lambda: |-
-            if (id(spotify_album_art_url).has_state() && 
-                id(spotify_album_art_url).state.length() > 0) {
-              id(spotify_album_art).set_url(id(spotify_album_art_url).state);
-            }
 
 # Binary sensor for playing state
 binary_sensor:
@@ -65,7 +57,7 @@ online_image:
     type: RGB565
     update_interval: never
 
-# Fonts for Spotify
+# Fonts for Spotify (removed icon font since we're not using play/pause icon)
 font:
   - file:
       type: gfonts
@@ -96,17 +88,6 @@ font:
     glyphsets:
       - ${font_glyphsets}
     ignore_missing_glyphs: true
-    
-  - file: 
-      type: gfonts
-      family: Material+Symbols+Outlined
-      weight: 400
-    id: spotify_icons
-    size: 32
-    glyphs:
-      - "\U0000e037"
-      - "\U0000e034"
-    ignore_missing_glyphs: true
 
 # Colors
 color:
@@ -129,14 +110,35 @@ script:
   - id: open_spotify_page
     mode: restart
     then:
-      - lambda: id(show_spotify_page) = true;
+      - lambda: |-
+          ESP_LOGD("spotify", "Opening Spotify page");
+          id(show_spotify_page) = true;
+          id(show_clock) = false;
+      - script.execute: reset_screensaver
+      
+      # Fetch and update album art
+      - lambda: |-
+          if (id(spotify_album_art_url).has_state() && 
+              id(spotify_album_art_url).state.length() > 10) {
+            std::string url = id(spotify_album_art_url).state;
+            ESP_LOGD("spotify", "Fetching album art from: %s", url.c_str());
+            
+            auto call = id(spotify_album_art).set_url(url);
+            call.perform();
+          } else {
+            ESP_LOGW("spotify", "No valid album art URL available");
+          }
+      
+      - delay: 1s
       - display.page.show: spotify_page
       - component.update: main_display
 
   - id: close_spotify_page
     mode: restart
     then:
-      - lambda: id(show_spotify_page) = false;
+      - lambda: |-
+          ESP_LOGD("spotify", "Closing Spotify page");
+          id(show_spotify_page) = false;
       - script.execute: draw_display
 
 # Switch to enable auto-show
@@ -148,3 +150,13 @@ switch:
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
     entity_category: config
+
+# Update display every 5 seconds when on Spotify page (reduced from 1s)
+interval:
+  - interval: 5s
+    then:
+      - if:
+          condition:
+            lambda: 'return id(show_spotify_page);'
+          then:
+            - component.update: main_display
