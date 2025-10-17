@@ -22,6 +22,9 @@ text_sensor:
     id: spotify_album_art_url
     entity_id: sensor.spotify_album_art
     internal: true
+    on_value:
+      then:
+        - script.execute: update_spotify_image
 
 binary_sensor:
   - platform: homeassistant
@@ -49,9 +52,8 @@ online_image:
   - id: spotify_album_art
     url: https://i.scdn.co/image/ab67616d0000b273e319baafd16e84f0408af2a0
     resize: 160x160
-    format: jpeg
+    format: JPEG
     type: RGB565
-    buffer_size: 65536
     update_interval: never
     on_download_finished:
       - lambda: |-
@@ -60,11 +62,8 @@ online_image:
           condition:
             lambda: 'return id(show_spotify_page);'
           then:
-            - delay: 200ms
+            - delay: 100ms
             - component.update: main_display
-    on_error:
-      - lambda: |-
-          ESP_LOGE("spotify", "Failed to download album art");
 
 font:
   - file:
@@ -112,6 +111,21 @@ globals:
     initial_value: "false"
 
 script:
+  - id: update_spotify_image
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return id(spotify_album_art_url).has_state() && 
+                     id(spotify_album_art_url).state.length() > 10;
+          then:
+            - lambda: |-
+                ESP_LOGD("spotify", "Updating image URL: %s", id(spotify_album_art_url).state.c_str());
+            - online_image.set_url:
+                id: spotify_album_art
+                url: !lambda |-
+                  return std::string("https://ha.liminal.net.au") + id(spotify_album_art_url).state;
+
   - id: open_spotify_page
     mode: restart
     then:
@@ -120,27 +134,8 @@ script:
           id(show_spotify_page) = true;
           id(show_clock) = false;
       - script.execute: reset_screensaver
-      
-      - if:
-          condition:
-            lambda: |-
-              return id(spotify_album_art_url).has_state() && 
-                     id(spotify_album_art_url).state.length() > 10;
-          then:
-            - lambda: |-
-                std::string url = id(spotify_album_art_url).state;
-                ESP_LOGD("spotify", "Fetching album art from: %s", url.c_str());
-            - online_image.release: spotify_album_art
-            - delay: 100ms
-            - online_image.set_url:
-                id: spotify_album_art
-                url: !lambda 'return id(spotify_album_art_url).state;'
-                update: true
-            - delay: 2s
-          else:
-            - lambda: |-
-                ESP_LOGW("spotify", "No album art URL available");
-      
+      - script.execute: update_spotify_image
+      - delay: 1s
       - display.page.show: spotify_page
       - component.update: main_display
 
