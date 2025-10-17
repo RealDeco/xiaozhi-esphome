@@ -2,7 +2,6 @@
 # FILE: devices/Under_Development/Modular/spotify.yaml
 # ============================================================================
 
-# Text sensors from Home Assistant
 text_sensor:
   - platform: homeassistant
     id: spotify_title
@@ -24,14 +23,12 @@ text_sensor:
     entity_id: sensor.spotify_album_art
     internal: true
 
-# Binary sensor for playing state
 binary_sensor:
   - platform: homeassistant
     id: spotify_is_playing
     entity_id: binary_sensor.spotify_playing
     internal: true
 
-# Numeric sensors
 sensor:
   - platform: homeassistant
     id: spotify_volume
@@ -48,27 +45,27 @@ sensor:
     entity_id: sensor.spotify_duration
     internal: true
 
-# Album art image - CRITICAL: format must be 'jpeg' for Spotify images
 online_image:
   - id: spotify_album_art
-    url: https://raw.githubusercontent.com/1liminal1/xiaozhi-esphome/main/images/Other/240x240/clock.png
+    url: https://i.scdn.co/image/ab67616d0000b273e319baafd16e84f0408af2a0
     resize: 160x160
-    format: jpeg  # Changed from PNG to jpeg
+    format: jpeg
     type: RGB565
+    buffer_size: 102400
     update_interval: never
-    on_download_finished:  # CRITICAL: This was missing!
+    on_download_finished:
       - lambda: |-
-          ESP_LOGD("spotify", "Album art downloaded successfully");
+          ESP_LOGI("spotify", "Album art downloaded successfully");
       - if:
           condition:
             lambda: 'return id(show_spotify_page);'
           then:
+            - delay: 200ms
             - component.update: main_display
     on_error:
       - lambda: |-
           ESP_LOGE("spotify", "Failed to download album art");
 
-# Fonts for Spotify
 font:
   - file:
       type: gfonts
@@ -100,7 +97,6 @@ font:
       - ${font_glyphsets}
     ignore_missing_glyphs: true
 
-# Colors
 color:
   - id: spotify_green
     hex: "1ED760"
@@ -109,25 +105,22 @@ color:
   - id: spotify_grey
     hex: "B3B3B3"
 
-# State tracking
 globals:
   - id: show_spotify_page
     type: bool
     restore_value: no
     initial_value: "false"
 
-# Scripts
 script:
   - id: open_spotify_page
     mode: restart
     then:
       - lambda: |-
-          ESP_LOGD("spotify", "Opening Spotify page");
+          ESP_LOGD("spotify", "=== Opening Spotify page ===");
           id(show_spotify_page) = true;
           id(show_clock) = false;
       - script.execute: reset_screensaver
       
-      # Update album art if URL available
       - if:
           condition:
             lambda: |-
@@ -135,13 +128,19 @@ script:
                      id(spotify_album_art_url).state.length() > 10;
           then:
             - lambda: |-
-                ESP_LOGD("spotify", "Album art URL: %s", id(spotify_album_art_url).state.c_str());
+                std::string url = id(spotify_album_art_url).state;
+                ESP_LOGD("spotify", "Fetching album art from: %s", url.c_str());
+            - online_image.release: spotify_album_art
+            - delay: 100ms
             - online_image.set_url:
                 id: spotify_album_art
                 url: !lambda 'return id(spotify_album_art_url).state;'
                 update: true
+            - delay: 2s
+          else:
+            - lambda: |-
+                ESP_LOGW("spotify", "No album art URL available");
       
-      - delay: 1500ms  # Give image time to download
       - display.page.show: spotify_page
       - component.update: main_display
 
@@ -153,7 +152,6 @@ script:
           id(show_spotify_page) = false;
       - script.execute: draw_display
 
-# Switch to enable auto-show
 switch:
   - platform: template
     id: spotify_auto_show
@@ -163,7 +161,6 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     entity_category: config
 
-# Update display when on Spotify page
 interval:
   - interval: 5s
     then:
