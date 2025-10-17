@@ -117,17 +117,22 @@ script:
       - script.execute: reset_screensaver
       
       # Fetch and update album art
-      - lambda: |-
-          if (id(spotify_album_art_url).has_state() && 
-              id(spotify_album_art_url).state.length() > 10) {
-            std::string url = id(spotify_album_art_url).state;
-            ESP_LOGD("spotify", "Fetching album art from: %s", url.c_str());
-            
-            auto call = id(spotify_album_art).set_url(url);
-            call.perform();
-          } else {
-            ESP_LOGW("spotify", "No valid album art URL available");
-          }
+      - if:
+          condition:
+            lambda: |-
+              return id(spotify_album_art_url).has_state() && 
+                     id(spotify_album_art_url).state.length() > 10;
+          then:
+            - lambda: |-
+                std::string url = id(spotify_album_art_url).state;
+                ESP_LOGD("spotify", "Fetching album art from: %s", url.c_str());
+            - online_image.set_url:
+                id: spotify_album_art
+                url: !lambda 'return id(spotify_album_art_url).state;'
+                update: true
+          else:
+            - lambda: |-
+                ESP_LOGW("spotify", "No valid album art URL available");
       
       - delay: 1s
       - display.page.show: spotify_page
