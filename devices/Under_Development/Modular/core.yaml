@@ -1303,6 +1303,7 @@ select:
       - Weather
       - Small
       - Analog
+      - Spotify      
     initial_option: Default
     on_value:
       - if:
