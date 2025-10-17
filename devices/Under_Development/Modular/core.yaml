@@ -991,7 +991,9 @@ script:
     then:
       - lambda: |-
           const std::string sel = id(clock_style).state;
-          if (sel == "Default") {
+          if (sel == "Spotify") {
+            id(main_display).show_page(spotify_page);
+          } else if (sel == "Default") {
             id(main_display).show_page(default_clock);
           } else if (sel == "Flip") {
             id(main_display).show_page(flip_clock);
