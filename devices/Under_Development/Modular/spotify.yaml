@@ -51,7 +51,7 @@ online_image:
     resize: 160x160
     format: jpeg
     type: RGB565
-    buffer_size: 102400
+    buffer_size: 65536
     update_interval: never
     on_download_finished:
       - lambda: |-
