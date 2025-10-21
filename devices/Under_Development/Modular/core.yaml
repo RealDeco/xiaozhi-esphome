@@ -426,8 +426,7 @@ light:
 
 micro_wake_word:
   id: mww
-  models:
-    - okay_nabu
+  models: []
   on_wake_word_detected:
     - script.execute: reset_screensaver
     - if:
