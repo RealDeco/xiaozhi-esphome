@@ -426,7 +426,8 @@ light:
 
 micro_wake_word:
   id: mww
-  models: []
+  models:
+    - model: "https://ha.liminal.net.au/local/wake_words/hey_beemo.json"
   on_wake_word_detected:
     - script.execute: reset_screensaver
     - if:
