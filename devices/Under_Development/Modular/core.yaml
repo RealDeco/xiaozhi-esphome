@@ -428,6 +428,7 @@ micro_wake_word:
   id: mww
   models:
     - model: "https://ha.liminal.net.au/local/wake_words/hey_beemo.json"
+      probability_cutoff: 0.7  # ← Default is 0.5, try 0.7-0.8 for fewer false positives
   on_wake_word_detected:
     - script.execute: reset_screensaver
     - if:
