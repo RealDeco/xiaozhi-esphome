@@ -27,6 +27,8 @@ substitutions:
   displaymodel: "GC9A01A" # GC9A01A (Ball v2 & Puck) or ST7789V (Muma)
   invertcolors: "true" # GC9A01A/ST7789V (Ball v2 & Muma & Puck) "true"
 
+  bluetooth_proxy: false
+
 ##################################################################################################################################################
 
   # Hardware v2 pin mappings
@@ -154,6 +156,11 @@ wifi:
     - script.execute: draw_display
   on_disconnect:
     - script.execute: draw_display
+
+esp32_ble_tracker:
+
+bluetooth_proxy:
+  active: ${bluetooth_proxy}
 
 captive_portal:
 
