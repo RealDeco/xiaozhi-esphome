@@ -1328,6 +1328,7 @@ select:
       - Rolex
       - starrysky
       - waves
+      - foundation
     initial_option: ${clock_background_image}
     on_value:
       - online_image.set_url:
