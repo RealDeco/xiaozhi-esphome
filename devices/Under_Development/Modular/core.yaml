@@ -426,9 +426,12 @@ light:
 
 micro_wake_word:
   id: mww
+  vad:
+    model: github://esphome/micro-wake-word-models/models/v2/vad.json
+    probability_cutoff: 0.5
   models:
-    - model: "https://ha.liminal.net.au/local/wake_words/hey_beemo.json"
-      probability_cutoff: 0.7  # ← Default is 0.5, try 0.7-0.8 for fewer false positives
+    - model: ${wake_word_model_url}
+      probability_cutoff: ${wake_word_probability}
   on_wake_word_detected:
     - script.execute: reset_screensaver
     - if:
