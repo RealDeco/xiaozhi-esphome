@@ -113,7 +113,7 @@ api:
     - lambda: |-
         if (!id(boot_sound_played)) {
           id(boot_sound_played) = true;
-          if (id(startup_sound_switch).state) {
+          if (id(startup_sound_switch).current_option()) {
             id(play_sound)->execute(true, id(ready_sound));
           }
         }
@@ -312,7 +312,7 @@ media_player:
             # Ensure VA stops before moving on
             - if:
                 condition:
-                  - lambda: return id(wake_word_engine_location).state == "In Home Assistant";
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
                 then:
                   - wait_until:
                       - not:
@@ -434,7 +434,7 @@ voice_assistant:
     # Restart only mWW if enabled; streaming wake words automatically restart
     - if:
         condition:
-          - lambda: return id(wake_word_engine_location).state == "On device";
+          - lambda: return id(wake_word_engine_location).current_option() == "On device";
         then:
           - lambda: id(va).set_use_wake_word(false);
           - micro_wake_word.start:
@@ -520,7 +520,7 @@ script:
     then:
       - if:
           condition:
-            - lambda: return id(wake_word_engine_location).state == "On device";
+            - lambda: return id(wake_word_engine_location).current_option() == "On device";
             - switch.is_on: use_listen_light
           then:
             - light.turn_on:
@@ -533,7 +533,7 @@ script:
           else:
             - if:
                 condition:
-                  - lambda: return id(wake_word_engine_location).state != "On device";
+                  - lambda: return id(wake_word_engine_location).current_option() != "On device";
                   - switch.is_on: use_listen_light
                 then:
                   - light.turn_on:
@@ -700,7 +700,7 @@ script:
             and:
               - not:
                   - voice_assistant.is_running:
-              - lambda: return id(wake_word_engine_location).state == "On device";
+              - lambda: return id(wake_word_engine_location).current_option() == "On device";
           then:
             - lambda: id(va).set_use_wake_word(false);
             - micro_wake_word.start:
@@ -709,7 +709,7 @@ script:
             and:
               - not:
                   - voice_assistant.is_running:
-              - lambda: return id(wake_word_engine_location).state == "In Home Assistant";
+              - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
           then:
             - lambda: id(va).set_use_wake_word(true);
             - voice_assistant.start_continuous:
@@ -718,13 +718,13 @@ script:
     then:
       - if:
           condition:
-            lambda: return id(wake_word_engine_location).state == "In Home Assistant";
+            lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
           then:
             - lambda: id(va).set_use_wake_word(false);
             - voice_assistant.stop:
       - if:
           condition:
-            lambda: return id(wake_word_engine_location).state == "On device";
+            lambda: return id(wake_word_engine_location).current_option() == "On device";
           then:
             - micro_wake_word.stop:
   # Set the voice assistant phase to idle or muted, depending on if the software mute switch is activated
@@ -752,7 +752,7 @@ script:
               .set_announcement(true)
               .perform();
           }
-          if ( (id(external_media_player).state != media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING ) || priority) {
+          if ( (id(external_media_player).current_option() != media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING ) || priority) {
             id(external_media_player)
               ->play_file(sound_file, true, false);
           }
@@ -993,20 +993,20 @@ text_sensor:
     platform: template
     on_value:
       lambda: |-
-        if(id(text_request).state.length()>32) {
-          std::string name = id(text_request).state.c_str();
+        if(id(text_request).current_option().length()>32) {
+          std::string name = id(text_request).current_option().c_str();
           std::string truncated = esphome::str_truncate(name.c_str(),31);
-          id(text_request).state = (truncated+"...").c_str();
+          id(text_request).current_option() = (truncated+"...").c_str();
         }
 
   - id: text_response
     platform: template
     on_value:
       lambda: |-
-        if(id(text_response).state.length()>32) {
-          std::string name = id(text_response).state.c_str();
+        if(id(text_response).current_option().length()>32) {
+          std::string name = id(text_response).current_option().c_str();
           std::string truncated = esphome::str_truncate(name.c_str(),31);
-          id(text_response).state = (truncated+"...").c_str();
+          id(text_response).current_option() = (truncated+"...").c_str();
         }
 
 color:
@@ -1061,10 +1061,10 @@ display:
         lambda: |-
           it.fill(id(thinking_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_thinking), ImageAlign::CENTER);
-          if (id(show_text).state) {
+          if (id(show_text).current_option()) {
             it.filled_rectangle(20 , 20 , 200 , 30 , Color::WHITE );
             it.rectangle(20 , 20 , 200 , 30 , Color::BLACK );
-            it.printf(30, 25, id(font_request), Color::BLACK, "%s", id(text_request).state.c_str());
+            it.printf(30, 25, id(font_request), Color::BLACK, "%s", id(text_request).current_option().c_str());
           }
           id(draw_timer_timeline).execute();
       - id: replying_page
@@ -1075,10 +1075,10 @@ display:
           if (it.get_height() == 320) {
             y_offset = 270; // Move box lower for 320px tall screens
           }
-          if (id(show_text).state) {
+          if (id(show_text).current_option()) {
             it.filled_rectangle(20, y_offset, 200, 30, Color::WHITE);
             it.rectangle(20, y_offset, 200, 30, Color::BLACK);
-            it.printf(30, y_offset + 5, id(font_response), Color::BLACK, "%s", id(text_response).state.c_str());
+            it.printf(30, y_offset + 5, id(font_response), Color::BLACK, "%s", id(text_response).current_option().c_str());
           }
           id(draw_timer_timeline).execute();
       - id: timer_finished_page
