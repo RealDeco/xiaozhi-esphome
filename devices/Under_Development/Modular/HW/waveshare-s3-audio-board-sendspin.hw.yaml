@@ -1,0 +1,326 @@
+# waveshare-s3-audio-board
+
+# --- CLOCKS PACKAGE -----------------------------------------------------------
+packages:
+  clocks: !include ../clocks-standard.yaml
+
+# --- SENDSPIN -----------------------------------------------------------------
+external_components:
+  - source:
+      # https://github.com/esphome/esphome/pull/12253
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 7f34908569650e5a8b8c83e6bf89fea561218880
+    components: [mixer]
+  - source:
+      # https://github.com/esphome/esphome/pull/12254
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 6006b896a691ad38d8045ac67564c168973d1a1d
+    components: [resampler]
+  - source:
+      # https://github.com/esphome/esphome/pull/12256
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 9148832ea4e54907bad71a24d4ced1ce6c862433
+    components: [audio]
+  - source:
+      # https://github.com/esphome/esphome/pull/12258
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: bff22983a390352360796f8e1363127e0cd1f898
+    components: [media_player]
+  - source:
+      # https://github.com/esphome/esphome/pull/12284
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: a6c0a861a014e64c67d46115eba8e5370777b80a
+    components: [generic_image, mdns, sendspin]
+  - source:
+      # https://github.com/esphome/esphome/pull/12429
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 928204066ce0082404573ea1c6a0b58aeebbd7c6
+    refresh: 0s
+    components: [file, http_request, media_source, speaker_source]
+  - source: github://pr#10212
+      # https://github.com/esphome/esphome/pull/10212
+    components: [runtime_image, online_image]
+
+# --- BUSES / PERIPHERALS ------------------------------------------------------
+tca9555:
+  - id: tca9555_device
+    address: 0x20
+
+i2c:
+  - id: bus_a
+    scl: GPIO10
+    sda: GPIO11
+    scan: true
+
+spi:
+  - id: spi_bus
+    clk_pin: GPIO4
+    mosi_pin: GPIO6
+
+i2s_audio:
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO14
+    i2s_bclk_pin: GPIO13
+    i2s_mclk_pin: GPIO12
+
+audio_dac:
+  - platform: es8311
+    i2c_id: bus_a
+    id: es8311_dac
+    bits_per_sample: 16bit
+    sample_rate: 16000
+
+audio_adc:
+  - platform: es7210
+    i2c_id: bus_a
+    id: es7210_adc
+    bits_per_sample: 16bit
+    sample_rate: 16000
+
+switch:
+  - platform: gpio
+    name: Speaker Enable
+    icon: "mdi:speaker"
+    entity_category: config
+    pin:
+      tca9555: tca9555_device
+      number: 8
+    restore_mode: RESTORE_DEFAULT_ON
+
+# --- AUDIO DEVICES ------------------------------------------------------------
+microphone:
+  - platform: i2s_audio
+    id: box_mic
+    i2s_audio_id: i2s_audio_bus
+    i2s_din_pin: GPIO15
+    adc_type: external
+    channel: left
+    pdm: false
+    sample_rate: 16000
+    bits_per_sample: 16bit
+
+speaker:
+  - platform: i2s_audio
+    id: box_speaker
+    i2s_audio_id: i2s_audio_bus
+    i2s_dout_pin: GPIO16
+    dac_type: external
+    audio_dac: es8311_dac
+    sample_rate: 48000
+    channel: mono
+
+  - platform: mixer
+    id: mixing_speaker
+    output_speaker: box_speaker
+    num_channels: 2
+    source_speakers:
+      - id: announcement_mixer_input
+      - id: media_mixer_input
+
+  - platform: resampler
+    id: media_resampling_input
+    output_speaker: media_mixer_input
+    sample_rate: 48000
+
+  - platform: resampler
+    id: announcement_resampling_input
+    output_speaker: announcement_mixer_input    
+    sample_rate: 48000
+
+sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: true
+  kalman_process_error: 0.01
+
+media_source:
+  - platform: sendspin
+    id: sendspin_source
+  - platform: http_request
+    id: http_source
+    buffer_size: 500000
+  - platform: file
+    id: file_source
+    files:
+      - id: timer_finished_sound
+        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+      - id: wake_word_triggered_sound
+        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/wake_word_triggered.flac
+      - id: ready_sound
+        file: ${startup_sound_file}
+
+media_player:
+  - platform: sendspin
+    id: sendspin_group_media_player
+  - platform: speaker_source
+    name: none
+    id: external_media_player
+    announcement_speaker: announcement_resampling_input
+    media_speaker: media_resampling_input
+
+    announcement_pipeline:
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
+    media_pipeline:
+      format: FLAC
+      num_channels: 2      
+      sample_rate: 48000
+
+    volume_increment: 0.05
+    volume_min: 0.5
+    volume_max: 0.8
+    sources:
+      - file_source
+      - http_source
+      - sendspin_source
+
+    on_announcement:
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+            - script.execute: reset_screensaver
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_play:
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+#            - script.execute: reset_screensaver
+            - script.execute:
+                id: set_phase
+                phase: ${voice_assist_playing_phase_id}
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_pause:
+      - if:
+          condition:
+            not:
+              voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+
+    on_idle:
+      - if:
+          condition:
+            not:
+              voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+
+# --- BACKLIGHT & AUX LED ------------------------------------------------------
+output:
+  - platform: ledc
+    pin: 5
+    id: backlight_output
+    inverted: true
+
+light:
+  - platform: monochromatic
+    id: Sled
+    name: Screen
+    icon: "mdi:television"
+    entity_category: config
+    output: backlight_output
+    restore_mode: RESTORE_DEFAULT_ON
+    default_transition_length: 250ms
+
+  - platform: esp32_rmt_led_strip
+    id: led
+    name: none
+    restore_mode: ALWAYS_ON
+    disabled_by_default: false
+    entity_category: config
+    pin: GPIO38
+    default_transition_length: 0s
+    chipset: WS2812
+    num_leds: 1
+    rgb_order: rgb
+    effects:
+      - pulse:
+          name: "Slow Pulse"
+          transition_length: 250ms
+          update_interval: 250ms
+          min_brightness: 50%
+          max_brightness: 100%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 100ms
+          update_interval: 100ms
+          min_brightness: 50%
+          max_brightness: 100%
+
+# --- BATTERY ADC --------------------------------------------------------------
+sensor:
+  - platform: adc
+    id: battery_voltage
+    pin: GPIO20
+    attenuation: 12db
+    update_interval: 24h
+    internal: true
+    filters:
+      - lambda: 'return 4.20;'
+    on_value:
+      then:
+        - sensor.template.publish:
+            id: battery_percentage
+            state: !lambda 'return x;'
+
+# --- DISPLAY DRIVER (ILI9xxx round GC9A01A) ----------------------------------
+display:
+  - platform: mipi_spi
+    id: main_display
+    model: GC9A01A
+    invert_colors: true
+    cs_pin: GPIO3
+    dc_pin: GPIO7
+    reset_pin:
+      tca9555: tca9555_device
+      number: 0
+    update_interval: never
+    pages: !include ../no_display_pages.yaml
