@@ -1,0 +1,68 @@
+# display_pages v1.05
+
+      - id: idle_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: listening_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: thinking_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: replying_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: timer_finished_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: error_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: no_ha_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: no_wifi_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: initializing_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: muted_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: now_playing_page
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: default_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: flip_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: clock_7segment
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: empty_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: presence_sensor_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: weather_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: small_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: analog_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: wide_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: alarmstyle_clock
+        lambda: |-
+          it.fill(id(idle_color));
+      - id: big_clock
+        lambda: |-
+          it.fill(id(idle_color));
