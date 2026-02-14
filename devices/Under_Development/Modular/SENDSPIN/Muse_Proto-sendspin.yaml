@@ -47,16 +47,23 @@ captive_portal:
 
 external_components:
   - source:
-      # https://github.com/esphome/esphome/pull/12253
+      type: git
+      url: https://github.com/esphome/home-assistant-voice-pe
+      ref: dev
+    components:
+      - voice_kit
+    refresh: 0s
+  - source:
+      # https://github.com/esphome/esphome/pull/12253 (merged into upstream ESPHome, will be available in ESPHome 2026.2.0)
       type: git
       url: https://github.com/esphome/esphome
-      ref: 7f34908569650e5a8b8c83e6bf89fea561218880
+      ref: c28c97fbaf15c4ce353317e873054fb00a1d7a6d  # ESPHome dev branch commit hash
     components: [mixer]
   - source:
-      # https://github.com/esphome/esphome/pull/12254
+      # https://github.com/esphome/esphome/pull/12254 (merged into upstream ESPHome, will be available in ESPHome 2026.2.0)
       type: git
       url: https://github.com/esphome/esphome
-      ref: 6006b896a691ad38d8045ac67564c168973d1a1d
+      ref: 298efb53400852a09e2f8bdf16feac9a58422059  # ESPHome dev branch commit hash
     components: [resampler]
   - source:
       # https://github.com/esphome/esphome/pull/12256
@@ -74,25 +81,19 @@ external_components:
       # https://github.com/esphome/esphome/pull/12284
       type: git
       url: https://github.com/esphome/esphome
-      ref: a6c0a861a014e64c67d46115eba8e5370777b80a
+      ref: 3cc894763b05ac8ffd9fdd15bcb549d47cadf6eb
     components: [mdns, sendspin]
   - source:
       # https://github.com/esphome/esphome/pull/12429
       type: git
       url: https://github.com/esphome/esphome
-      ref: 928204066ce0082404573ea1c6a0b58aeebbd7c6
+      ref: 32708a2ee74f5ea4107448f62755004ad3e879c5
     refresh: 0s
     components: [file, http_request, media_source, speaker_source]
-  - source:
-      type: git
-      url: https://github.com/kahrendt/esphome
-      ref: wifi-power-save-wake-loop
-    refresh: 0s
-    components: [wifi]
+
   - source: github://pr#3552
     components: [es8388]
     refresh: 0s
-
 
 i2c:
   sda: GPIO18
@@ -177,6 +178,9 @@ media_player:
       num_channels: 2      
       sample_rate: 48000
 
+    volume_increment: 0.05
+    volume_min: 0.5
+    volume_max: 1.0
     sources:
       - http_source
       - sendspin_source
