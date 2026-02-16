@@ -101,6 +101,8 @@ time:
 api:
   on_client_connected:
     - script.execute: draw_display
+    - script.execute: stop_wake_word
+    - delay: 500ms
     - lambda: |-
         if (!id(boot_sound_played)) {
           id(boot_sound_played) = true;
@@ -277,7 +279,7 @@ binary_sensor:
             else:
               - if:
                   condition:
-                    lambda: return id(wake_word_engine_location).state == "On device";
+                    lambda: return id(wake_word_engine_location).current_option() == "On device";
                   then:
                     - media_player.stop:
                         id: external_media_player
@@ -310,7 +312,7 @@ binary_sensor:
               else:
                 - if:
                     condition:
-                      lambda: return id(wake_word_engine_location).state == "On device";
+                      lambda: return id(wake_word_engine_location).current_option() == "On device";
                     then:
                       - media_player.stop:
                           id: external_media_player
@@ -528,24 +530,13 @@ voice_assistant:
 
     - if:
         condition:
-          - lambda: return id(wake_word_engine_location).state == "On device";
+          lambda: return id(wake_word_engine_location).current_option() == "On device";
         then:
-          - lambda: id(va).set_use_wake_word(false);
-          - micro_wake_word.start:
-
-    - if:
-        condition:
-          lambda: return id(wake_word_engine_location).state == "On device";
-        then:
-          # On-device wake word: behave like your old good config
           - lambda: id(va).set_use_wake_word(false);
           - micro_wake_word.start:
           - script.execute: set_idle_or_mute_phase
           - script.execute: draw_display
         else:
-          # Continuous (In Home Assistant) mode:
-          # don't mess with wake-word; HA handles it
-          # but we still need to escape replying/thinking
           - if:
               condition:
                 lambda: |-
@@ -953,7 +944,7 @@ script:
 #              - not:
 #                  speaker.is_playing:
 #                    id: box_speaker
-              - lambda: return id(wake_word_engine_location).state == "On device";
+              - lambda: return id(wake_word_engine_location).current_option() == "On device";
           then:
             - lambda: id(va).set_use_wake_word(false);
             - micro_wake_word.start:
@@ -962,7 +953,7 @@ script:
             and:
               - not:
                   voice_assistant.is_running:
-              - lambda: return id(wake_word_engine_location).state == "In Home Assistant";
+              - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
           then:
             - lambda: id(va).set_use_wake_word(true);
             - voice_assistant.start_continuous:
@@ -971,13 +962,13 @@ script:
     then:
       - if:
           condition:
-            lambda: return id(wake_word_engine_location).state == "In Home Assistant";
+            lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
           then:
             - lambda: id(va).set_use_wake_word(false);
             - voice_assistant.stop:
       - if:
           condition:
-            lambda: return id(wake_word_engine_location).state == "On device";
+            lambda: return id(wake_word_engine_location).current_option() == "On device";
           then:
             - micro_wake_word.stop:
 
@@ -1030,7 +1021,7 @@ script:
           else:
             - if:
                 condition:
-                  lambda: return id(wake_word_engine_location).state == "On device";
+                  lambda: return id(wake_word_engine_location).current_option() == "On device";
                 then:
                   - if:
                       condition:
