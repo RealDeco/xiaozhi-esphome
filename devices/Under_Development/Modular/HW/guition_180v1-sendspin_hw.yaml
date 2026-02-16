@@ -7,16 +7,16 @@ packages:
 # --- SENDSPIN -----------------------------------------------------------------
 external_components:
   - source:
-      # https://github.com/esphome/esphome/pull/12253
+      # https://github.com/esphome/esphome/pull/12253 (merged into upstream ESPHome, will be available in ESPHome 2026.2.0)
       type: git
       url: https://github.com/esphome/esphome
-      ref: 7f34908569650e5a8b8c83e6bf89fea561218880
+      ref: c28c97fbaf15c4ce353317e873054fb00a1d7a6d  # ESPHome dev branch commit hash
     components: [mixer]
   - source:
-      # https://github.com/esphome/esphome/pull/12254
+      # https://github.com/esphome/esphome/pull/12254 (merged into upstream ESPHome, will be available in ESPHome 2026.2.0)
       type: git
       url: https://github.com/esphome/esphome
-      ref: 6006b896a691ad38d8045ac67564c168973d1a1d
+      ref: 298efb53400852a09e2f8bdf16feac9a58422059  # ESPHome dev branch commit hash
     components: [resampler]
   - source:
       # https://github.com/esphome/esphome/pull/12256
@@ -34,25 +34,25 @@ external_components:
       # https://github.com/esphome/esphome/pull/12284
       type: git
       url: https://github.com/esphome/esphome
-      ref: a6c0a861a014e64c67d46115eba8e5370777b80a
-    components: [generic_image, mdns, sendspin]
+      ref: 3cc894763b05ac8ffd9fdd15bcb549d47cadf6eb
+#      ref: 4a280e428a10a20cf9fd044278c6c24be5a5d6a5
+    components: [mdns, sendspin]
   - source:
       # https://github.com/esphome/esphome/pull/12429
       type: git
       url: https://github.com/esphome/esphome
-      ref: 928204066ce0082404573ea1c6a0b58aeebbd7c6
+      ref: 32708a2ee74f5ea4107448f62755004ad3e879c5
     refresh: 0s
     components: [file, http_request, media_source, speaker_source]
 
   - source: github://pr#10212
-      # https://github.com/esphome/esphome/pull/10212
     components: [runtime_image, online_image]
-  - source:
-      type: git
-      url: https://github.com/kahrendt/esphome
-      ref: wifi-power-save-wake-loop
-    refresh: 0s
-    components: [wifi]
+#  - source:
+#      type: git
+#      url: https://github.com/kahrendt/esphome
+#      ref: wifi-power-save-wake-loop
+#    refresh: 0s
+#    components: [wifi]
 
 globals:
   - id: sendspin_album_art_valid
@@ -66,21 +66,25 @@ image:
     resize: ${screenwidth}x${screenheight}
     type: RGB565
 
-generic_image:
-  - platform: sendspin
+  - file: ${playing_illustration_file}
     id: sendspin_album_art
-    format: jpg
+    resize: ${screenwidth}x${screenheight}
     type: RGB565
-    resize: 300x300
-    image_source: ALBUM
-    on_image_decoded:
-      - lambda: |-
-          id(sendspin_album_art_valid) = true;
-      - component.update: main_display
-    on_image_error:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
+#generic_image:
+#  - platform: sendspin
+#    id: sendspin_album_art
+#    format: jpg
+#    type: RGB565
+#    resize: 300x300
+#    image_source: ALBUM
+#    on_image_decoded:
+#      - lambda: |-
+#          id(sendspin_album_art_valid) = true;
+#      - component.update: main_display
+#    on_image_error:
+#      - lambda: |-
+#          id(sendspin_album_art_valid) = false;
+#      - component.update: main_display
 
 text_sensor:
   - platform: sendspin
