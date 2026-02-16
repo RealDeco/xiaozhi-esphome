@@ -1,4 +1,4 @@
-# Waveshare ESP32-S3-Touch-LCD-1.85C_V2 v1.12
+# Waveshare ESP32-S3-Touch-LCD-1.85C_V2
 
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
@@ -58,13 +58,12 @@ globals:
 image:
   - file: ${playing_illustration_file}
     id: !extend casita_playing
-    resize: 300x300
+    resize: ${screenwidth}x${screenheight}
     type: RGB565
 
-image:
   - file: ${playing_illustration_file}
     id: sendspin_album_art
-    resize: 300x300
+    resize: ${screenwidth}x${screenheight}
     type: RGB565
 #generic_image:
 #  - platform: sendspin
@@ -130,7 +129,7 @@ microphone:
     i2s_audio_id: i2s_mic
     i2s_din_pin: GPIO39
     adc_type: external
-    channel: left
+    channel: right
     pdm: false
     sample_rate: 16000
     bits_per_sample: 16bit
@@ -142,7 +141,6 @@ speaker:
     i2s_dout_pin: GPIO47
     dac_type: external
     channel: mono
-    buffer_duration: 300ms
 
   - platform: mixer
     id: mixing_speaker
@@ -373,6 +371,9 @@ touchscreen:
               case 270: ndx = -dy;  ndy =  dx; break;
               default: break;
             }
+
+            ndx = -ndx;
+            ndy = -ndy;
 
             const int absx = std::abs(ndx);
             const int absy = std::abs(ndy);
