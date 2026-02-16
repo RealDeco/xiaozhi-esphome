@@ -17,6 +17,7 @@ select:
       - Wide
       - Alarmstyle
       - Big
+      - Xiaozhi
     initial_option: Default
     on_value:
       - if:
@@ -76,6 +77,8 @@ script:
             id(main_display).show_page(alarmstyle_clock);
           } else if (sel == "Big") {
             id(main_display).show_page(big_clock);
+          } else if (sel == "Xiaozhi") {
+            id(main_display).show_page(xiaozhi_clock);
           } else {
             id(main_display).show_page(clock_7segment);
           }
@@ -85,7 +88,7 @@ script:
     then:
       - lambda: |-
           static const char* const opts[] = {
-            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big"
+            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big","Xiaozhi"
           };
           const int N = sizeof(opts)/sizeof(opts[0]);
           std::string cur = id(clock_style).current_option();
@@ -98,7 +101,7 @@ script:
     then:
       - lambda: |-
           static const char* const opts[] = {
-            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big"
+            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big","Xiaozhi"
           };
           const int N = sizeof(opts)/sizeof(opts[0]);
           std::string cur = id(clock_style).current_option();
