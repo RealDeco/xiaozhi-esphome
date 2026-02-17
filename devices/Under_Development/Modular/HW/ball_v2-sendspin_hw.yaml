@@ -56,6 +56,12 @@ globals:
     restore_value: no
     initial_value: "false"
 
+image:
+  - file: ${playing_illustration_file}
+    id: !extend casita_playing
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+
   - file: ${playing_illustration_file}
     id: sendspin_album_art
     resize: ${screenwidth}x${screenheight}
