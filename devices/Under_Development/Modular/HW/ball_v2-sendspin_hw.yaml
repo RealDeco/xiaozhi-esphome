@@ -1,4 +1,3 @@
-
 # Ball v2 hardware v1.12
 
 # --- CLOCKS PACKAGE -----------------------------------------------------------
@@ -52,6 +51,11 @@ external_components:
 
 globals:
   - id: sendspin_album_art_valid
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: gs_hold_fired
     type: bool
     restore_value: no
     initial_value: "false"
@@ -281,22 +285,28 @@ media_player:
     on_pause:
       - if:
           condition:
-            not:
-              voice_assistant.is_running:
+            and:
+              - not:
+                  voice_assistant.is_running:
+              - lambda: return id(voice_assistant_phase) != ${voice_assist_playing_phase_id};
           then:
+            - delay: 300ms
             - script.execute: start_wake_word
             - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+      - script.execute: draw_display
 
     on_idle:
       - if:
           condition:
-            not:
-              voice_assistant.is_running:
+            and:
+              - not:
+                  voice_assistant.is_running:
+              - lambda: return id(voice_assistant_phase) != ${voice_assist_playing_phase_id};
           then:
+            - delay: 300ms
             - script.execute: start_wake_word
             - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+      - script.execute: draw_display
 
 # --- BACKLIGHT & AUX LED ------------------------------------------------------
 output:
@@ -352,6 +362,7 @@ touchscreen:
       then:
         - lambda: |-
             id(gs_touch_active) = true;
+            id(gs_hold_fired) = false;
             id(gs_start_x) = touch.x;
             id(gs_start_y) = touch.y;
             id(gs_last_x)  = touch.x;
@@ -375,6 +386,7 @@ touchscreen:
         - lambda: |-
             if (!id(gs_touch_active)) return;
             id(gs_touch_active) = false;
+            if (id(gs_hold_fired)) return;
 
             const int start_x = id(gs_start_x);
             const int start_y = id(gs_start_y);
@@ -426,11 +438,19 @@ touchscreen:
               }
             }
 
-            // Not a swipe → tap (strict, then forgiving fallback)
+            // Not a swipe → tap/hold
             if (!(is_left || is_right || is_up || is_down)) {
+              // Short tap (strict, then forgiving fallback)
               if ((absx <= TAP_MAX_DIST && absy <= TAP_MAX_DIST && dt <= TAP_MAX_TIME) ||
                   (absx <= TAP_FB_DIST  && absy <= TAP_FB_DIST  && dt <= TAP_FB_TIME)) {
-                id(pulse_touch_input).execute();
+
+                // Playing: tap toggles play/pause (and do not pulse)
+                if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
+                  id(tap_playing_toggle_action).execute();
+                } else {
+                  // All other phases: expose tap via pulse (stop VA, etc.)
+                  id(pulse_touch_input).execute();
+                }
               }
               return;
             }
@@ -442,12 +462,76 @@ touchscreen:
             if (is_down)  id(pulse_swipe_down).execute();
 
             // Optional local handling
-            if (id(swipe_local).state) {
+            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_idle_phase_id})) {
               if (is_left)  id(swipe_left_action).execute();
               if (is_right) id(swipe_right_action).execute();
               if (is_up)    id(swipe_up_action).execute();
               if (is_down)  id(swipe_down_action).execute();
             }
+
+            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
+              if (is_up)    id(swipe_playing_up_action).execute();
+              if (is_down)  id(swipe_playing_down_action).execute();
+              if (is_left)  id(swipe_playing_left_action).execute();
+              if (is_right) id(swipe_playing_right_action).execute();
+            }
+
+script:
+  - id: swipe_playing_up_action
+    then:
+      - media_player.volume_up: external_media_player
+
+  - id: swipe_playing_down_action
+    then:
+      - media_player.volume_down: external_media_player
+
+  - id: swipe_playing_left_action
+    then:
+      - media_player.next: sendspin_media
+
+  - id: swipe_playing_right_action
+    then:
+      - media_player.previous: sendspin_media
+
+  - id: tap_playing_toggle_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: tap_playing_stop_action
+    then:
+      - media_player.stop: sendspin_media
+#      - script.execute: set_idle_or_mute_phase
+#      - script.execute: draw_display
+
+interval:
+  - interval: 100ms
+    then:
+      - if:
+          condition:
+            lambda: |-
+              if (!id(gs_touch_active)) return false;
+              if (id(gs_hold_fired)) return false;
+              if (!id(swipe_local).state) return false;
+              if (id(voice_assistant_phase) != ${voice_assist_playing_phase_id}) return false;
+
+              const uint32_t HOLD_MS = 700;
+              if ((millis() - id(gs_start_ms)) < HOLD_MS) return false;
+
+              const int w = id(main_display).get_width();
+              const int h = id(main_display).get_height();
+              const int min_dim = (w < h) ? w : h;
+              const int HOLD_MAX_DIST = std::max(10, min_dim / 18);
+
+              const int dx = id(gs_last_x) - id(gs_start_x);
+              const int dy = id(gs_last_y) - id(gs_start_y);
+              const int absx = std::abs(dx);
+              const int absy = std::abs(dy);
+
+              return (absx <= HOLD_MAX_DIST) && (absy <= HOLD_MAX_DIST);
+          then:
+            - lambda: |-
+                id(gs_hold_fired) = true;
+            - script.execute: tap_playing_stop_action
 
 # --- BATTERY ADC --------------------------------------------------------------
 sensor:
