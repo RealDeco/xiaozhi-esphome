@@ -306,7 +306,7 @@ media_player:
             - delay: 300ms
             - script.execute: start_wake_word
             - script.execute: set_idle_or_mute_phase
-      - script.execute: draw_display
+            - script.execute: draw_display
 
 # --- BACKLIGHT & AUX LED ------------------------------------------------------
 output:
@@ -500,9 +500,10 @@ script:
   - id: tap_playing_stop_action
     then:
       - media_player.stop: sendspin_media
-#      - script.execute: set_idle_or_mute_phase
-#      - script.execute: draw_display
-
+      - script.execute: start_wake_word
+      - script.execute: set_idle_or_mute_phase
+      - script.execute: draw_display
+      
 interval:
   - interval: 100ms
     then:
