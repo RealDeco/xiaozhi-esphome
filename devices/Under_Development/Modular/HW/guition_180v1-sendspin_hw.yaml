@@ -1,4 +1,4 @@
-# Taichi Pi v1 hardware SENDSPIN edition v1.12
+# Taichi Pi v1 hardware SENDSPIN edition v1.13
 
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
@@ -250,8 +250,8 @@ script:
 
   - id: tap_playing_toggle_action
     then:
-      - delay: 100ms
-#      - media_player.toggle: sendspin_media
+      - lambda: |-
+          ESP_LOGI("TOUCH", "tap_playing_toggle_action fired");
 
   - id: tap_playing_hold_action
     then:
