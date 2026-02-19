@@ -14,6 +14,7 @@ substitutions:
   playing_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/playing.png
   clock_background_file: ${imagepath}/Other/${screenwidth}x${screenheight}/${clock_background_image}.png
   startup_sound_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/${startup_sound}.flac
+  wakeup_sound_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/${wakeup_sound}.flac
 
   loading_illustration_background_color: "000000"
   idle_illustration_background_color: "000000"
