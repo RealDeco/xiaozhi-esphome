@@ -36,7 +36,7 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2026.1.0
+  min_version: 2026.2.0
   name_add_mac_suffix: false
   on_boot:
     priority: 600
@@ -102,7 +102,7 @@ api:
   on_client_connected:
     - script.execute: draw_display
     - script.execute: stop_wake_word
-    - delay: 5000ms
+    - delay: 500ms
     - lambda: |-
         if (!id(boot_sound_played)) {
           id(boot_sound_played) = true;
@@ -715,45 +715,50 @@ script:
 
   - id: fetch_first_active_timer
     then:
-      - lambda: |
-          const auto timers = id(va).get_timers();
-          auto output_timer = timers.begin()->second;
-          for (auto &iterable_timer : timers) {
-            if (iterable_timer.second.is_active && iterable_timer.second.seconds_left <= output_timer.seconds_left) {
-              output_timer = iterable_timer.second;
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
+          if (timers.empty()) return;
+
+          auto output_timer = *timers.begin();
+          for (const auto &timer : timers) {
+            if (timer.is_active && timer.seconds_left <= output_timer.seconds_left) {
+              output_timer = timer;
             }
           }
           id(global_first_active_timer) = output_timer;
 
   - id: check_if_timers_active
     then:
-      - lambda: |
-          const auto timers = id(va).get_timers();
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
           bool output = false;
-          if (timers.size() > 0) {
-            for (auto &iterable_timer : timers) {
-              if (iterable_timer.second.is_active) output = true;
+          for (const auto &timer : timers) {
+            if (timer.is_active) {
+              output = true;
+              break;
             }
           }
           id(global_is_timer_active) = output;
 
   - id: fetch_first_timer
     then:
-      - lambda: |
-          const auto timers = id(va).get_timers();
-          auto output_timer = timers.begin()->second;
-          for (auto &iterable_timer : timers) {
-            if (iterable_timer.second.seconds_left <= output_timer.seconds_left) {
-              output_timer = iterable_timer.second;
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
+          if (timers.empty()) return;
+
+          auto output_timer = *timers.begin();
+          for (const auto &timer : timers) {
+            if (timer.seconds_left <= output_timer.seconds_left) {
+              output_timer = timer;
             }
           }
           id(global_first_timer) = output_timer;
 
   - id: check_if_timers
     then:
-      - lambda: |
-          const auto timers = id(va).get_timers();
-          id(global_is_timer) = (timers.size() > 0);
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
+          id(global_is_timer) = !timers.empty();
 
   - id: draw_timer_timeline
     then:
