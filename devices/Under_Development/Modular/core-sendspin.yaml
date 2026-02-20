@@ -1,4 +1,4 @@
-# Core v1.12 sendspin edition
+# Core v1.13 sendspin edition
 
 substitutions:
   allowed_characters: >-
@@ -298,7 +298,6 @@ binary_sensor:
     pin:
       number: 0
       mode: INPUT_PULLUP
-#      ignore_strapping_warning: true
       inverted: true
     id: left_button
     on_multi_click:
@@ -537,7 +536,7 @@ voice_assistant:
           lambda: return id(wake_word_engine_location).current_option() == "On device";
         then:
           - lambda: id(va).set_use_wake_word(false);
-          - micro_wake_word.start:
+          - script.execute: start_wake_word
           - script.execute: set_idle_or_mute_phase
           - script.execute: draw_display
         else:
@@ -1372,7 +1371,7 @@ select:
                       condition:
                         switch.is_off: mute
                       then:
-                        - micro_wake_word.start
+                        - script.execute: start_wake_word
 
 globals:
   - id: init_in_progress
