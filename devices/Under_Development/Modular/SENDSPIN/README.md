@@ -1,15 +1,26 @@
-Devices updated to 2026.2.0:
+## 📦 Devices Updated to `2026.2.0`
 
-Album Art is back and working, changed touch so when playing music, left & right swipes is previous & next song, up & down is Volume +/-
-and long hold is stop/pause/play.
+### ✅ What’s New
 
-Guition 1.80 v1
-Guition 1.80 v2
-Ball v2
-Xiaozhi Cube 1.54
+* 🎵 **Album Art** is back and working
+* 👆 **Improved touch controls while playing music:**
 
-next up:
+  * ⬅️➡️ Swipe left/right: **Previous / Next track**
+  * ⬆️⬇️ Swipe up/down: **Volume + / -**
+  * ✋ Long hold: **Stop / Pause / Play**
 
-SendspinZero
-Waveshare 1.85C v1 & V2
-..
+### 📱 Supported Devices
+
+* Guition **1.80 v1**
+* Guition **1.80 v2**
+* Ball **v2**
+* Xiaozhi Cube **1.54**
+
+---
+
+## 🔜 Next Up
+
+* SendspinZero
+* Waveshare **1.85C v1 & v2**
+* …
+
