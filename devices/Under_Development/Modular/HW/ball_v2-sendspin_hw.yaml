@@ -7,47 +7,49 @@ packages:
 # --- SENDSPIN -----------------------------------------------------------------
 external_components:
   - source:
-      # https://github.com/esphome/esphome/pull/12253 (merged into upstream ESPHome, will be available in ESPHome 2026.2.0)
+      # https://github.com/esphome/esphome/pull/12429
       type: git
       url: https://github.com/esphome/esphome
-      ref: c28c97fbaf15c4ce353317e873054fb00a1d7a6d  # ESPHome dev branch commit hash
-    components: [mixer]
-  - source:
-      # https://github.com/esphome/esphome/pull/12254 (merged into upstream ESPHome, will be available in ESPHome 2026.2.0)
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 298efb53400852a09e2f8bdf16feac9a58422059  # ESPHome dev branch commit hash
-    components: [resampler]
-  - source:
-      # https://github.com/esphome/esphome/pull/12256
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 9148832ea4e54907bad71a24d4ced1ce6c862433
-    components: [audio]
-  - source:
-      # https://github.com/esphome/esphome/pull/12258
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: bff22983a390352360796f8e1363127e0cd1f898
-    components: [media_player]
+      ref: a6c403deb7603d316dce2820897902e01c3695cc
+    refresh: 0s
+    components: [file, http_request, media_source, speaker_source]
   - source:
       # https://github.com/esphome/esphome/pull/12284
       type: git
       url: https://github.com/esphome/esphome
-      ref: 3cc894763b05ac8ffd9fdd15bcb549d47cadf6eb
-#      ref: 4a280e428a10a20cf9fd044278c6c24be5a5d6a5
-#   REMOVED generic_image until 2026.2.0
-    components: [mdns, sendspin]
+      ref: 119a5c25a483c58b3d58a35c8cec95495c6491c2
+    components: [generic_image, sendspin]
+
+  # The following sources are merged into the dev branch of ESPHome, but not yet in a release.
+  # We've pinned them to their specific squash merge commit id for reproducable builds.
+  # These should be available in ESPHome 2026.3.0
   - source:
-      # https://github.com/esphome/esphome/pull/12429
+      # Dev commit hash for squash merge from PR#10212
       type: git
       url: https://github.com/esphome/esphome
-      ref: 32708a2ee74f5ea4107448f62755004ad3e879c5
-    refresh: 0s
-    components: [file, http_request, media_source, speaker_source]
+      ref: 903971de12c1b291ca8cd367ce5cdf9af8b304ae
+    components: [runtime_image]
+  - source:
+      # Dev commit hash for squash merge from PR#12258
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 264c8faedd0ab956b0437ec2ecc0bacae1708923
+    components: [media_player]
+  - source:
+      # Dev commit hash for squash merge from PR#14013
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: ba7134ee3f870ce00d2990d84b142b734028330f
+    components: [mdns]
+  - source:
+      # Dev commit hash for squash merge from PR#14108
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: d2026b4cd74bbeb9b86941bf1887f3d93d639387
+    components: [audio]
 
-  - source: github://pr#10212
-    components: [runtime_image, online_image]
+#  - source: github://pr#10212
+#    components: [runtime_image, online_image]
 
 globals:
   - id: sendspin_album_art_valid
@@ -66,25 +68,21 @@ image:
     resize: ${screenwidth}x${screenheight}
     type: RGB565
 
-  - file: ${playing_illustration_file}
+generic_image:
+  - platform: sendspin
     id: sendspin_album_art
-    resize: ${screenwidth}x${screenheight}
+    format: jpg
     type: RGB565
-#generic_image:
-#  - platform: sendspin
-#    id: sendspin_album_art
-#    format: jpg
-#    type: RGB565
-#    resize: 300x300
-#    image_source: ALBUM
-#    on_image_decoded:
-#      - lambda: |-
-#          id(sendspin_album_art_valid) = true;
-#      - component.update: main_display
-#    on_image_error:
-#      - lambda: |-
-#          id(sendspin_album_art_valid) = false;
-#      - component.update: main_display
+    resize: 300x300
+    image_source: ALBUM
+    on_image_decoded:
+      - lambda: |-
+          id(sendspin_album_art_valid) = true;
+      - component.update: main_display
+    on_image_error:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
 
 text_sensor:
   - platform: sendspin
@@ -133,6 +131,14 @@ audio_dac:
     sample_rate: 16000
 
 # --- AUDIO DEVICES ------------------------------------------------------------
+switch:
+  - platform: gpio
+    name: Speaker Enable
+    icon: "mdi:speaker"
+    entity_category: config
+    pin: GPIO46
+    restore_mode: RESTORE_DEFAULT_ON
+
 microphone:
   - platform: i2s_audio
     id: box_mic
@@ -143,14 +149,6 @@ microphone:
     pdm: false
     sample_rate: 16000
     bits_per_sample: 16bit
-
-switch:
-  - platform: gpio
-    name: Speaker Enable
-    icon: "mdi:speaker"
-    entity_category: config
-    pin: GPIO46
-    restore_mode: RESTORE_DEFAULT_ON
 
 speaker:
   - platform: i2s_audio
@@ -197,7 +195,7 @@ media_source:
       - id: timer_finished_sound
         file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
       - id: wake_word_triggered_sound
-        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/popup.flac
+        file: ${wakeup_sound_file}
       - id: ready_sound
         file: ${startup_sound_file}
 
@@ -230,6 +228,7 @@ media_player:
       - sendspin_source
 
     on_announcement:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -255,6 +254,7 @@ media_player:
             - component.update: main_display
 
     on_play:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -283,30 +283,19 @@ media_player:
             - component.update: main_display
 
     on_pause:
-      - if:
-          condition:
-            and:
-              - not:
-                  voice_assistant.is_running:
-              - lambda: return id(voice_assistant_phase) != ${voice_assist_playing_phase_id};
-          then:
-            - delay: 300ms
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-      - script.execute: draw_display
+      - lambda: |-
+          ESP_LOGI("TOUCH", "ON_PAUSE fired");
+#      - if:
+#          condition:
+#            not:
+#              voice_assistant.is_running:
+#          then:
+#            - script.execute: start_wake_word
+#            - script.execute: set_idle_or_mute_phase
+#            - script.execute: draw_display
 
     on_idle:
-      - if:
-          condition:
-            and:
-              - not:
-                  voice_assistant.is_running:
-              - lambda: return id(voice_assistant_phase) != ${voice_assist_playing_phase_id};
-          then:
-            - delay: 300ms
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+      - script.execute: mp_idle_debounce
 
 # --- BACKLIGHT & AUX LED ------------------------------------------------------
 output:
@@ -495,44 +484,67 @@ script:
 
   - id: tap_playing_toggle_action
     then:
+      - lambda: |-
+          ESP_LOGI("TOUCH", "tap_playing_toggle_action fired");
+
+  - id: tap_playing_hold_action
+    then:
       - media_player.toggle: sendspin_media
 
-  - id: tap_playing_stop_action
+  - id: tap_idle_hold_action
     then:
-      - media_player.stop: sendspin_media
-      - script.execute: start_wake_word
-      - script.execute: set_idle_or_mute_phase
-      - script.execute: draw_display
+      - media_player.toggle: sendspin_media
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
       
 interval:
   - interval: 100ms
     then:
-      - if:
-          condition:
-            lambda: |-
-              if (!id(gs_touch_active)) return false;
-              if (id(gs_hold_fired)) return false;
-              if (!id(swipe_local).state) return false;
-              if (id(voice_assistant_phase) != ${voice_assist_playing_phase_id}) return false;
+      - lambda: |-
+          // Fast rejects
+          if (!id(gs_touch_active)) return;
+          if (id(gs_hold_fired)) return;
+          if (!id(swipe_local).state) return;
 
-              const uint32_t HOLD_MS = 700;
-              if ((millis() - id(gs_start_ms)) < HOLD_MS) return false;
+          const auto phase = id(voice_assistant_phase);
+          const bool playing = (phase == ${voice_assist_playing_phase_id});
+          const bool idle    = (phase == ${voice_assist_idle_phase_id});
+          if (!(playing || idle)) return;
 
-              const int w = id(main_display).get_width();
-              const int h = id(main_display).get_height();
-              const int min_dim = (w < h) ? w : h;
-              const int HOLD_MAX_DIST = std::max(10, min_dim / 18);
+          constexpr uint32_t HOLD_MS = 700;
+          if ((millis() - id(gs_start_ms)) < HOLD_MS) return;
 
-              const int dx = id(gs_last_x) - id(gs_start_x);
-              const int dy = id(gs_last_y) - id(gs_start_y);
-              const int absx = std::abs(dx);
-              const int absy = std::abs(dy);
+          // Distance threshold scales with screen
+          const int w = id(main_display).get_width();
+          const int h = id(main_display).get_height();
+          const int min_dim = (w < h) ? w : h;
+          const int HOLD_MAX_DIST = std::max(10, min_dim / 18);
 
-              return (absx <= HOLD_MAX_DIST) && (absy <= HOLD_MAX_DIST);
-          then:
-            - lambda: |-
-                id(gs_hold_fired) = true;
-            - script.execute: tap_playing_stop_action
+          const int dx = id(gs_last_x) - id(gs_start_x);
+          const int dy = id(gs_last_y) - id(gs_start_y);
+          if (std::abs(dx) > HOLD_MAX_DIST || std::abs(dy) > HOLD_MAX_DIST) return;
+
+          // Fire once
+          id(gs_hold_fired) = true;
+
+          if (playing) {
+            id(tap_playing_hold_action).execute();
+          } else { // idle
+            id(tap_idle_hold_action).execute();
+          }
 
 # --- BATTERY ADC --------------------------------------------------------------
 sensor:
