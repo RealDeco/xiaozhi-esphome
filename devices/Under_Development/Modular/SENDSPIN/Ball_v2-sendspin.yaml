@@ -14,7 +14,8 @@ substitutions:
   rotate_display: "0"
 
   startup_sound: "Home_Connected" # (options are: available, Home_Connected, Home_Connected_Male, Computer_Ready)
-  clock_background_image: "tron" # (options are: clock, hacker, mission, starrysky, waves, tron, chip, waterdrops)
+  wakeup_sound: "popup" # (options are: popup, wake_word_triggered)
+  clock_background_image: "chip" # (options are: clock, hacker, mission, starrysky, waves, tron, chip, waterdrops)
   imagemodel: "Gwen" # options are:
 
 # AlbertQuackmore, Alita, Alfred, Astrobot, Buzz, Casita, Cybergirl, Dory, EVE, Eyes, Eyes2, GLaDOS, Girl1, Guy1, Guy2, Gwen, HA-character, ha-girl, Hacker, Harley,
