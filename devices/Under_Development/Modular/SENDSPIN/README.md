@@ -1,5 +1,10 @@
 ## 📦 Devices Updated to `2026.2.0`
 
+* Guition **1.80 v1**
+* Guition **1.80 v2**
+* Ball **v2**
+* Xiaozhi Cube **1.54**
+
 ### ✅ What’s New
 
 * 🎵 **Album Art** is back and working
@@ -9,12 +14,6 @@
   * ⬆️⬇️ Swipe up/down: **Volume + / -**
   * ✋ Long hold: **Stop / Pause / Play**
 
-### 📱 Supported Devices
-
-* Guition **1.80 v1**
-* Guition **1.80 v2**
-* Ball **v2**
-* Xiaozhi Cube **1.54**
 
 ---
 
@@ -22,5 +21,5 @@
 
 * SendspinZero
 * Waveshare **1.85C v1 & v2**
-* …
+* … on request..
 
