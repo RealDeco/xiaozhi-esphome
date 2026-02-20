@@ -4,6 +4,8 @@
 * Guition **1.80 v2**
 * Ball **v2**
 * Xiaozhi Cube **1.54**
+* Waveshare **1.85C v1**
+* Waveshare **1.85C v2**
 
 ### ✅ What’s New
 
@@ -20,6 +22,6 @@
 ## 🔜 Next Up
 
 * SendspinZero
-* Waveshare **1.85C v1 & v2**
+* Muse PRoto & Muse Luxe
 * … on request..
 
