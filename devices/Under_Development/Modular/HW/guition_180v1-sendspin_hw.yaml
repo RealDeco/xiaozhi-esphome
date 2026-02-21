@@ -1,105 +1,8 @@
-# Taichi Pi v1 hardware SENDSPIN edition v1.13
+# Taichi Pi v1 hardware v1.10
 
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
-
-# --- SENDSPIN -----------------------------------------------------------------
-external_components:
-  - source:
-      # https://github.com/esphome/esphome/pull/12429
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: a6c403deb7603d316dce2820897902e01c3695cc
-    refresh: 0s
-    components: [file, http_request, media_source, speaker_source]
-  - source:
-      # https://github.com/esphome/esphome/pull/12284
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 119a5c25a483c58b3d58a35c8cec95495c6491c2
-    components: [generic_image, sendspin]
-
-  # The following sources are merged into the dev branch of ESPHome, but not yet in a release.
-  # We've pinned them to their specific squash merge commit id for reproducable builds.
-  # These should be available in ESPHome 2026.3.0
-  - source:
-      # Dev commit hash for squash merge from PR#10212
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 903971de12c1b291ca8cd367ce5cdf9af8b304ae
-    components: [runtime_image]
-  - source:
-      # Dev commit hash for squash merge from PR#12258
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 264c8faedd0ab956b0437ec2ecc0bacae1708923
-    components: [media_player]
-  - source:
-      # Dev commit hash for squash merge from PR#14013
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: ba7134ee3f870ce00d2990d84b142b734028330f
-    components: [mdns]
-  - source:
-      # Dev commit hash for squash merge from PR#14108
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: d2026b4cd74bbeb9b86941bf1887f3d93d639387
-    components: [audio]
-
-#  - source: github://pr#10212
-#    components: [runtime_image, online_image]
-
-globals:
-  - id: sendspin_album_art_valid
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-  - id: gs_hold_fired
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-image:
-  - file: ${playing_illustration_file}
-    id: !extend casita_playing
-    resize: ${screenwidth}x${screenheight}
-    type: RGB565
-
-generic_image:
-  - platform: sendspin
-    id: sendspin_album_art
-    format: jpg
-    type: RGB565
-    resize: 300x300
-    image_source: ALBUM
-    on_image_decoded:
-      - lambda: |-
-          id(sendspin_album_art_valid) = true;
-      - component.update: main_display
-    on_image_error:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-text_sensor:
-  - platform: sendspin
-    id: sendspin_title
-    type: title
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-  - platform: sendspin
-    id: sendspin_artist
-    type: artist
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
 
 # --- BUSES / PERIPHERALS ------------------------------------------------------
 spi:
@@ -112,199 +15,6 @@ i2c:
   id: touchscreen_bus
   sda: 7
   scl: 8
-
-i2s_audio:
-  - id: i2s_mic
-    i2s_lrclk_pin: GPIO45
-    i2s_bclk_pin:  GPIO42
-
-  - id: i2s_audio_bus
-    i2s_lrclk_pin: GPIO16
-    i2s_bclk_pin:  GPIO18
-    i2s_mclk_pin:  GPIO21
-
-# --- AUDIO DEVICES ------------------------------------------------------------
-switch:
-  - platform: gpio
-    name: Speaker Enable
-    icon: "mdi:speaker"
-    entity_category: config
-    pin: GPIO48
-    restore_mode: RESTORE_DEFAULT_ON
-
-microphone:
-  - platform: i2s_audio
-    id: box_mic
-    i2s_audio_id: i2s_mic
-    i2s_din_pin: GPIO46
-    adc_type: external
-    channel: left
-    pdm: ${pdm_mic_type}
-    sample_rate: 16000
-    bits_per_sample: 16bit
-
-speaker:
-  - platform: i2s_audio
-    id: box_speaker
-    i2s_audio_id: i2s_audio_bus
-    i2s_dout_pin: GPIO17
-    dac_type: external
-    channel: stereo
-    buffer_duration: 300ms
-
-  - platform: mixer
-    id: mixing_speaker
-    output_speaker: box_speaker
-    num_channels: 2
-    source_speakers:
-      - id: announcement_mixer_input
-      - id: media_mixer_input
-
-  - platform: resampler
-    id: media_resampling_input
-    output_speaker: media_mixer_input
-    sample_rate: 48000
-
-  - platform: resampler
-    id: announcement_resampling_input
-    output_speaker: announcement_mixer_input    
-    sample_rate: 48000
-
-sendspin:
-  id: sendspin_hub
-  task_stack_in_psram: true
-  kalman_process_error: 0.01
-
-media_source:
-  - platform: sendspin
-    id: sendspin_source
-  - platform: http_request
-    id: http_source
-    buffer_size: 500000
-  - platform: file
-    id: file_source
-    files:
-      - id: timer_finished_sound
-        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
-      - id: wake_word_triggered_sound
-        file: ${wakeup_sound_file}
-      - id: ready_sound
-        file: ${startup_sound_file}
-
-media_player:
-  - platform: sendspin
-    id: sendspin_media
-    name: Sendspin Group Media Player
-
-  - platform: speaker_source
-    name: Sendspin Media Player
-    id: external_media_player
-    announcement_speaker: announcement_resampling_input
-    media_speaker: media_resampling_input
-
-    announcement_pipeline:
-      format: FLAC
-      num_channels: 1
-      sample_rate: 48000
-    media_pipeline:
-      format: FLAC
-      num_channels: 2
-      sample_rate: 48000
-
-    volume_increment: 0.05
-    volume_min: 0.5
-    volume_max: 0.8
-    sources:
-      - file_source
-      - http_source
-      - sendspin_source
-
-    on_announcement:
-      - script.stop: mp_idle_debounce
-      - if:
-          condition:
-            - microphone.is_capturing:
-          then:
-            - script.execute: stop_wake_word
-            - if:
-                condition:
-                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
-                then:
-                  - wait_until:
-                      condition:
-                        - not:
-                            voice_assistant.is_running:
-
-      - if:
-          condition:
-            lambda: 'return id(playing_internal_sound);'
-          then:
-            - lambda: 'id(playing_internal_sound) = false;'
-          else:
-            - script.execute: reset_screensaver
-            - display.page.show: now_playing_page
-            - component.update: main_display
-
-    on_play:
-      - script.stop: mp_idle_debounce
-      - if:
-          condition:
-            - microphone.is_capturing:
-          then:
-            - script.execute: stop_wake_word
-            - if:
-                condition:
-                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
-                then:
-                  - wait_until:
-                      condition:
-                        - not:
-                            voice_assistant.is_running:
-
-      - if:
-          condition:
-            lambda: 'return id(playing_internal_sound);'
-          then:
-            - lambda: 'id(playing_internal_sound) = false;'
-          else:
-#            - script.execute: reset_screensaver
-            - script.execute:
-                id: set_phase
-                phase: ${voice_assist_playing_phase_id}
-            - display.page.show: now_playing_page
-            - component.update: main_display
-
-    on_pause:
-      - lambda: |-
-          ESP_LOGI("TOUCH", "ON_PAUSE fired");
-#      - if:
-#          condition:
-#            not:
-#              voice_assistant.is_running:
-#          then:
-#            - script.execute: start_wake_word
-#            - script.execute: set_idle_or_mute_phase
-#            - script.execute: draw_display
-
-    on_idle:
-      - script.execute: mp_idle_debounce
-
-# --- BACKLIGHT ----------------------------------------------------------------
-output:
-  - platform: ledc
-    id: backlight_output
-    pin: GPIO15
-    inverted: false
-
-light:
-  - platform: monochromatic
-    id: Sled
-    name: Screen
-    icon: mdi:television
-    entity_category: config
-    output: backlight_output
-    restore_mode: ALWAYS_ON
-    default_transition_length: 250ms
 
 # --- TOUCHSCREEN --------------------------------------------------------------
 touchscreen:
@@ -319,7 +29,6 @@ touchscreen:
       then:
         - lambda: |-
             id(gs_touch_active) = true;
-            id(gs_hold_fired) = false;
             id(gs_start_x) = touch.x;
             id(gs_start_y) = touch.y;
             id(gs_last_x)  = touch.x;
@@ -343,7 +52,6 @@ touchscreen:
         - lambda: |-
             if (!id(gs_touch_active)) return;
             id(gs_touch_active) = false;
-            if (id(gs_hold_fired)) return;
 
             const int start_x = id(gs_start_x);
             const int start_y = id(gs_start_y);
@@ -395,19 +103,11 @@ touchscreen:
               }
             }
 
-            // Not a swipe → tap/hold
+            // Not a swipe → tap (strict, then forgiving fallback)
             if (!(is_left || is_right || is_up || is_down)) {
-              // Short tap (strict, then forgiving fallback)
               if ((absx <= TAP_MAX_DIST && absy <= TAP_MAX_DIST && dt <= TAP_MAX_TIME) ||
                   (absx <= TAP_FB_DIST  && absy <= TAP_FB_DIST  && dt <= TAP_FB_TIME)) {
-
-                // Playing: tap toggles play/pause (and do not pulse)
-                if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
-                  id(tap_playing_toggle_action).execute();
-                } else {
-                  // All other phases: expose tap via pulse (stop VA, etc.)
-                  id(pulse_touch_input).execute();
-                }
+                id(pulse_touch_input).execute();
               }
               return;
             }
@@ -419,100 +119,186 @@ touchscreen:
             if (is_down)  id(pulse_swipe_down).execute();
 
             // Optional local handling
-            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_idle_phase_id})) {
+            if (id(swipe_local).state) {
               if (is_left)  id(swipe_left_action).execute();
               if (is_right) id(swipe_right_action).execute();
               if (is_up)    id(swipe_up_action).execute();
               if (is_down)  id(swipe_down_action).execute();
             }
 
-            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
-              if (is_up)    id(swipe_playing_up_action).execute();
-              if (is_down)  id(swipe_playing_down_action).execute();
-              if (is_left)  id(swipe_playing_left_action).execute();
-              if (is_right) id(swipe_playing_right_action).execute();
-            }
+# --- BACKLIGHT ----------------------------------------------------------------
+output:
+  - platform: ledc
+    id: backlight_output
+    pin: GPIO15
+    inverted: false
 
-script:
-  - id: swipe_playing_up_action
-    then:
-      - media_player.volume_up: external_media_player
+light:
+  - platform: monochromatic
+    id: Sled
+    name: Screen
+    icon: mdi:television
+    entity_category: config
+    output: backlight_output
+    restore_mode: ALWAYS_ON
+    default_transition_length: 250ms
 
-  - id: swipe_playing_down_action
-    then:
-      - media_player.volume_down: external_media_player
+# --- AUDIO DEVICES ------------------------------------------------------------
 
-  - id: swipe_playing_left_action
-    then:
-      - media_player.next: sendspin_media
+switch:
+  - platform: gpio
+    name: Speaker Enable
+    icon: "mdi:speaker"
+    entity_category: config
+    pin: GPIO48
+    restore_mode: RESTORE_DEFAULT_ON
 
-  - id: swipe_playing_right_action
-    then:
-      - media_player.previous: sendspin_media
+i2s_audio:
+  - id: i2s_mic
+    i2s_lrclk_pin: GPIO45
+    i2s_bclk_pin:  GPIO42
 
-  - id: tap_playing_toggle_action
-    then:
-      - lambda: |-
-          ESP_LOGI("TOUCH", "tap_playing_toggle_action fired");
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO16
+    i2s_bclk_pin:  GPIO18
+    i2s_mclk_pin:  GPIO21
 
-  - id: tap_playing_hold_action
-    then:
-      - media_player.toggle: sendspin_media
+microphone:
+  - platform: i2s_audio
+    id: box_mic
+    i2s_audio_id: i2s_mic
+    i2s_din_pin: GPIO46
+    adc_type: external
+    channel: left
+    pdm: ${pdm_mic_type}
+    sample_rate: 16000
+    bits_per_sample: 16bit
 
-  - id: tap_idle_hold_action
-    then:
-      - media_player.toggle: sendspin_media
+speaker:
+  - platform: i2s_audio
+    id: box_speaker
+    i2s_audio_id: i2s_audio_bus
+    i2s_dout_pin: GPIO17
+    dac_type: external
+    channel: stereo
+    buffer_duration: 300ms
 
-  - id: mp_idle_debounce
-    mode: restart
-    then:
-      - delay: 1s
+  - platform: mixer
+    id: mixing_speaker
+    output_speaker: box_speaker
+    num_channels: 2
+    source_speakers:
+      - id: announcement_mixer_input
+      - id: media_mixer_input
+
+  - platform: resampler
+    id: media_resampling_input
+    output_speaker: media_mixer_input
+    sample_rate: 48000
+
+  - platform: resampler
+    id: announcement_resampling_input
+    output_speaker: announcement_mixer_input    
+    sample_rate: 48000
+
+media_player:
+  - platform: speaker
+    name: none
+    id: external_media_player
+    volume_increment: 0.05
+    volume_min: 0.5
+    volume_max: 0.8
+
+    announcement_pipeline:
+      speaker: announcement_resampling_input
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
+
+    media_pipeline:
+      speaker: media_resampling_input
+      format: FLAC
+      num_channels: 2      
+      sample_rate: 48000
+    buffer_size: 250000
+
+    on_announcement:
       - if:
           condition:
-            and:
-              - media_player.is_idle: external_media_player
-              - not:
-                  voice_assistant.is_running:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).state == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+            - script.execute: reset_screensaver
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_play:
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).state == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+#            - script.execute: reset_screensaver
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_pause:
+      - if:
+          condition:
+            not:
+              voice_assistant.is_running:
           then:
             - script.execute: start_wake_word
             - script.execute: set_idle_or_mute_phase
             - script.execute: draw_display
-      
-interval:
-  - interval: 100ms
-    then:
-      - lambda: |-
-          // Fast rejects
-          if (!id(gs_touch_active)) return;
-          if (id(gs_hold_fired)) return;
-          if (!id(swipe_local).state) return;
 
-          const auto phase = id(voice_assistant_phase);
-          const bool playing = (phase == ${voice_assist_playing_phase_id});
-          const bool idle    = (phase == ${voice_assist_idle_phase_id});
-          if (!(playing || idle)) return;
+    on_idle:
+      - if:
+          condition:
+            not:
+              voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
 
-          constexpr uint32_t HOLD_MS = 700;
-          if ((millis() - id(gs_start_ms)) < HOLD_MS) return;
-
-          // Distance threshold scales with screen
-          const int w = id(main_display).get_width();
-          const int h = id(main_display).get_height();
-          const int min_dim = (w < h) ? w : h;
-          const int HOLD_MAX_DIST = std::max(10, min_dim / 18);
-
-          const int dx = id(gs_last_x) - id(gs_start_x);
-          const int dy = id(gs_last_y) - id(gs_start_y);
-          if (std::abs(dx) > HOLD_MAX_DIST || std::abs(dy) > HOLD_MAX_DIST) return;
-
-          // Fire once
-          id(gs_hold_fired) = true;
-
-          if (playing) {
-            id(tap_playing_hold_action).execute();
-          } else { // idle
-            id(tap_idle_hold_action).execute();
-          }
+    files:
+      - id: timer_finished_sound
+        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+      - id: wake_word_triggered_sound
+        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/wake_word_triggered.flac
+      - id: ready_sound
+        file: ${startup_sound_file}
 
 # --- BATTERY (FAKE SOURCE TO KEEP WIDGET HAPPY) -------------------------------
 sensor:
@@ -540,4 +326,4 @@ display:
     dimensions:
         height: ${imageheight}
         width: ${imagewidth}
-    pages: !include ../display_pages-sendspin.yaml
+    pages: !include ../display_pages.yaml
