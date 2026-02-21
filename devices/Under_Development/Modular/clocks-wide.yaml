@@ -56,7 +56,7 @@ script:
   - id: show_clock_page
     then:
       - lambda: |-
-          const std::string sel = id(clock_style).state;
+          const std::string sel = id(clock_style).current_option();
           if (sel == "Default") {
             id(main_display).show_page(default_clock);
           } else if (sel == "Flip") {
@@ -87,7 +87,7 @@ script:
             "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big"
           };
           const int N = sizeof(opts)/sizeof(opts[0]);
-          std::string cur = id(clock_style).state.c_str();
+          std::string cur = id(clock_style).current_option();
           int idx = 0;
           for (int i = 0; i < N; i++) if (cur == opts[i]) { idx = i; break; }
           int next = (idx + 1) % N;
@@ -101,7 +101,7 @@ script:
             "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big"
           };
           const int N = sizeof(opts)/sizeof(opts[0]);
-          std::string cur = id(clock_style).state.c_str();
+          std::string cur = id(clock_style).current_option();
           int idx = 0;
           for (int i = 0; i < N; i++) if (cur == opts[i]) { idx = i; break; }
           int prev = (idx - 1 + N) % N;
