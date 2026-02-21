@@ -81,7 +81,7 @@ globals:
 image:
   - file: ${playing_illustration_file}
     id: !extend casita_playing
-    resize: ${screenwidth}x${screenheight}
+    resize: 180x180
     type: RGB565
 
 generic_image:
@@ -89,7 +89,7 @@ generic_image:
     id: sendspin_album_art
     format: jpg
     type: RGB565
-    resize: 300x300
+    resize: 180x180
     image_source: ALBUM
     on_image_decoded:
       - lambda: |-
