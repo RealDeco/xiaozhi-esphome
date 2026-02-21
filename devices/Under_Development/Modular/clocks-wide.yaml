@@ -113,7 +113,7 @@ script:
       - lambda: |-
           static const char* const opts[] = { "clock","hacker","mission","Rolex","starrysky","waves","tron","chip" };
           const int N = sizeof(opts)/sizeof(opts[0]);
-          std::string cur = id(clock_wallpaper_image).state.c_str();
+          std::string cur = id(clock_wallpaper_image).current_option();
           int idx = 0;
           for (int i = 0; i < N; i++) if (cur == opts[i]) { idx = i; break; }
           int next = (idx + 1) % N;
