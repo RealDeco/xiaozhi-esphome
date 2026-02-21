@@ -1,4 +1,4 @@
-# Core v1.13 sendspin edition
+# Core v1.12 sendspin edition
 
 substitutions:
   allowed_characters: >-
@@ -80,12 +80,6 @@ online_image:
     type: RGB565
     resize: ${screenwidth}x${screenheight}
     update_interval: never
-  - id: temp_fullscreen
-    url: ${clock_background_file}
-    format: PNG
-    type: RGB565
-    resize: ${screenwidth}x${screenheight}
-    update_interval: never
 
 time:
   - platform: homeassistant
@@ -116,39 +110,6 @@ api:
   on_client_disconnected:
     - script.execute: draw_display
 
-  actions:
-    - action: show_fullscreen_image
-      variables:
-        url: string
-      then:
-        - if:
-            condition:
-              lambda: |-
-                return id(voice_assistant_phase) == ${voice_assist_idle_phase_id}
-                    || id(voice_assistant_phase) == ${voice_assist_replying_phase_id};
-            then:
-              - lambda: id(showing_fullscreen_image) = true;
-              - online_image.set_url:
-                  id: temp_fullscreen
-                  url: !lambda 'return url;'
-                  update: true
-              - delay: 600ms
-              - display.page.show: empty_clock
-              - component.update: main_display
-              - script.execute: reset_screensaver
-              - delay: !lambda |-
-                  int s = (int) id(api_image_duration_seconds).state;
-                  if (s <= 0) s = 30;
-                  return (uint32_t)(s * 1000);
-              - online_image.release: temp_fullscreen
-              - lambda: id(showing_fullscreen_image) = false;
-              - script.execute: draw_display
-            else:
-              - logger.log:
-                  level: INFO
-                  format: "show_fullscreen_image ignored (phase=%d)"
-                  args: [ 'id(voice_assistant_phase)' ]
-
 button:
   - platform: factory_reset
     id: factory_reset_btn
@@ -175,19 +136,6 @@ number:
     step: 5
     initial_value: 10
 
-  - platform: template
-    id: api_image_duration_seconds
-    name: "API Image Display Time"
-    unit_of_measurement: "s"
-    icon: "mdi:timer-sand"
-    entity_category: config
-    optimistic: true
-    restore_value: true
-    mode: box
-    min_value: 1
-    max_value: 600
-    step: 1
-    initial_value: 30
 
 sensor:
   # Hardware pack provides the ADC that publishes into this template
@@ -616,12 +564,11 @@ interval:
           const bool idle_phase   = (id(voice_assistant_phase) == ${voice_assist_idle_phase_id});
           const bool not_muted    = !id(mute).state;
           const bool clock_ok     = id(clock_enabled).state;
-          const bool not_fullscreen   = !id(showing_fullscreen_image);
 
           id(check_if_timers_active).execute();
           const bool has_active_timer = id(global_is_timer_active);
 
-          if (!id(init_in_progress) && idle_phase && not_muted && clock_ok && not_fullscreen && !has_active_timer) {
+          if (!id(init_in_progress) && idle_phase && not_muted && clock_ok && !has_active_timer) {
             id(idle_seconds)++;
             int delay_s = (int) id(clock_delay_seconds).state;
             if (delay_s <= 0) delay_s = 30;
@@ -663,12 +610,6 @@ script:
                         api.connected:
                       then:
                         - lambda: |-
-                            if (id(showing_fullscreen_image)
-                                && id(voice_assistant_phase) == ${voice_assist_idle_phase_id}) {
-                              id(main_display).show_page(empty_clock);
-                              id(main_display).update();
-                              return;
-                            }
                             if (id(voice_assistant_phase) == ${voice_assist_idle_phase_id}
                                 && id(show_clock)
                                 && id(clock_enabled).state) {
@@ -1421,11 +1362,6 @@ globals:
     initial_value: "0"
 
   - id: show_clock
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-  - id: showing_fullscreen_image
     type: bool
     restore_value: no
     initial_value: "false"
