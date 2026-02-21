@@ -10,7 +10,7 @@
 * Waveshare **1.85C v1**
 * Waveshare **1.85C v2**
 
-## 📦 Sendspin Mediaplayer Devices
+## 📦 Sendspin Mediaplayer Devices Updated to `2026.2.0`
 
 * SendspinZero (https://github.com/RealDeco/SendspinZero)
 
