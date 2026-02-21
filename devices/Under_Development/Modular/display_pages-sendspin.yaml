@@ -197,21 +197,26 @@
           }
 
           // --------------------------------------------------------------------
-          // NORMAL DISPLAYS: your existing album-art/fallback + bottom band
+          // NORMAL DISPLAYS: album-art/fallback + bottom band (dynamic)
           // --------------------------------------------------------------------
+
+          // Only reserve space for the band if we actually have text to show
+          const int band_h = has_text ? std::max(48, H / 5) : 0;
+          const int band_y = H - band_h;
+
+          // Art area is the remaining height above the band
+          const int art_h  = H - band_h;
+          const int art_cy = (band_h > 0) ? (art_h / 2) : cy;  // center in art area if band exists
 
           // Draw centered image: album art if valid, otherwise fallback
           if (has_album) {
-            it.image(cx, cy, id(sendspin_album_art), ImageAlign::CENTER);
+            it.image(cx, art_cy, id(sendspin_album_art), ImageAlign::CENTER);
           } else {
-            it.image(cx, cy, id(casita_playing), ImageAlign::CENTER);
+            it.image(cx, art_cy, id(casita_playing), ImageAlign::CENTER);
           }
 
           // Subtitle band at bottom (same for album art + fallback)
           if (has_text) {
-            const int band_h = std::max(48, H / 5);
-            const int band_y = H - band_h;
-
             it.filled_rectangle(0, band_y, W, band_h, Color::BLACK);
 
             int y = band_y + std::max(6, band_h / 10);
