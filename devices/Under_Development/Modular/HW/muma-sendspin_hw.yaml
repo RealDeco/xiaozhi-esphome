@@ -1,0 +1,588 @@
+# Muma all versions hardware pack v1.10
+
+# --- CLOCKS PACKAGE -----------------------------------------------------------
+packages:
+  clocks: !include ../clocks-standard.yaml
+
+# --- SENDSPIN -----------------------------------------------------------------
+external_components:
+  - source:
+      # https://github.com/esphome/esphome/pull/12429
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: a6c403deb7603d316dce2820897902e01c3695cc
+    refresh: 0s
+    components: [file, http_request, media_source, speaker_source]
+  - source:
+      # https://github.com/esphome/esphome/pull/12284
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 119a5c25a483c58b3d58a35c8cec95495c6491c2
+    components: [generic_image, sendspin]
+
+  # The following sources are merged into the dev branch of ESPHome, but not yet in a release.
+  # We've pinned them to their specific squash merge commit id for reproducable builds.
+  # These should be available in ESPHome 2026.3.0
+  - source:
+      # Dev commit hash for squash merge from PR#10212
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 903971de12c1b291ca8cd367ce5cdf9af8b304ae
+    components: [runtime_image]
+  - source:
+      # Dev commit hash for squash merge from PR#12258
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 264c8faedd0ab956b0437ec2ecc0bacae1708923
+    components: [media_player]
+    refresh: 0s
+  - source:
+      # Dev commit hash for squash merge from PR#14013
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: ba7134ee3f870ce00d2990d84b142b734028330f
+    components: [mdns]
+  - source:
+      # Dev commit hash for squash merge from PR#14108
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: d2026b4cd74bbeb9b86941bf1887f3d93d639387
+    components: [audio]
+    refresh: 0s
+
+#  - source: github://pr#10212
+#    components: [runtime_image, online_image]
+
+globals:
+  - id: sendspin_album_art_valid
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: gs_hold_fired
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+image:
+  - file: ${playing_illustration_file}
+    id: !extend casita_playing
+    resize: 180x180
+    type: RGB565
+
+generic_image:
+  - platform: sendspin
+    id: sendspin_album_art
+    format: jpg
+    type: RGB565
+    resize: 180x180
+    image_source: ALBUM
+    on_image_decoded:
+      - lambda: |-
+          id(sendspin_album_art_valid) = true;
+      - component.update: main_display
+    on_image_error:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+text_sensor:
+  - platform: sendspin
+    id: sendspin_title
+    type: title
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+  - platform: sendspin
+    id: sendspin_artist
+    type: artist
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+# --- BUSES / PERIPHERALS ------------------------------------------------------
+i2c:
+  - id: bus_a
+    sda: 15
+    scl: 14
+    scan: true
+  - id: bus_b
+    sda: 11
+    scl: 7
+    scan: true
+
+spi:
+  - id: spi_bus
+    clk_pin: GPIO4
+    mosi_pin: GPIO2
+
+i2s_audio:
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO45
+    i2s_bclk_pin: GPIO9
+    i2s_mclk_pin: GPIO16
+
+audio_dac:
+  - platform: es8311
+    i2c_id: bus_a
+    id: es8311_dac
+    bits_per_sample: 16bit
+    sample_rate: 16000
+
+# --- AUDIO DEVICES ------------------------------------------------------------
+switch:
+  - platform: gpio
+    name: Speaker Enable
+    icon: "mdi:speaker"
+    entity_category: config
+    pin: GPIO46
+    restore_mode: RESTORE_DEFAULT_ON
+
+microphone:
+  - platform: i2s_audio
+    id: box_mic
+    i2s_audio_id: i2s_audio_bus
+    i2s_din_pin: GPIO10
+    adc_type: external
+    channel: left
+    pdm: false
+    sample_rate: 16000
+    bits_per_sample: 16bit
+
+speaker:
+  - platform: i2s_audio
+    id: box_speaker
+    i2s_audio_id: i2s_audio_bus
+    i2s_dout_pin: GPIO8
+    dac_type: external
+    audio_dac: es8311_dac
+    sample_rate: 48000
+    channel: mono
+
+  - platform: mixer
+    id: mixing_speaker
+    output_speaker: box_speaker
+    num_channels: 2
+    source_speakers:
+      - id: announcement_mixer_input
+      - id: media_mixer_input
+
+  - platform: resampler
+    id: media_resampling_input
+    output_speaker: media_mixer_input
+    sample_rate: 48000
+
+  - platform: resampler
+    id: announcement_resampling_input
+    output_speaker: announcement_mixer_input    
+    sample_rate: 48000
+
+sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: true
+  kalman_process_error: 0.01
+
+media_source:
+  - platform: sendspin
+    id: sendspin_source
+  - platform: http_request
+    id: http_source
+    buffer_size: 500000
+  - platform: file
+    id: file_source
+    files:
+      - id: timer_finished_sound
+        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+      - id: wake_word_triggered_sound
+        file: ${wakeup_sound_file}
+      - id: ready_sound
+        file: ${startup_sound_file}
+
+media_player:
+  - platform: sendspin
+    id: sendspin_media
+    name: Sendspin Group Media Player
+
+  - platform: speaker_source
+    name: Sendspin Media Player
+    id: external_media_player
+    announcement_speaker: announcement_resampling_input
+    media_speaker: media_resampling_input
+
+    announcement_pipeline:
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
+    media_pipeline:
+      format: FLAC
+      num_channels: 2
+      sample_rate: 48000
+
+    volume_increment: 0.05
+    volume_min: 0.5
+    volume_max: 0.8
+    sources:
+      - file_source
+      - http_source
+      - sendspin_source
+
+    on_announcement:
+      - script.stop: mp_idle_debounce
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+            - script.execute: reset_screensaver
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_play:
+      - script.stop: mp_idle_debounce
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+#            - script.execute: reset_screensaver
+            - script.execute:
+                id: set_phase
+                phase: ${voice_assist_playing_phase_id}
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_pause:
+      - lambda: |-
+          ESP_LOGI("TOUCH", "ON_PAUSE fired");
+#      - if:
+#          condition:
+#            not:
+#              voice_assistant.is_running:
+#          then:
+#            - script.execute: start_wake_word
+#            - script.execute: set_idle_or_mute_phase
+#            - script.execute: draw_display
+
+    on_idle:
+      - script.execute: mp_idle_debounce
+
+# --- BACKLIGHT & AUX LED ------------------------------------------------------
+output:
+  - platform: ledc
+    pin: 42
+    id: backlight_output
+    inverted: true
+
+light:
+  - platform: monochromatic
+    id: Sled
+    name: Screen
+    icon: "mdi:television"
+    entity_category: config
+    output: backlight_output
+    restore_mode: RESTORE_DEFAULT_ON
+    default_transition_length: 250ms
+
+  - platform: esp32_rmt_led_strip
+    id: led
+    name: none
+    disabled_by_default: false
+    entity_category: config
+    pin: GPIO48
+    default_transition_length: 0s
+    chipset: WS2812
+    num_leds: 1
+    rgb_order: grb
+    effects:
+      - pulse:
+          name: "Slow Pulse"
+          transition_length: 250ms
+          update_interval: 250ms
+          min_brightness: 50%
+          max_brightness: 100%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 100ms
+          update_interval: 100ms
+          min_brightness: 50%
+          max_brightness: 100%
+
+# --- TOUCHSCREEN --------------------------------------------------------------
+touchscreen:
+  - platform: cst816
+    id: my_touchscreen
+    interrupt_pin: GPIO12
+    reset_pin: GPIO6
+    display: main_display
+    i2c_id: bus_b
+
+    on_touch:
+      then:
+        - lambda: |-
+            id(gs_touch_active) = true;
+            id(gs_hold_fired) = false;
+            id(gs_start_x) = touch.x;
+            id(gs_start_y) = touch.y;
+            id(gs_last_x)  = touch.x;
+            id(gs_last_y)  = touch.y;
+            id(gs_start_ms) = millis();
+
+    on_update:
+      then:
+        - lambda: |-
+            if (!id(gs_touch_active)) return;
+            for (auto &t : touches) {
+              if (t.state >= 1 && t.state <= 2) {
+                id(gs_last_x) = t.x;
+                id(gs_last_y) = t.y;
+                break;
+              }
+            }
+
+    on_release:
+      then:
+        - lambda: |-
+            if (!id(gs_touch_active)) return;
+            id(gs_touch_active) = false;
+            if (id(gs_hold_fired)) return;
+
+            const int start_x = id(gs_start_x);
+            const int start_y = id(gs_start_y);
+            const int end_x   = id(gs_last_x);
+            const int end_y   = id(gs_last_y);
+            const int dx = end_x - start_x;
+            const int dy = end_y - start_y;
+            const uint32_t dt = millis() - id(gs_start_ms);
+
+            // Scale thresholds with screen
+            const int w = id(main_display).get_width();
+            const int h = id(main_display).get_height();
+            const int min_dim = (w < h) ? w : h;
+
+            // Swipe thresholds
+            const int MIN_DIST = std::max(16, min_dim / 8);
+            const uint32_t MAX_TIME = 1500;
+
+            // Tap guard (strict)
+            const int TAP_MAX_DIST  = std::max(8,  min_dim / 20);
+            const uint32_t TAP_MAX_TIME = 300;
+
+            // Tap fallback (more forgiving)
+            const int TAP_FB_DIST  = std::max(14, min_dim / 12);
+            const uint32_t TAP_FB_TIME = 700;
+
+            // Normalize for display rotation
+            const int ROT = ${rotate_display};
+            int ndx = dx, ndy = dy;
+            switch (ROT) {
+              case 0:   break;
+              case 90:  ndx =  dy;  ndy = -dx; break;
+              case 180: ndx = -dx;  ndy = -dy; break;
+              case 270: ndx = -dy;  ndy =  dx; break;
+              default: break;
+            }
+
+            const int absx = std::abs(ndx);
+            const int absy = std::abs(ndy);
+
+            bool is_left=false, is_right=false, is_up=false, is_down=false;
+
+            // Swipe?
+            if (dt <= MAX_TIME && (absx >= MIN_DIST || absy >= MIN_DIST)) {
+              if (absx >= absy) {
+                if (ndx < 0) is_left = true; else is_right = true;
+              } else {
+                if (ndy < 0) is_up = true; else is_down = true;
+              }
+            }
+
+            // Not a swipe → tap/hold
+            if (!(is_left || is_right || is_up || is_down)) {
+              // Short tap (strict, then forgiving fallback)
+              if ((absx <= TAP_MAX_DIST && absy <= TAP_MAX_DIST && dt <= TAP_MAX_TIME) ||
+                  (absx <= TAP_FB_DIST  && absy <= TAP_FB_DIST  && dt <= TAP_FB_TIME)) {
+
+                // Playing: tap toggles play/pause (and do not pulse)
+                if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
+                  id(tap_playing_toggle_action).execute();
+                } else {
+                  // All other phases: expose tap via pulse (stop VA, etc.)
+                  id(pulse_touch_input).execute();
+                }
+              }
+              return;
+            }
+
+            // Always expose to HA via non-blocking pulses
+            if (is_left)  id(pulse_swipe_left).execute();
+            if (is_right) id(pulse_swipe_right).execute();
+            if (is_up)    id(pulse_swipe_up).execute();
+            if (is_down)  id(pulse_swipe_down).execute();
+
+            // Optional local handling
+            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_idle_phase_id})) {
+              if (is_left)  id(swipe_left_action).execute();
+              if (is_right) id(swipe_right_action).execute();
+              if (is_up)    id(swipe_up_action).execute();
+              if (is_down)  id(swipe_down_action).execute();
+            }
+
+            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
+              if (is_up)    id(swipe_playing_up_action).execute();
+              if (is_down)  id(swipe_playing_down_action).execute();
+              if (is_left)  id(swipe_playing_left_action).execute();
+              if (is_right) id(swipe_playing_right_action).execute();
+            }
+
+script:
+  - id: swipe_playing_up_action
+    then:
+      - media_player.volume_up: external_media_player
+
+  - id: swipe_playing_down_action
+    then:
+      - media_player.volume_down: external_media_player
+
+  - id: swipe_playing_left_action
+    then:
+      - media_player.next: sendspin_media
+
+  - id: swipe_playing_right_action
+    then:
+      - media_player.previous: sendspin_media
+
+  - id: tap_playing_toggle_action
+    then:
+      - lambda: |-
+          ESP_LOGI("TOUCH", "tap_playing_toggle_action fired");
+
+  - id: tap_playing_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: tap_idle_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+      
+interval:
+  - interval: 100ms
+    then:
+      - lambda: |-
+          // Fast rejects
+          if (!id(gs_touch_active)) return;
+          if (id(gs_hold_fired)) return;
+          if (!id(swipe_local).state) return;
+
+          const auto phase = id(voice_assistant_phase);
+          const bool playing = (phase == ${voice_assist_playing_phase_id});
+          const bool idle    = (phase == ${voice_assist_idle_phase_id});
+          if (!(playing || idle)) return;
+
+          constexpr uint32_t HOLD_MS = 700;
+          if ((millis() - id(gs_start_ms)) < HOLD_MS) return;
+
+          // Distance threshold scales with screen
+          const int w = id(main_display).get_width();
+          const int h = id(main_display).get_height();
+          const int min_dim = (w < h) ? w : h;
+          const int HOLD_MAX_DIST = std::max(10, min_dim / 18);
+
+          const int dx = id(gs_last_x) - id(gs_start_x);
+          const int dy = id(gs_last_y) - id(gs_start_y);
+          if (std::abs(dx) > HOLD_MAX_DIST || std::abs(dy) > HOLD_MAX_DIST) return;
+
+          // Fire once
+          id(gs_hold_fired) = true;
+
+          if (playing) {
+            id(tap_playing_hold_action).execute();
+          } else { // idle
+            id(tap_idle_hold_action).execute();
+          }
+
+# --- BATTERY ADC --------------------------------------------------------------
+sensor:
+  - platform: adc
+    pin: GPIO1
+    name: "Battery Voltage"
+    id: battery_voltage
+    attenuation: 12db
+    accuracy_decimals: 2
+    update_interval: 10s
+    unit_of_measurement: "V"
+    icon: mdi:battery-medium
+    filters:
+      - multiply: 2.0
+      - median:
+          window_size: 7
+          send_every: 7
+          send_first_at: 1
+      - throttle: 1min
+    on_value:
+      then:
+        - sensor.template.publish:
+            id: battery_percentage
+            state: !lambda 'return x;'
+
+# --- DISPLAY DRIVER (ILI9xxx round GC9A01A) ----------------------------------
+display:
+  - platform: mipi_spi
+    id: main_display
+    model: ST7789V
+    invert_colors: true
+    cs_pin: GPIO5
+    dc_pin: GPIO47
+    reset_pin: GPIO38
+    update_interval: never
+    dimensions:
+      height: ${imageheight}
+      width: ${imagewidth}
+    pages: !include ../display_pages-sendspin.yaml
