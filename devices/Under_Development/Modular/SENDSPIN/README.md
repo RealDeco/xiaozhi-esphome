@@ -10,10 +10,6 @@
 * Waveshare **1.85C v1**
 * Waveshare **1.85C v2**
 
-## 📦 Sendspin Mediaplayer Devices Updated to `2026.2.0`
-
-* SendspinZero (https://github.com/RealDeco/SendspinZero)
-
 ### ✅ What’s New
 
 * 🎵 **Album Art** is back and working
@@ -24,10 +20,19 @@
   * ✋ Long hold: **Stop / Pause / Play**
 
 
+## 📦 Sendspin Mediaplayer Devices Updated to `2026.2.0`
+
+* SendspinZero (with display and case) https://github.com/RealDeco/SendspinZero
+* SendspinZero (no display) https://gist.github.com/RealDeco/44bf80640ad599edb9702f55046e1373
+* Muse Proto https://gist.github.com/RealDeco/efb537fa9f40b957543a7c068fe4dc2f
+* Muse Luxe https://gist.github.com/RealDeco/d4eb499ba6ccaba74c1ebd895740e9d2
+* Sendspin WRover https://gist.github.com/RealDeco/aeb472657764318f07cfba76b6769365
+
+
+
 ---
 
 ## 🔜 Next Up
 
-* Muse Proto & Muse Luxe
 * … on request..
 
