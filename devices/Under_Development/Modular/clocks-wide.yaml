@@ -17,6 +17,7 @@ select:
       - Wide
       - Alarmstyle
       - Big
+      - Xiaozhi
     initial_option: Default
     on_value:
       - if:
@@ -41,6 +42,7 @@ select:
       - waves
       - tron
       - chip
+      - waterdrops
     initial_option: ${clock_background_image}
     on_value:
       - online_image.set_url:
@@ -75,6 +77,8 @@ script:
             id(main_display).show_page(alarmstyle_clock);
           } else if (sel == "Big") {
             id(main_display).show_page(big_clock);
+          } else if (sel == "Xiaozhi") {
+            id(main_display).show_page(xiaozhi_clock);
           } else {
             id(main_display).show_page(clock_7segment);
           }
@@ -84,7 +88,7 @@ script:
     then:
       - lambda: |-
           static const char* const opts[] = {
-            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big"
+            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big, Xiaozhi"
           };
           const int N = sizeof(opts)/sizeof(opts[0]);
           std::string cur = id(clock_style).current_option();
@@ -98,7 +102,7 @@ script:
     then:
       - lambda: |-
           static const char* const opts[] = {
-            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big"
+            "7-segment","Flip","Default","Presence","Weather","Small","Analog","Wide","Alarmstyle","Big, Xiaozhi"
           };
           const int N = sizeof(opts)/sizeof(opts[0]);
           std::string cur = id(clock_style).current_option();
@@ -111,7 +115,7 @@ script:
   - id: swipe_up_action     # next wallpaper (cycle)
     then:
       - lambda: |-
-          static const char* const opts[] = { "clock","hacker","mission","Rolex","starrysky","waves","tron","chip" };
+          static const char* const opts[] = { "clock","hacker","mission","Rolex","starrysky","waves","tron","chip","waterdrops" };
           const int N = sizeof(opts)/sizeof(opts[0]);
           std::string cur = id(clock_wallpaper_image).current_option();
           int idx = 0;
