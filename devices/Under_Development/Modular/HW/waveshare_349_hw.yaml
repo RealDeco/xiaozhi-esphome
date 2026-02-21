@@ -131,7 +131,7 @@ touchscreen:
               const int N = sizeof(opts)/sizeof(opts[0]);
 
               // current index
-              std::string cur = id(clock_style).state.c_str();
+              std::string cur = id(clock_style).current_option();;
               int idx = 0;
               for (int i = 0; i < N; i++) if (cur == opts[i]) { idx = i; break; }
 
