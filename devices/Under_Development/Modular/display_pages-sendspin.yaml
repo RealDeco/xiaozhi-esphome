@@ -1070,14 +1070,6 @@
             it.printf(tx,   ty,   id(font_battery), Color::WHITE, TextAlign::CENTER, "%s", txt);
           }
 
-      - id: empty_clock
-        lambda: |-
-          it.fill(Color::BLACK);
-          const int W = it.get_width();
-          const int H = it.get_height();
-          // MUST be temp_fullscreen here:
-          it.image(W / 2, H / 2, id(temp_fullscreen), ImageAlign::CENTER);
-
       - id: presence_sensor_clock
         lambda: |-
           const int W = it.get_width();
