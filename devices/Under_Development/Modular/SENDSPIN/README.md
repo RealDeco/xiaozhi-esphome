@@ -19,6 +19,12 @@
   * ⬆️⬇️ Swipe up/down: **Volume + / -**
   * ✋ Long hold: **Stop / Pause / Play**
 
+* On devices without touch and only 1 button, doubleclick is next track, trippleclick is previous.
+* Devices with 3 buttons have volume up and down on the 2 others.
+
+* REMOVED:
+  * ✋ Long hold to toggle battery gauge, do it from HA.
+  * API action: upload of images to device that was used for coverart is no longer needed.
 
 ## 📦 Sendspin Mediaplayer Devices Updated to `2026.2.0`
 
