@@ -1,9 +1,32 @@
-# Waveshare ESP32-S3-Touch-LCD-1.85C / 1.85C-BOX V1+V2 hardware pack.
+# Waveshare ESP32-S3-Touch-LCD-1.85C / 1.85C-BOX hardware pack. v1.10
 
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
 
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 0
+      mode: INPUT_PULLUP
+      inverted: true
+    id: !extend left_button
+    on_multi_click:
+      - timing:
+          - ON for at least 700ms
+        then:
+          - lambda: |-
+              const auto phase = id(voice_assistant_phase);
+              const bool playing = (phase == ${voice_assist_playing_phase_id});
+              const bool idle    = (phase == ${voice_assist_idle_phase_id});
+              if (!(playing || idle)) return;
+
+              if (playing) {
+                id(tap_playing_hold_action).execute();
+              } else {  // idle
+                id(tap_idle_hold_action).execute();
+              }
+              
 # --- SENDSPIN -----------------------------------------------------------------
 external_components:
   - source:
@@ -70,7 +93,7 @@ generic_image:
     id: sendspin_album_art
     format: jpg
     type: RGB565
-    resize: 300x300
+    resize: 360x360
     image_source: ALBUM
     on_image_decoded:
       - lambda: |-
