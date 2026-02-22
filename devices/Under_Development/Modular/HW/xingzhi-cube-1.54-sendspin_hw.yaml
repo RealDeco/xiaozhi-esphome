@@ -20,6 +20,34 @@ script:
             - script.execute: set_idle_or_mute_phase
             - script.execute: draw_display
 
+  - id: tap_playing_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: tap_idle_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: vol_up_repeat
+    mode: restart
+    then:
+      - while:
+          condition:
+            binary_sensor.is_on: volume_up
+          then:
+            - media_player.volume_up: external_media_player
+            - delay: 120ms
+
+  - id: vol_down_repeat
+    mode: restart
+    then:
+      - while:
+          condition:
+            binary_sensor.is_on: volume_down
+          then:
+            - media_player.volume_down: external_media_player
+            - delay: 120ms
+
 # --- SENDSPIN -----------------------------------------------------------------
 external_components:
   - source:
@@ -129,21 +157,25 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
-    on_multi_click:
-      # Double click => Previous track
-      - timing:
-          - ON for at most 350ms
-          - OFF for at most 350ms
-          - ON for at most 350ms
-        then:
-          - media_player.previous: sendspin_media
 
-      # Single click => Volume down
-      - timing:
-          - ON for at most 350ms
-          - OFF for at least 351ms
-        then:
-          - media_player.volume_down: external_media_player
+    on_click:
+      min_length: 40ms
+      max_length: 350ms
+      then:
+        - media_player.previous: sendspin_media
+
+    on_press:
+      then:
+        - delay: 350ms
+        - if:
+            condition:
+              binary_sensor.is_on: volume_down
+            then:
+              - script.execute: vol_down_repeat
+
+    on_release:
+      then:
+        - script.stop: vol_down_repeat
 
   - platform: gpio
     pin:
@@ -155,21 +187,78 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
       - delayed_off: 10ms
+
+    on_click:
+      min_length: 40ms
+      max_length: 350ms
+      then:
+        - media_player.next: sendspin_media
+
+    on_press:
+      then:
+        - delay: 350ms
+        - if:
+            condition:
+              binary_sensor.is_on: volume_up
+            then:
+              - script.execute: vol_up_repeat
+
+    on_release:
+      then:
+        - script.stop: vol_up_repeat
+
+  - platform: gpio
+    pin:
+      number: 0
+      mode: INPUT_PULLUP
+      inverted: true
+    id: !extend left_button
     on_multi_click:
-      # Double click => Next track
+      # Double click => Next track (only when PLAYING)
       - timing:
           - ON for at most 350ms
           - OFF for at most 350ms
           - ON for at most 350ms
+          - OFF for at least 351ms
         then:
-          - media_player.next: sendspin_media
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.next: sendspin_media
 
-      # Single click => Volume up
+      # Triple click => Previous track (only when PLAYING)
       - timing:
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at most 350ms
           - ON for at most 350ms
           - OFF for at least 351ms
         then:
-          - media_player.volume_up: external_media_player
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.previous: sendspin_media
+
+      # Hold => phase-aware action (idle vs playing)
+      - timing:
+          - ON for at least 700ms
+        then:
+          - lambda: |-
+              const auto phase = id(voice_assistant_phase);
+              const bool playing = (phase == ${voice_assist_playing_phase_id});
+              const bool idle    = (phase == ${voice_assist_idle_phase_id});
+              if (!(playing || idle)) return;
+
+              if (playing) {
+                id(tap_playing_hold_action).execute();
+              } else {  // idle
+                id(tap_idle_hold_action).execute();
+              }
 
   - platform: gpio
     pin: GPIO38
