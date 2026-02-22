@@ -4,7 +4,69 @@
 packages:
   clocks: !include ../clocks-standard.yaml
 
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 0
+      mode: INPUT_PULLUP
+      inverted: true
+    id: !extend left_button
+    on_multi_click:
+      # Double click => Next track (only when PLAYING)
+      - timing:
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.next: sendspin_media
+
+      # Triple click => Previous track (only when PLAYING)
+      - timing:
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.previous: sendspin_media
+
+      # Hold => phase-aware action (idle vs playing)
+      - timing:
+          - ON for at least 700ms
+        then:
+          - lambda: |-
+              const auto phase = id(voice_assistant_phase);
+              const bool playing = (phase == ${voice_assist_playing_phase_id});
+              const bool idle    = (phase == ${voice_assist_idle_phase_id});
+              if (!(playing || idle)) return;
+
+              if (playing) {
+                id(tap_playing_hold_action).execute();
+              } else {  // idle
+                id(tap_idle_hold_action).execute();
+              }
+
 script:
+  - id: tap_playing_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: tap_idle_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
   - id: mp_idle_debounce
     mode: restart
     then:
