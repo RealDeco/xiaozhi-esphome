@@ -167,13 +167,30 @@
           const bool has_text  = (!artist.empty() || !title.empty());
           const bool has_album = id(sendspin_album_art_valid);  // your validity flag
 
+          // Helper: draw outlined text (stroke via offsets)
+          auto print_outlined = [&](int x, int y,
+                                    esphome::font::Font *font,
+                                    esphome::display::TextAlign align,
+                                    const std::string &text,
+                                    esphome::Color fg,
+                                    esphome::Color outline,
+                                    int r) {
+            if (text.empty()) return;
+
+            for (int dx = -r; dx <= r; dx++) {
+              for (int dy = -r; dy <= r; dy++) {
+                if (dx == 0 && dy == 0) continue;
+                it.printf(x + dx, y + dy, font, outline, align, "%s", text.c_str());
+              }
+            }
+            it.printf(x, y, font, fg, align, "%s", text.c_str());
+          };
+
           if (TINY) {
             // ------------------------------------------------------------------
             // TINY OLED (128x64): TEXT ONLY (no album art, no fallback image)
             // ------------------------------------------------------------------
             if (has_text) {
-              // Vertical layout: artist on top, title below, both centered
-              // Use fonts you already have; sizes should fit 64px height.
               int y = 6;
 
               if (!artist.empty()) {
@@ -185,48 +202,75 @@
                 it.printf(cx, y, id(font_request_response), Color::WHITE, TextAlign::TOP_CENTER, "%s", title.c_str());
               }
             } else {
-              // If no metadata yet, show a simple placeholder
               it.printf(cx, cy, id(font_request_response), Color::WHITE, TextAlign::CENTER, "Playing...");
             }
 
-            // Optional: if you want the tiny timeline here too, keep it.
-            // But on 128x64 it can get cramped; enable if you like:
+            // Optional: tiny timeline (can be cramped on 128x64)
             // id(draw_timer_timeline).execute();
 
             return;
           }
 
           // --------------------------------------------------------------------
-          // NORMAL DISPLAYS: album-art/fallback + bottom band (dynamic)
+          // NORMAL DISPLAYS: full-screen art + dynamic outlined text overlay
           // --------------------------------------------------------------------
 
-          // Only reserve space for the band if we actually have text to show
-          const int band_h = has_text ? std::max(48, H / 5) : 0;
-          const int band_y = H - band_h;
-
-          // Art area is the remaining height above the band
-          const int art_h  = H - band_h;
-          const int art_cy = (band_h > 0) ? (art_h / 2) : cy;  // center in art area if band exists
-
-          // Draw centered image: album art if valid, otherwise fallback
+          // Full-screen image (no bottom band)
           if (has_album) {
-            it.image(cx, art_cy, id(sendspin_album_art), ImageAlign::CENTER);
+            it.image(cx, cy, id(sendspin_album_art), ImageAlign::CENTER);
           } else {
-            it.image(cx, art_cy, id(casita_playing), ImageAlign::CENTER);
+            it.image(cx, cy, id(casita_playing), ImageAlign::CENTER);
           }
 
-          // Subtitle band at bottom (same for album art + fallback)
           if (has_text) {
-            it.filled_rectangle(0, band_y, W, band_h, Color::BLACK);
+            // Dynamic padding (keeps text off the edges on all sizes)
+            const int pad_y = std::clamp(H / 30, 6, 24);
 
-            int y = band_y + std::max(6, band_h / 10);
+            // Dynamic outline thickness by size
+            const int outline_r = std::clamp(std::min(W, H) / 160, 1, 3);
 
-            if (!artist.empty()) {
-              it.printf(cx, y, id(font_big_date), Color::WHITE, TextAlign::TOP_CENTER, "%s", artist.c_str());
-              y += std::max(18, band_h / 2 - 4);
+            auto *font_artist = id(font_big_date);
+            auto *font_title  = id(font_request_response);
+
+            const int artist_h = font_artist->get_baseline();
+            const int title_h  = font_title->get_baseline();
+
+            // Gap between lines (scaled)
+            const int gap = std::clamp(H / 45, 4, 14);
+
+            // Anchor near bottom
+            const int bottom_y = H - pad_y;
+
+            bool draw_artist = !artist.empty();
+            bool draw_title  = !title.empty();
+
+            int y_title  = bottom_y;
+            int y_artist = bottom_y - title_h - gap;
+
+            // If there isn't enough space, drop the artist line first
+            if (draw_artist && (y_artist - artist_h < pad_y)) {
+              draw_artist = false;
             }
-            if (!title.empty()) {
-              it.printf(cx, y, id(font_request_response), Color::WHITE, TextAlign::TOP_CENTER, "%s", title.c_str());
+
+            // If STILL too tight, move title up a bit
+            if (draw_title && (y_title - title_h < pad_y)) {
+              y_title = pad_y + title_h;
+            }
+
+            // Extra truncation for very small widths
+            if (W < 200) {
+              artist = trunc(artist, (size_t) std::max(10, W / 14));
+              title  = trunc(title,  (size_t) std::max(12, W / 12));
+            }
+
+            if (draw_artist) {
+              print_outlined(cx, y_artist, font_artist, TextAlign::BOTTOM_CENTER, artist,
+                             Color::WHITE, Color::BLACK, outline_r);
+            }
+
+            if (draw_title) {
+              print_outlined(cx, y_title, font_title, TextAlign::BOTTOM_CENTER, title,
+                             Color::WHITE, Color::BLACK, outline_r);
             }
           }
 
