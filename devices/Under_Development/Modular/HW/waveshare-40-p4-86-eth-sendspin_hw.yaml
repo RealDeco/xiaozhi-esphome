@@ -254,6 +254,51 @@ touchscreen:
               if (is_right) id(swipe_playing_right_action).execute();
             }
 
+script:
+  - id: swipe_playing_up_action
+    then:
+      - media_player.volume_up: external_media_player
+
+  - id: swipe_playing_down_action
+    then:
+      - media_player.volume_down: external_media_player
+
+  - id: swipe_playing_left_action
+    then:
+      - media_player.next: sendspin_media
+
+  - id: swipe_playing_right_action
+    then:
+      - media_player.previous: sendspin_media
+
+  - id: tap_playing_toggle_action
+    then:
+      - lambda: |-
+          ESP_LOGI("TOUCH", "tap_playing_toggle_action fired");
+
+  - id: tap_playing_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: tap_idle_hold_action
+    then:
+      - media_player.toggle: sendspin_media
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+
 # --- BACKLIGHT ----------------------------------------------------------------
 output:
   - platform: ledc
