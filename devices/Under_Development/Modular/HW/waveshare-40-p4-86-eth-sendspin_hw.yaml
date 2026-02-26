@@ -8,57 +8,49 @@ packages:
 # --- SENDSPIN -----------------------------------------------------------------
 external_components:
   - source:
-      # https://github.com/esphome/esphome/pull/12253
+      # https://github.com/esphome/esphome/pull/12429
       type: git
       url: https://github.com/esphome/esphome
-      ref: 7f34908569650e5a8b8c83e6bf89fea561218880
-    components: [mixer]
-  - source:
-      # https://github.com/esphome/esphome/pull/12254
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 6006b896a691ad38d8045ac67564c168973d1a1d
-    components: [resampler]
-  - source:
-      # https://github.com/esphome/esphome/pull/12256
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 9148832ea4e54907bad71a24d4ced1ce6c862433
-    components: [audio]
-  - source:
-      # https://github.com/esphome/esphome/pull/12258
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: bff22983a390352360796f8e1363127e0cd1f898
-    components: [media_player]
+      ref: a6c403deb7603d316dce2820897902e01c3695cc
+    refresh: 0s
+    components: [file, http_request, media_source, speaker_source]
   - source:
       # https://github.com/esphome/esphome/pull/12284
       type: git
       url: https://github.com/esphome/esphome
-      ref: a6c0a861a014e64c67d46115eba8e5370777b80a
-    components: [generic_image, mdns, sendspin]
+      ref: 119a5c25a483c58b3d58a35c8cec95495c6491c2
+    components: [generic_image, sendspin]
+
+  # The following sources are merged into the dev branch of ESPHome, but not yet in a release.
+  # We've pinned them to their specific squash merge commit id for reproducable builds.
+  # These should be available in ESPHome 2026.3.0
   - source:
-      # https://github.com/esphome/esphome/pull/12429
+      # Dev commit hash for squash merge from PR#10212
       type: git
       url: https://github.com/esphome/esphome
-      ref: 928204066ce0082404573ea1c6a0b58aeebbd7c6
-    refresh: 0s
-    components: [file, http_request, media_source, speaker_source]
+      ref: 903971de12c1b291ca8cd367ce5cdf9af8b304ae
+    components: [runtime_image]
+  - source:
+      # Dev commit hash for squash merge from PR#12258
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: 264c8faedd0ab956b0437ec2ecc0bacae1708923
+    components: [media_player]
+  - source:
+      # Dev commit hash for squash merge from PR#14013
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: ba7134ee3f870ce00d2990d84b142b734028330f
+    components: [mdns]
+  - source:
+      # Dev commit hash for squash merge from PR#14108
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: d2026b4cd74bbeb9b86941bf1887f3d93d639387
+    components: [audio]
 
-  - source: github://pr#10212
-      # https://github.com/esphome/esphome/pull/10212
-    components: [runtime_image, online_image]
-  - source: github://pr#13520
-      # https://github.com/esphome/esphome/pull/13520
-    components: [esp32_hosted, wifi]
-    refresh: 0s
-
-#  - source:
-#      type: git
-#      url: https://github.com/kahrendt/esphome
-#      ref: wifi-power-save-wake-loop
-#    refresh: 0s
-#    components: [wifi]
+#  - source: github://pr#10212
+#    components: [runtime_image, online_image]
 
 globals:
   - id: sendspin_album_art_valid
@@ -66,18 +58,23 @@ globals:
     restore_value: no
     initial_value: "false"
 
-#image:
-#  - file: ${playing_illustration_file}
-#    id: !extend casita_playing
-#    resize: 500x500
-#    type: RGB565
+  - id: gs_hold_fired
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+image:
+  - file: ${playing_illustration_file}
+    id: !extend casita_playing
+    resize: 180x180
+    type: RGB565
 
 generic_image:
   - platform: sendspin
     id: sendspin_album_art
     format: jpg
     type: RGB565
-    resize: 720x720
+    resize: 180x180
     image_source: ALBUM
     on_image_decoded:
       - lambda: |-
@@ -138,10 +135,12 @@ touchscreen:
     display: main_display
 #    i2c_id: bus_a
 #    address: 0x14
+
     on_touch:
       then:
         - lambda: |-
             id(gs_touch_active) = true;
+            id(gs_hold_fired) = false;
             id(gs_start_x) = touch.x;
             id(gs_start_y) = touch.y;
             id(gs_last_x)  = touch.x;
@@ -165,6 +164,7 @@ touchscreen:
         - lambda: |-
             if (!id(gs_touch_active)) return;
             id(gs_touch_active) = false;
+            if (id(gs_hold_fired)) return;
 
             const int start_x = id(gs_start_x);
             const int start_y = id(gs_start_y);
@@ -216,11 +216,19 @@ touchscreen:
               }
             }
 
-            // Not a swipe → tap (strict, then forgiving fallback)
+            // Not a swipe → tap/hold
             if (!(is_left || is_right || is_up || is_down)) {
+              // Short tap (strict, then forgiving fallback)
               if ((absx <= TAP_MAX_DIST && absy <= TAP_MAX_DIST && dt <= TAP_MAX_TIME) ||
                   (absx <= TAP_FB_DIST  && absy <= TAP_FB_DIST  && dt <= TAP_FB_TIME)) {
-                id(pulse_touch_input).execute();
+
+                // Playing: tap toggles play/pause (and do not pulse)
+                if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
+                  id(tap_playing_toggle_action).execute();
+                } else {
+                  // All other phases: expose tap via pulse (stop VA, etc.)
+                  id(pulse_touch_input).execute();
+                }
               }
               return;
             }
@@ -232,11 +240,18 @@ touchscreen:
             if (is_down)  id(pulse_swipe_down).execute();
 
             // Optional local handling
-            if (id(swipe_local).state) {
+            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_idle_phase_id})) {
               if (is_left)  id(swipe_left_action).execute();
               if (is_right) id(swipe_right_action).execute();
               if (is_up)    id(swipe_up_action).execute();
               if (is_down)  id(swipe_down_action).execute();
+            }
+
+            if (id(swipe_local).state && (id(voice_assistant_phase) == ${voice_assist_playing_phase_id})) {
+              if (is_up)    id(swipe_playing_up_action).execute();
+              if (is_down)  id(swipe_playing_down_action).execute();
+              if (is_left)  id(swipe_playing_left_action).execute();
+              if (is_right) id(swipe_playing_right_action).execute();
             }
 
 # --- BACKLIGHT ----------------------------------------------------------------
@@ -324,7 +339,7 @@ media_source:
       - id: timer_finished_sound
         file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
       - id: wake_word_triggered_sound
-        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/popup.flac
+        file: ${wakeup_sound_file}
       - id: ready_sound
         file: ${startup_sound_file}
 
@@ -357,6 +372,7 @@ media_player:
       - sendspin_source
 
     on_announcement:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -382,6 +398,7 @@ media_player:
             - component.update: main_display
 
     on_play:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -410,24 +427,11 @@ media_player:
             - component.update: main_display
 
     on_pause:
-      - if:
-          condition:
-            not:
-              voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+      - lambda: |-
+          ESP_LOGI("TOUCH", "ON_PAUSE fired");
 
     on_idle:
-      - if:
-          condition:
-            not:
-              voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+      - script.execute: mp_idle_debounce
 
 # --- BATTERY (FAKE SOURCE TO KEEP WIDGET HAPPY) -------------------------------
 sensor:
