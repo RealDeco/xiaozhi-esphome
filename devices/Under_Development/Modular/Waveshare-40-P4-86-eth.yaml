@@ -1,5 +1,5 @@
 substitutions:
-  name: Waveshare-40-p4-86-eth
+  name: waveshare-40-p4-86-eth
   friendly_name: Waveshare 4.0
 
 ## Modular version Main P4 v1.0.01
