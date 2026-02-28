@@ -97,7 +97,7 @@ api:
   on_client_connected:
     - script.execute: draw_display
     - script.execute: stop_wake_word
-    - delay: 500ms
+    - delay: 2000ms
     - lambda: |-
         if (!id(boot_sound_played)) {
           id(boot_sound_played) = true;
@@ -261,7 +261,9 @@ binary_sensor:
               else:
                 - if:
                     condition:
-                      lambda: return id(wake_word_engine_location).current_option() == "On device";
+                      lambda: |-
+                        return id(wake_word_engine_location).current_option() == "On device"
+                          && id(voice_assistant_phase) != ${voice_assist_playing_phase_id};
                     then:
                       - media_player.stop:
                           id: external_media_player
@@ -273,11 +275,6 @@ binary_sensor:
                             - voice_assistant.start:
                           else:
                             - voice_assistant.stop:
-      - timing:
-          - ON for at least 1s
-        then:
-          - switch.toggle: show_battery_status
-          - component.update: main_display
 
   - platform: template
     name: "Timer Ringing Active"
