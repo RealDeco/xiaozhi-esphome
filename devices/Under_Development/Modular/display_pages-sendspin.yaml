@@ -277,9 +277,6 @@
           // Optional: show timer progress while playing
           id(draw_timer_timeline).execute();
 
-
-
-
       - id: default_clock
         lambda: |-
           // ---------- Geometry (recompute only on size change) ----------
