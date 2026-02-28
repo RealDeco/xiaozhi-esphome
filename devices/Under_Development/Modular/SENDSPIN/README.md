@@ -11,6 +11,7 @@ Supported devices:
 * Xiaozhi Cube **1.54**
 * Waveshare **1.85C v1**
 * Waveshare **1.85C v2**
+* Waveshare 4.0 P4 86 eth
 
 ---
 
