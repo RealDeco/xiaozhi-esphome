@@ -1,5 +1,5 @@
 
-# waveshare 4.0 p4 eth hardware pack SENDSPIN v1.12
+# waveshare 4.0 p4 eth hardware pack v1.10
 
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
@@ -49,9 +49,6 @@ external_components:
       ref: d2026b4cd74bbeb9b86941bf1887f3d93d639387
     components: [audio]
 
-#  - source: github://pr#10212
-#    components: [runtime_image, online_image]
-
 globals:
   - id: sendspin_album_art_valid
     type: bool
@@ -63,18 +60,12 @@ globals:
     restore_value: no
     initial_value: "false"
 
-image:
-  - file: ${playing_illustration_file}
-    id: !extend casita_playing
-    resize: 180x180
-    type: RGB565
-
 generic_image:
   - platform: sendspin
     id: sendspin_album_art
     format: jpg
     type: RGB565
-    resize: 180x180
+    resize: 720x720
     image_source: ALBUM
     on_image_decoded:
       - lambda: |-
@@ -133,8 +124,6 @@ touchscreen:
   - platform: gt911
     id: my_touchscreen
     display: main_display
-#    i2c_id: bus_a
-#    address: 0x14
 
     on_touch:
       then:
@@ -298,6 +287,42 @@ script:
             - script.execute: start_wake_word
             - script.execute: set_idle_or_mute_phase
             - script.execute: draw_display
+      
+interval:
+  - interval: 100ms
+    then:
+      - lambda: |-
+          // Fast rejects
+          if (!id(gs_touch_active)) return;
+          if (id(gs_hold_fired)) return;
+          if (!id(swipe_local).state) return;
+
+          const auto phase = id(voice_assistant_phase);
+          const bool playing = (phase == ${voice_assist_playing_phase_id});
+          const bool idle    = (phase == ${voice_assist_idle_phase_id});
+          if (!(playing || idle)) return;
+
+          constexpr uint32_t HOLD_MS = 700;
+          if ((millis() - id(gs_start_ms)) < HOLD_MS) return;
+
+          // Distance threshold scales with screen
+          const int w = id(main_display).get_width();
+          const int h = id(main_display).get_height();
+          const int min_dim = (w < h) ? w : h;
+          const int HOLD_MAX_DIST = std::max(10, min_dim / 18);
+
+          const int dx = id(gs_last_x) - id(gs_start_x);
+          const int dy = id(gs_last_y) - id(gs_start_y);
+          if (std::abs(dx) > HOLD_MAX_DIST || std::abs(dy) > HOLD_MAX_DIST) return;
+
+          // Fire once
+          id(gs_hold_fired) = true;
+
+          if (playing) {
+            id(tap_playing_hold_action).execute();
+          } else { // idle
+            id(tap_idle_hold_action).execute();
+          }
 
 # --- BACKLIGHT ----------------------------------------------------------------
 output:
@@ -464,7 +489,6 @@ media_player:
           then:
             - lambda: 'id(playing_internal_sound) = false;'
           else:
-#            - script.execute: reset_screensaver
             - script.execute:
                 id: set_phase
                 phase: ${voice_assist_playing_phase_id}
@@ -504,35 +528,51 @@ binary_sensor:
       inverted: true
     id: boot_button
     on_multi_click:
+      # Double click => Next track (only when PLAYING)
       - timing:
-          - ON for 40ms to 400ms
-          - OFF for at least 330ms
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
         then:
           - if:
               condition:
-                switch.is_on: timer_ringing
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
               then:
-                - switch.turn_off: timer_ringing
-              else:
-                - if:
-                    condition:
-                      lambda: return id(wake_word_engine_location).current_option() == "On device";
-                    then:
-                      - media_player.stop:
-                          id: external_media_player
-                      - if:
-                          condition:
-                            not:
-                              voice_assistant.is_running:
-                          then:
-                            - voice_assistant.start:
-                          else:
-                            - voice_assistant.stop:
+                - media_player.next: sendspin_media
+
+      # Triple click => Previous track (only when PLAYING)
       - timing:
-          - ON for at least 1s
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
         then:
-          - switch.toggle: show_battery_status
-          - script.execute: draw_display
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.previous: sendspin_media
+
+      # Hold => phase-aware action (idle vs playing)
+      - timing:
+          - ON for at least 700ms
+        then:
+          - lambda: |-
+              const auto phase = id(voice_assistant_phase);
+              const bool playing = (phase == ${voice_assist_playing_phase_id});
+              const bool idle    = (phase == ${voice_assist_idle_phase_id});
+              if (!(playing || idle)) return;
+
+              if (playing) {
+                id(tap_playing_hold_action).execute();
+              } else {  // idle
+                id(tap_idle_hold_action).execute();
+              }
 
 # --- DISPLAY DRIVER (MIPI SPI JC3636W518) ------------------------------------
 display:
