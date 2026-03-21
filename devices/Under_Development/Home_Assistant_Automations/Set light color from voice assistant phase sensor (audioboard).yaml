@@ -2,7 +2,7 @@ alias: Set light color from voice assistant phase sensor (audioboard)
 description: Changes LED color when the phase ID sensor updates
 triggers:
   - trigger: state
-    entity_id: sensor.voicemouth_voice_assistant_phase_id
+    entity_id: sensor.waveshare_audio_board_voice_assistant_phase_id
 conditions: []
 actions:
   - choose:
