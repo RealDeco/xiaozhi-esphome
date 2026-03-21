@@ -1,5 +1,20 @@
 # waveshare-s3-audio-board
 
+script:
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
@@ -7,45 +22,62 @@ packages:
 # --- SENDSPIN -----------------------------------------------------------------
 external_components:
   - source:
-      # https://github.com/esphome/esphome/pull/12253
+      # https://github.com/esphome/esphome/pull/14933
       type: git
-      url: https://github.com/esphome/esphome
-      ref: 7f34908569650e5a8b8c83e6bf89fea561218880
-    components: [mixer]
-  - source:
-      # https://github.com/esphome/esphome/pull/12254
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 6006b896a691ad38d8045ac67564c168973d1a1d
-    components: [resampler]
-  - source:
-      # https://github.com/esphome/esphome/pull/12256
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: 9148832ea4e54907bad71a24d4ced1ce6c862433
-    components: [audio]
-  - source:
-      # https://github.com/esphome/esphome/pull/12258
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: bff22983a390352360796f8e1363127e0cd1f898
-    components: [media_player]
-  - source:
-      # https://github.com/esphome/esphome/pull/12284
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: a6c0a861a014e64c67d46115eba8e5370777b80a
-    components: [generic_image, mdns, sendspin]
+      url: https://github.com/kahrendt/esphome
+      ref: 890e33f99af2c2ea15dc74c3ec4cf32d25203526
+    components: [const, media_source, sendspin, generic_image]
   - source:
       # https://github.com/esphome/esphome/pull/12429
       type: git
       url: https://github.com/esphome/esphome
-      ref: 928204066ce0082404573ea1c6a0b58aeebbd7c6
+      ref: ff8ce89556748509d7ee8724e12d9d43d3c8c1e8
     refresh: 0s
-    components: [file, http_request, media_source, speaker_source]
-  - source: github://pr#10212
-      # https://github.com/esphome/esphome/pull/10212
-    components: [runtime_image, online_image]
+    components: [http_request]
+
+globals:
+  - id: sendspin_album_art_valid
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: gs_hold_fired
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+generic_image:
+  - platform: sendspin
+    id: sendspin_album_art
+    format: jpg
+    type: RGB565
+    resize: 360x360
+    image_source: ALBUM
+    on_image_decoded:
+      - lambda: |-
+          id(sendspin_album_art_valid) = true;
+      - component.update: main_display
+    on_image_error:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+text_sensor:
+  - platform: sendspin
+    id: sendspin_title
+    type: title
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+  - platform: sendspin
+    id: sendspin_artist
+    type: artist
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
 
 # --- BUSES / PERIPHERALS ------------------------------------------------------
 tca9555:
@@ -119,68 +151,81 @@ speaker:
     id: mixing_speaker
     output_speaker: box_speaker
     num_channels: 2
+    task_stack_in_psram: true
     source_speakers:
-      - id: announcement_mixer_input
-      - id: media_mixer_input
+      - id: announcement_mixing_input
+      - id: media_mixing_input
 
   - platform: resampler
-    id: media_resampling_input
-    output_speaker: media_mixer_input
+    id: announcement_resampling_speaker
+    output_speaker: announcement_mixing_input
     sample_rate: 48000
+    bits_per_sample: 16
 
   - platform: resampler
-    id: announcement_resampling_input
-    output_speaker: announcement_mixer_input    
+    id: media_resampling_speaker
+    output_speaker: media_mixing_input
     sample_rate: 48000
 
 sendspin:
   id: sendspin_hub
-  task_stack_in_psram: true
-  kalman_process_error: 0.01
+  task_stack_in_psram: false
+
+http_request:
+  buffer_size_rx: 2048  # Reduces CPU load when streaming audio
+
+audio_file:
+  - id: ready_sound
+    file: ${startup_sound_file}
+  - id: timer_finished_sound
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+  - id: wake_word_triggered_sound
+    file: ${wakeup_sound_file}
 
 media_source:
-  - platform: sendspin
-    id: sendspin_source
+  - platform: audio_file
+    id: audio_file_announcement_source
   - platform: http_request
-    id: http_source
+    id: http_announcement_source
+    buffer_size: 250000
+  - platform: http_request
+    id: http_media_source
     buffer_size: 500000
-  - platform: file
-    id: file_source
-    files:
-      - id: timer_finished_sound
-        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
-      - id: wake_word_triggered_sound
-        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/wake_word_triggered.flac
-      - id: ready_sound
-        file: ${startup_sound_file}
+  - platform: sendspin
+    id: sendspin_media_source
 
 media_player:
   - platform: sendspin
     id: sendspin_group_media_player
+    name: Sendspin Group Media Player
+
   - platform: speaker_source
-    name: none
     id: external_media_player
-    announcement_speaker: announcement_resampling_input
-    media_speaker: media_resampling_input
+    name: Media Player
 
     announcement_pipeline:
       format: FLAC
       num_channels: 1
       sample_rate: 48000
+      speaker: announcement_resampling_speaker
+      sources:
+        - audio_file_announcement_source
+        - http_announcement_source
+
     media_pipeline:
       format: FLAC
-      num_channels: 2      
+      num_channels: 2
       sample_rate: 48000
-
+      speaker: media_resampling_speaker
+      sources:
+        - http_media_source
+        - sendspin_media_source
     volume_increment: 0.05
-    volume_min: 0.5
-    volume_max: 0.8
-    sources:
-      - file_source
-      - http_source
-      - sendspin_source
+    volume_min: 0.4
+    volume_max: 0.85
 
     on_announcement:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -206,6 +251,7 @@ media_player:
             - component.update: main_display
 
     on_play:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -234,24 +280,19 @@ media_player:
             - component.update: main_display
 
     on_pause:
-      - if:
-          condition:
-            not:
-              voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+      - lambda: |-
+          ESP_LOGI("TOUCH", "ON_PAUSE fired");
+#      - if:
+#          condition:
+#            not:
+#              voice_assistant.is_running:
+#          then:
+#            - script.execute: start_wake_word
+#            - script.execute: set_idle_or_mute_phase
+#            - script.execute: draw_display
 
     on_idle:
-      - if:
-          condition:
-            not:
-              voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+      - script.execute: mp_idle_debounce
 
 # --- BACKLIGHT & AUX LED ------------------------------------------------------
 output:
@@ -323,4 +364,4 @@ display:
       tca9555: tca9555_device
       number: 0
     update_interval: never
-    pages: !include ../no_display_pages.yaml
+    pages: !include ../display_pages-sendspin.yaml
