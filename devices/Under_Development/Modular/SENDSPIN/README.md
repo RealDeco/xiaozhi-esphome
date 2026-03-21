@@ -1,6 +1,10 @@
-## 📦 Voice Assistant Devices — Updated to `2026.2.0`
+## 📦 Voice Assistant Devices — Updated to `2026.3.0`
 
-Supported devices:
+* Guition **1.80 v1**
+* Guition **1.80 v2**
+* Ball **v2**
+
+## 📦 Voice Assistant Devices — Updated to `2026.2.0`
 
 * Guition **1.80 v1**
 * Guition **1.80 v2**
