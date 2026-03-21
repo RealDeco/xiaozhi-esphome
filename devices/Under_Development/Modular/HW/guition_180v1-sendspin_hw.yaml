@@ -1,5 +1,4 @@
 # Taichi Pi v1 hardware SENDSPIN edition 2026.3.0
-
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
@@ -113,7 +112,7 @@ speaker:
     i2s_dout_pin: GPIO17
     dac_type: external
     channel: stereo
-    buffer_duration: 300ms
+    sample_rate: 48000
 
   - platform: mixer
     id: mixing_speaker
@@ -439,7 +438,7 @@ script:
   - id: mp_idle_debounce
     mode: restart
     then:
-      - delay: 1s
+      - delay: 3s
       - if:
           condition:
             and:
