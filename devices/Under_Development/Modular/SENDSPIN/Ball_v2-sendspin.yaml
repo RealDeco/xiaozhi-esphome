@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-0bac48
   friendly_name: "Xiaozhi Ball V2"
 
-## Modular version Main SENDSPIN edition
+## Modular version Main SENDSPIN edition 2026.3.0
 
 ## SETTINGS ######################################################################################################################################
 
@@ -92,7 +92,7 @@ packages:
 #  hw:   !include localtest/HW/ball_v2-sendspin_hw.yaml
 
 #logger:
-#  level: DEBUG
+#  level: WARN
 
 ## ENABLE / DISABLE WAKE WORDS ## IF LOW ON MEMORY, USE LESS WAKE WORDS ##########################################################################
 
