@@ -1,4 +1,4 @@
-# Core v1.12 sendspin edition
+# Core 2026.3.0 sendspin edition
 
 substitutions:
   allowed_characters: >-
@@ -37,7 +37,7 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2026.2.0
+  min_version: 2026.3.0
   name_add_mac_suffix: false
   on_boot:
     priority: 600
@@ -981,7 +981,7 @@ script:
           if ( (id(external_media_player).state != media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING ) || priority) {
             id(external_media_player)
               ->make_call()
-              .set_media_url("file://" + sound_file)
+              .set_media_url("audio-file://" + sound_file)
               .set_announcement(true)
               .perform();
           }
