@@ -5,6 +5,7 @@
 * Ball **v2**
 * Waveshare **1.85C v1**
 * Waveshare **1.85C v2**
+* Waveshare Audio Board
 
 ## 📦 Voice Assistant Devices — Updated to `2026.2.0`
 
