@@ -92,7 +92,7 @@ packages:
 #  hw:   !include localtest/HW/breadboard_240x320-sendspin_hw.yaml
 
 #logger:
-#  level: DEBUG
+#  level: WARN
 
 ## ENABLE / DISABLE WAKE WORDS ## IF LOW ON MEMORY, USE LESS WAKE WORDS ##########################################################################
 
