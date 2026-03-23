@@ -522,11 +522,12 @@ script:
 
   - id: tap_playing_hold_action
     then:
-      - media_player.toggle: sendspin_group_media_player
+      - media_player.stop: sendspin_group_media_player
 
   - id: tap_idle_hold_action
     then:
-      - media_player.toggle: sendspin_group_media_player
+      - script.execute: stop_wake_word
+      - media_player.play: sendspin_group_media_player
 
   - id: mp_idle_debounce
     mode: restart
