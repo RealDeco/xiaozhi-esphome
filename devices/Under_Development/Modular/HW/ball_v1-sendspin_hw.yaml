@@ -1,0 +1,412 @@
+# Xiaozhi ball v1 sendspin version — 2026.3.0
+
+# --- CLOCKS PACKAGE -----------------------------------------------------------
+packages:
+  clocks: !include ../clocks-standard.yaml
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 0
+      mode: INPUT_PULLUP
+      inverted: true
+    id: !extend left_button
+    on_multi_click:
+      # Double click => Next track (only when PLAYING)
+      - timing:
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.next: sendspin_group_media_player
+
+      # Triple click => Previous track (only when PLAYING)
+      - timing:
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.previous: sendspin_group_media_player
+
+      # Hold => phase-aware action (idle vs playing)
+      - timing:
+          - ON for at least 700ms
+        then:
+          - lambda: |-
+              const auto phase = id(voice_assistant_phase);
+              const bool playing = (phase == ${voice_assist_playing_phase_id});
+              const bool idle    = (phase == ${voice_assist_idle_phase_id});
+              if (!(playing || idle)) return;
+
+              if (playing) {
+                id(tap_playing_hold_action).execute();
+              } else {  // idle
+                id(tap_idle_hold_action).execute();
+              }
+
+script:
+  - id: tap_playing_hold_action
+    then:
+      - media_player.stop: sendspin_group_media_player
+
+  - id: tap_idle_hold_action
+    then:
+      - script.execute: stop_wake_word
+      - media_player.play: sendspin_group_media_player
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 3s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+
+# --- SENDSPIN -----------------------------------------------------------------
+external_components:
+  - source:
+      # https://github.com/esphome/esphome/pull/14933
+      type: git
+      url: https://github.com/kahrendt/esphome
+      ref: 7a6cf5c8472b7e2fa18ee0fc314f66a80d249e32
+#      ref: 890e33f99af2c2ea15dc74c3ec4cf32d25203526
+    components: [const, media_source, sendspin, generic_image]
+  - source:
+      # https://github.com/esphome/esphome/pull/12429
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: ff8ce89556748509d7ee8724e12d9d43d3c8c1e8
+    refresh: 0s
+    components: [http_request]
+
+globals:
+  - id: sendspin_album_art_valid
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: gs_hold_fired
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+image:
+  - file: ${imagepath}/${imagemodel}/240x240/playing.png
+    id: !extend casita_playing
+    resize: 240x240
+    type: RGB565
+
+generic_image:
+  - platform: sendspin
+    id: sendspin_album_art
+    format: jpg
+    type: RGB565
+    resize: 240x240
+    image_source: ALBUM
+    on_image_decoded:
+      - lambda: |-
+          id(sendspin_album_art_valid) = true;
+      - component.update: main_display
+    on_image_error:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+text_sensor:
+  - platform: sendspin
+    id: sendspin_title
+    type: title
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+  - platform: sendspin
+    id: sendspin_artist
+    type: artist
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+# --- BUSES / PERIPHERALS ------------------------------------------------------
+spi:
+  - id: spi_bus
+    clk_pin: 14
+    mosi_pin: 17
+    # (no MISO line for display)
+
+i2s_audio:
+  - id: i2s_mic
+    i2s_lrclk_pin: GPIO4   # WS
+    i2s_bclk_pin:  GPIO5   # SCK
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO16
+    i2s_bclk_pin:  GPIO15
+    # (no MCLK on this board)
+
+# --- AUDIO DEVICES ------------------------------------------------------------
+microphone:
+  - platform: i2s_audio
+    id: box_mic
+    i2s_audio_id: i2s_mic
+    i2s_din_pin: GPIO6
+    adc_type: external
+    channel: left
+    pdm: false
+    sample_rate: 16000
+    bits_per_sample: 16bit
+
+speaker:
+  - platform: i2s_audio
+    id: box_speaker
+    i2s_audio_id: i2s_audio_bus
+    i2s_dout_pin: GPIO7
+    dac_type: external
+    sample_rate: 48000
+    channel: mono
+
+  - platform: mixer
+    id: mixing_speaker
+    output_speaker: box_speaker
+    num_channels: 2
+    task_stack_in_psram: true
+    source_speakers:
+      - id: announcement_mixing_input
+      - id: media_mixing_input
+
+  - platform: resampler
+    id: announcement_resampling_speaker
+    output_speaker: announcement_mixing_input
+    sample_rate: 48000
+    bits_per_sample: 16
+
+  - platform: resampler
+    id: media_resampling_speaker
+    output_speaker: media_mixing_input
+    sample_rate: 48000
+
+sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: false
+
+http_request:
+  buffer_size_rx: 2048  # Reduces CPU load when streaming audio
+
+audio_file:
+  - id: ready_sound
+    file: ${startup_sound_file}
+  - id: timer_finished_sound
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+  - id: wake_word_triggered_sound
+    file: ${wakeup_sound_file}
+
+media_source:
+  - platform: audio_file
+    id: audio_file_announcement_source
+  - platform: http_request
+    id: http_announcement_source
+    buffer_size: 250000
+  - platform: http_request
+    id: http_media_source
+    buffer_size: 500000
+  - platform: sendspin
+    id: sendspin_media_source
+
+media_player:
+  - platform: sendspin
+    id: sendspin_group_media_player
+    name: Sendspin Group Media Player
+
+  - platform: speaker_source
+    id: external_media_player
+    name: Media Player
+
+    announcement_pipeline:
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
+      speaker: announcement_resampling_speaker
+      sources:
+        - audio_file_announcement_source
+        - http_announcement_source
+
+    media_pipeline:
+      format: FLAC
+      num_channels: 2
+      sample_rate: 48000
+      speaker: media_resampling_speaker
+      sources:
+        - http_media_source
+        - sendspin_media_source
+    volume_increment: 0.05
+    volume_min: 0.4
+    volume_max: 0.85
+
+    on_announcement:
+      - script.stop: mp_idle_debounce
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+            - script.execute: reset_screensaver
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_play:
+      - script.stop: mp_idle_debounce
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+#            - script.execute: reset_screensaver
+            - script.execute:
+                id: set_phase
+                phase: ${voice_assist_playing_phase_id}
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_pause:
+      - lambda: |-
+          ESP_LOGI("TOUCH", "ON_PAUSE fired");
+#      - if:
+#          condition:
+#            not:
+#              voice_assistant.is_running:
+#          then:
+#            - script.execute: start_wake_word
+#            - script.execute: set_idle_or_mute_phase
+#            - script.execute: draw_display
+
+    on_idle:
+      - script.execute: mp_idle_debounce
+
+# --- BACKLIGHT ----------------------------------------------------------------
+output:
+  - platform: ledc
+    id: backlight_output
+    pin: GPIO3
+    inverted: false
+
+light:
+  - platform: monochromatic
+    id: Sled
+    name: Screen
+    icon: "mdi:television"
+    entity_category: config
+    output: backlight_output
+    restore_mode: RESTORE_DEFAULT_ON
+    default_transition_length: 250ms
+
+  - platform: esp32_rmt_led_strip
+    id: led
+    name: none
+    disabled_by_default: false
+    entity_category: config
+    pin: GPIO48
+    default_transition_length: 0s
+    chipset: WS2812
+    num_leds: 1
+    rgb_order: grb
+    effects:
+      - pulse:
+          name: "Slow Pulse"
+          transition_length: 250ms
+          update_interval: 250ms
+          min_brightness: 50%
+          max_brightness: 100%
+      - pulse:
+          name: "Fast Pulse"
+          transition_length: 100ms
+          update_interval: 100ms
+          min_brightness: 50%
+          max_brightness: 100%
+
+# --- BATTERY ADC --------------------------------------------------------------
+sensor:
+  - platform: adc
+    pin: GPIO1
+    name: "Battery Voltage"
+    id: battery_voltage
+    attenuation: 12db
+    accuracy_decimals: 2
+    update_interval: 10s
+    unit_of_measurement: "V"
+    icon: mdi:battery-medium
+    filters:
+      - multiply: 2.0
+      - median:
+          window_size: 7
+          send_every: 7
+          send_first_at: 1
+      - throttle: 1min
+    on_value:
+      then:
+        - sensor.template.publish:
+            id: battery_percentage
+            state: !lambda 'return x;'
+
+# --- DISPLAY DRIVER (SPI GC9A01A, 240x240 round) ------------------------------
+display:
+  - platform: mipi_spi
+    id: main_display
+    model: GC9A01A
+    invert_colors: true
+    cs_pin: GPIO13
+    dc_pin: GPIO10
+    reset_pin: GPIO18
+    update_interval: never
+    pages: !include ../display_pages-sendspin.yaml
