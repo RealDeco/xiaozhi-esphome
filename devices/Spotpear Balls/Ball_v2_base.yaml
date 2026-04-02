@@ -1218,7 +1218,7 @@ font:
       family: ${font_family}
       weight: 300
     id: font_battery
-    size: 24
+    size: 20
     glyphsets:
       - ${font_glyphsets}
   - file:
@@ -1324,6 +1324,13 @@ text_sensor:
           id(text_response).state = (truncated+"...").c_str();
         }
 
+  - id: idle_battery_text
+    platform: template
+    internal: true
+    on_value:
+      then:
+        - script.execute: draw_display
+
 color:
   # Colores base por estado y colores de barras de temporizador.
   - id: idle_color
@@ -1346,6 +1353,14 @@ color:
     hex: ${idle_dashboard_background_color}
   - id: idle_dashboard_fg
     hex: ${idle_dashboard_text_color}
+  - id: idle_temp_icon_color
+    hex: "FF8A3D"
+  - id: idle_humidity_icon_color
+    hex: "4DA6FF"
+  - id: idle_alarm_icon_color
+    hex: "F7D154"
+  - id: idle_battery_icon_color
+    hex: "72D672"
 
 spi:
   # Bus SPI del display redondo.
@@ -1415,10 +1430,17 @@ display:
             it.fill(id(idle_dashboard_bg));
             int current_y = 16;
             if (id(show_idle_temperature).state && !id(idle_temperature_text).state.empty()) {
+              // Thermometer icon.
+              it.filled_circle(66, current_y + 15, 4, id(idle_temp_icon_color));
+              it.filled_rectangle(64, current_y + 5, 4, 11, id(idle_temp_icon_color));
+              it.rectangle(63, current_y + 4, 6, 14, id(idle_temp_icon_color));
               it.printf(it.get_width() / 2, current_y, id(font_idle_metric), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", id(idle_temperature_text).state.c_str());
               current_y += 24;
             }
             if (id(show_idle_humidity).state && !id(idle_humidity_text).state.empty()) {
+              // Water drop icon.
+              it.filled_triangle(66, current_y + 5, 61, current_y + 15, 71, current_y + 15, id(idle_humidity_icon_color));
+              it.filled_circle(66, current_y + 17, 5, id(idle_humidity_icon_color));
               it.printf(it.get_width() / 2, current_y, id(font_idle_metric), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", id(idle_humidity_text).state.c_str());
               current_y += 26;
             }
@@ -1434,7 +1456,18 @@ display:
               if (alarm_text.length() > 28) {
                 alarm_text = alarm_text.substr(0, 28) + "...";
               }
+              // Bell icon.
+              it.filled_circle(46, 195, 7, id(idle_alarm_icon_color));
+              it.filled_rectangle(39, 195, 14, 6, id(idle_alarm_icon_color));
+              it.filled_circle(46, 203, 2, id(idle_alarm_icon_color));
               it.printf(it.get_width() / 2, 182, id(font_idle_alarm), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", alarm_text.c_str());
+            }
+            if (!id(idle_battery_text).state.empty()) {
+              // Battery icon.
+              it.rectangle(72, 219, 18, 10, id(idle_battery_icon_color));
+              it.filled_rectangle(90, 222, 2, 4, id(idle_battery_icon_color));
+              it.filled_rectangle(74, 221, 12, 6, id(idle_battery_icon_color));
+              it.printf(it.get_width() / 2, 212, id(font_battery), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", id(idle_battery_text).state.c_str());
             }
             id(draw_status_badges).execute();
             id(draw_timer_timeline).execute();

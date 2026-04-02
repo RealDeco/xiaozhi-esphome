@@ -45,6 +45,14 @@ sensor:
           if (x > 100) return 100;
           if (x < 0) return 0;
           return x;
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: idle_battery_text
+            state: !lambda |-
+              char battery_text[8];
+              snprintf(battery_text, sizeof(battery_text), "%.0f%%", x);
+              return std::string(battery_text);
 
 touchscreen:
   - platform: cst816
