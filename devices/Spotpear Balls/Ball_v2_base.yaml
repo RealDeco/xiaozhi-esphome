@@ -51,6 +51,8 @@ substitutions:
   timer_finished_illustration_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/${imagemodel}/${imagewidth}x${imageheight}/timer_finished.png
   mute_illustration_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/${imagemodel}/${imagewidth}x${imageheight}/mute.png
 
+  timer_finished_sound_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+  wake_word_triggered_sound_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/wake_word_triggered.flac
   startup_sound_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/${startup_sound}.flac
 
   loading_illustration_background_color: "000000"
@@ -122,7 +124,7 @@ api:
     - lambda: |-
         if (!id(boot_sound_played)) {
           id(boot_sound_played) = true;
-          if (id(startup_sound_switch).state) {
+          if (id(startup_sound_switch).state && !id(night_mode).state) {
             id(play_sound)->execute(true, id(ready_sound));
           }
         }
@@ -296,11 +298,11 @@ media_player:
       num_channels: 1  # S3 Box only has one output channel
     files:
       - id: timer_finished_sound
-        file: sounds/timer_finished.flac
+        file: ${timer_finished_sound_file}
       - id: wake_word_triggered_sound
-        file: sounds/wake_word_triggered.flac
+        file: ${wake_word_triggered_sound_file}
       - id: ready_sound
-        file: sounds/home_connected.flac
+        file: ${startup_sound_file}
     on_announcement:
       # Si se está reproduciendo algo, se para la detección de wake word
       # para evitar activaciones por el propio audio del dispositivo.
@@ -974,8 +976,6 @@ switch:
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
-      - switch.turn_off: wake_sound
-      - switch.turn_off: startup_sound_switch
       - media_player.stop:
           announcement: true
       - switch.turn_off: speaker_enable
