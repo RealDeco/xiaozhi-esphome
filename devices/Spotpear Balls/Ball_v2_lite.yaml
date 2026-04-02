@@ -1,0 +1,6 @@
+substitutions:
+  name: esphome-web-1-lite
+  friendly_name: "Xiaozhi Ball V2 Lite"
+
+packages:
+  base: !include /config/ball_v2_base.yaml
