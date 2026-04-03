@@ -90,6 +90,7 @@ esphome:
   on_boot:
     priority: 600
     then:
+      - lambda: id(night_mode_effective) = false;
       - script.execute: draw_display
       - delay: 30s
       - if:
@@ -124,15 +125,15 @@ api:
     - lambda: |-
         if (!id(boot_sound_played)) {
           id(boot_sound_played) = true;
-          if (id(startup_sound_switch).state && !id(night_mode).state) {
+          if (id(startup_sound_switch).state && !id(night_mode_requested)) {
             id(play_sound)->execute(true, id(ready_sound));
           }
         }
     - if:
         condition:
-          lambda: return id(night_mode).state && !id(night_mode_effective);
+          lambda: return id(night_mode_requested) && !id(night_mode_effective);
         then:
-          - delay: 3s
+          - delay: 10s
           - script.execute: clear_night_mode_effective
           - delay: 300ms
           - script.execute: apply_night_mode_effective
@@ -650,6 +651,20 @@ script:
       - light.turn_on: Sled
       - script.execute: draw_display
 
+  - id: request_night_mode_on
+    then:
+      - lambda: id(night_mode_requested) = true;
+      - if:
+          condition:
+            lambda: return !id(init_in_progress);
+          then:
+            - script.execute: apply_night_mode_effective
+
+  - id: request_night_mode_off
+    then:
+      - lambda: id(night_mode_requested) = false;
+      - script.execute: clear_night_mode_effective
+
   - id: draw_display
     # Selector central de pantallas. Decide qué página mostrar según:
     # - inicialización
@@ -741,92 +756,15 @@ script:
             }
           }
           id(global_is_timer_active) = output;
-  - id: fetch_first_timer
-    # Obtiene el temporizador más próximo aunque esté pausado.
-    then:
-      - lambda: |
-          const auto &timers = id(va).get_timers();
-          if (timers.empty()) return;
-
-          auto output_timer = *timers.begin();
-          for (const auto &timer : timers) {
-            if (timer.seconds_left <= output_timer.seconds_left) {
-              output_timer = timer;
-            }
-          }
-          id(global_first_timer) = output_timer;
-  - id: check_if_timers
-    # Indica si existe cualquier temporizador registrado.
-    then:
-      - lambda: |
-          const auto &timers = id(va).get_timers();
-          id(global_is_timer) = !timers.empty();
-  - id: draw_timer_timeline
-    # Dibuja una barra inferior con progreso de temporizador activo o pausado.
-    then:
-      - lambda: |
-          id(check_if_timers_active).execute();
-          id(check_if_timers).execute();
-          const int display_width = id(s3_box_lcd).get_width();
-          const int timeline_height = 15;
-          const int timeline_y = id(s3_box_lcd).get_height() - timeline_height;
-          if (id(global_is_timer_active)){
-            id(fetch_first_active_timer).execute();
-            int active_pixels = round(display_width * id(global_first_active_timer).seconds_left / max(id(global_first_active_timer).total_seconds , static_cast<uint32_t>(1)));
-            if (active_pixels > 0){
-              active_pixels = std::min(active_pixels, display_width);
-              id(s3_box_lcd).filled_rectangle(0, timeline_y, display_width, timeline_height, Color::WHITE);
-              id(s3_box_lcd).filled_rectangle(0, timeline_y + 1, active_pixels, timeline_height - 2, id(active_timer_color));
-            }
-          } else if (id(global_is_timer)){
-            id(fetch_first_timer).execute();
-            int active_pixels = round(display_width * id(global_first_timer).seconds_left / max(id(global_first_timer).total_seconds , static_cast<uint32_t>(1)));
-            if (active_pixels > 0){
-              active_pixels = std::min(active_pixels, display_width);
-              id(s3_box_lcd).filled_rectangle(0, timeline_y, display_width, timeline_height, Color::WHITE);
-              id(s3_box_lcd).filled_rectangle(0, timeline_y + 1, active_pixels, timeline_height - 2, id(paused_timer_color));
-            }
-          }
-  - id: draw_active_timer_widget
-    # Dibuja una caja con el tiempo restante del temporizador activo.
-    then:
-      - lambda: |
-          id(check_if_timers_active).execute();
-          if (id(global_is_timer_active)){
-            id(s3_box_lcd).filled_rectangle(80 , 40 , 160 , 50 , Color::WHITE );
-            id(s3_box_lcd).rectangle(80 , 40 , 160 , 50 , Color::BLACK );
-
-            id(fetch_first_active_timer).execute();
-            int hours_left = floor(id(global_first_active_timer).seconds_left / 3600);
-            int minutes_left = floor((id(global_first_active_timer).seconds_left - hours_left * 3600) / 60);
-            int seconds_left = id(global_first_active_timer).seconds_left - hours_left * 3600 - minutes_left * 60 ;
-            auto display_hours = (hours_left < 10 ? "0" : "") + std::to_string(hours_left);
-            auto display_minute = (minutes_left < 10 ? "0" : "") + std::to_string(minutes_left);
-            auto display_seconds = (seconds_left  < 10 ? "0" : "") + std::to_string(seconds_left) ;
-
-            std::string display_string = "";
-            if (hours_left > 0) {
-              display_string = display_hours + ":" + display_minute;
-            } else {
-              display_string = display_minute + ":" + display_seconds;
-            }
-            id(s3_box_lcd).printf(120, 47, id(font_timer), Color::BLACK, "%s", display_string.c_str());
-          }
   - id: draw_status_badges
     then:
       - lambda: |-
           id(check_if_timers_active).execute();
-          id(check_if_timers).execute();
           const int top = 6;
           if (id(mute).state) {
             id(s3_box_lcd).filled_rectangle(6, top, 40, 16, Color(215, 70, 70));
             id(s3_box_lcd).rectangle(6, top, 40, 16, Color::BLACK);
             id(s3_box_lcd).printf(26, top + 3, id(font_status), Color::WHITE, TextAlign::TOP_CENTER, "MUT");
-          }
-          if (id(global_is_timer_active) || id(global_is_timer)) {
-            id(s3_box_lcd).filled_rectangle(50, top, 40, 16, Color(38, 237, 58));
-            id(s3_box_lcd).rectangle(50, top, 40, 16, Color::BLACK);
-            id(s3_box_lcd).printf(70, top + 3, id(font_status), Color::BLACK, TextAlign::TOP_CENTER, "TMR");
           }
           if (id(wifi_connected_state) && id(api_connected_state)) {
             const char *engine_label = id(wake_word_engine_location).current_option() == "On device" ? "DEV" : "HA";
@@ -987,16 +925,14 @@ switch:
     name: Night Mode
     icon: "mdi:weather-night"
     entity_category: config
+    lambda: |-
+      return id(night_mode_requested);
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      - if:
-          condition:
-            lambda: return !id(init_in_progress);
-          then:
-            - script.execute: apply_night_mode_effective
-    on_turn_off:
-      - script.execute: clear_night_mode_effective
+    restore_mode: ALWAYS_OFF
+    turn_on_action:
+      - script.execute: request_night_mode_on
+    turn_off_action:
+      - script.execute: request_night_mode_off
 
   - platform: template
     # Muestra/oculta texto STT/TTS en las pantallas thinking/replying.
@@ -1121,9 +1057,6 @@ globals:
   - id: global_first_timer
     type: voice_assistant::Timer
     restore_value: false
-  - id: global_is_timer
-    type: bool
-    restore_value: false
   - id: playing_internal_sound
     type: bool
     restore_value: no
@@ -1147,6 +1080,10 @@ globals:
   - id: night_mode_effective
     type: bool
     restore_value: no
+    initial_value: "false"
+  - id: night_mode_requested
+    type: bool
+    restore_value: yes
     initial_value: "false"
   - id: desired_led_mode
     type: int
@@ -1240,14 +1177,6 @@ font:
   - file:
       type: gfonts
       family: ${font_family}
-      weight: 300
-    id: font_timer
-    size: 30
-    glyphsets:
-      - ${font_glyphsets}
-  - file:
-      type: gfonts
-      family: ${font_family}
       weight: 500
     id: font_status
     size: 11
@@ -1258,6 +1187,13 @@ font:
       weight: 500
     id: font_idle_clock
     size: 50
+    glyphs: "0123456789:"
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 500
+    id: font_idle_timer
+    size: 45
     glyphs: "0123456789:"
   - file:
       type: gfonts
@@ -1440,11 +1376,10 @@ display:
             it.fill(id(idle_color));
             it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_idle), ImageAlign::CENTER);
             id(draw_status_badges).execute();
-            id(draw_timer_timeline).execute();
-            id(draw_active_timer_widget).execute();
           } else {
             it.fill(id(idle_dashboard_bg));
             int current_y = 16;
+            id(check_if_timers_active).execute();
             if (id(show_idle_temperature).state && !id(idle_temperature_text).state.empty()) {
               // Thermometer icon.
               it.filled_circle(66, current_y + 15, 4, id(idle_temp_icon_color));
@@ -1466,21 +1401,37 @@ display:
               snprintf(time_text, sizeof(time_text), "%02d:%02d", now.hour, now.minute);
               it.printf(it.get_width() / 2, 120, id(font_idle_clock), id(idle_dashboard_fg), TextAlign::CENTER, "%s", time_text);
             }
-            if (id(show_idle_next_alarm).state &&
+            if (id(global_is_timer_active)) {
+              id(fetch_first_active_timer).execute();
+              int hours_left = floor(id(global_first_active_timer).seconds_left / 3600);
+              int minutes_left = floor((id(global_first_active_timer).seconds_left - hours_left * 3600) / 60);
+              int seconds_left = id(global_first_active_timer).seconds_left - hours_left * 3600 - minutes_left * 60;
+              auto display_hours = (hours_left < 10 ? "0" : "") + std::to_string(hours_left);
+              auto display_minute = (minutes_left < 10 ? "0" : "") + std::to_string(minutes_left);
+              auto display_seconds = (seconds_left < 10 ? "0" : "") + std::to_string(seconds_left);
+
+              std::string display_string = "";
+              if (hours_left > 0) {
+                display_string = display_hours + ":" + display_minute;
+              } else {
+                display_string = display_minute + ":" + display_seconds;
+              }
+              it.printf(it.get_width() / 2, 160, id(font_idle_timer), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", display_string.c_str());
+            } else if (id(show_idle_next_alarm).state &&
                 !id(idle_next_alarm_text).state.empty()) {
               std::string alarm_text = id(idle_next_alarm_text).state;
               if (alarm_text.length() > 28) {
                 alarm_text = alarm_text.substr(0, 28) + "...";
               }
               // Bell icon.
-              it.filled_circle(42, 186, 2, id(idle_alarm_icon_color));
-              it.filled_circle(42, 194, 6, id(idle_alarm_icon_color));
-              it.filled_rectangle(37, 194, 10, 9, id(idle_alarm_icon_color));
-              it.filled_circle(37, 202, 3, id(idle_alarm_icon_color));
-              it.filled_circle(47, 202, 3, id(idle_alarm_icon_color));
-              it.filled_rectangle(39, 201, 6, 3, id(idle_alarm_icon_color));
-              it.filled_circle(42, 206, 2, id(idle_alarm_icon_color));
-              it.printf(it.get_width() / 2, 182, id(font_idle_alarm), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", alarm_text.c_str());
+              it.filled_circle(42, 181, 2, id(idle_alarm_icon_color));
+              it.filled_circle(42, 189, 6, id(idle_alarm_icon_color));
+              it.filled_rectangle(37, 189, 10, 9, id(idle_alarm_icon_color));
+              it.filled_circle(37, 197, 3, id(idle_alarm_icon_color));
+              it.filled_circle(47, 197, 3, id(idle_alarm_icon_color));
+              it.filled_rectangle(39, 196, 6, 3, id(idle_alarm_icon_color));
+              it.filled_circle(42, 201, 2, id(idle_alarm_icon_color));
+              it.printf(it.get_width() / 2, 177, id(font_idle_alarm), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", alarm_text.c_str());
             }
             if (!id(idle_battery_text).state.empty()) {
               // Battery icon.
@@ -1490,8 +1441,6 @@ display:
               it.printf(it.get_width() / 2, 212, id(font_battery), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", id(idle_battery_text).state.c_str());
             }
             id(draw_status_badges).execute();
-            id(draw_timer_timeline).execute();
-            id(draw_active_timer_widget).execute();
           }
       - id: listening_page
         lambda: |-
@@ -1499,7 +1448,6 @@ display:
           it.fill(id(listening_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_listening), ImageAlign::CENTER);
           id(draw_status_badges).execute();
-          id(draw_timer_timeline).execute();
       - id: thinking_page
         lambda: |-
           // Procesando STT / esperando respuesta de HA.
@@ -1511,7 +1459,6 @@ display:
             it.printf(30, 25, id(font_request), Color::BLACK, "%s", id(text_request).state.c_str());
           }
           id(draw_status_badges).execute();
-          id(draw_timer_timeline).execute();
       - id: replying_page
         lambda: |-
           // Respondiendo con TTS y texto opcional.
@@ -1527,10 +1474,9 @@ display:
             it.printf(30, y_offset + 5, id(font_response), Color::BLACK, "%s", id(text_response).state.c_str());
           }
           id(draw_status_badges).execute();
-          id(draw_timer_timeline).execute();
       - id: timer_finished_page
         lambda: |-
-          // Pantalla dedicada cuando vence un temporizador.
+          // Pantalla final cuando vence un temporizador.
           it.fill(id(idle_color));
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_timer_finished), ImageAlign::CENTER);
           id(draw_status_badges).execute();
@@ -1554,9 +1500,7 @@ display:
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_initializing), ImageAlign::CENTER);
       - id: muted_page
         lambda: |-
-          // Modo silenciado: avatar mute y temporizadores visibles.
+          // Modo silenciado: avatar mute.
           it.fill(Color::BLACK);
           it.image((it.get_width() / 2), (it.get_height() / 2), id(casita_muted), ImageAlign::CENTER);
           id(draw_status_badges).execute();
-          id(draw_timer_timeline).execute();
-          id(draw_active_timer_widget).execute();
