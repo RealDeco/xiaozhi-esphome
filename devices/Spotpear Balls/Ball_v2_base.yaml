@@ -128,6 +128,14 @@ api:
             id(play_sound)->execute(true, id(ready_sound));
           }
         }
+    - if:
+        condition:
+          lambda: return id(night_mode).state && !id(night_mode_effective);
+        then:
+          - delay: 3s
+          - script.execute: clear_night_mode_effective
+          - delay: 300ms
+          - script.execute: apply_night_mode_effective
   on_client_disconnected:
     - lambda: id(api_connected_state) = false;
     - script.execute: draw_display
@@ -507,7 +515,7 @@ script:
   - id: update_status_led
     then:
       - lambda: |-
-          if (id(night_mode).state) {
+          if (id(night_mode_effective)) {
             id(desired_led_mode) = 0;
           } else if (id(voice_assistant_phase) == ${voice_assist_error_phase_id}) {
             id(desired_led_mode) = 1;
@@ -626,6 +634,22 @@ script:
                       brightness: 70%
                       effect: "None"
             - lambda: id(last_led_mode) = id(desired_led_mode);
+  - id: apply_night_mode_effective
+    then:
+      - lambda: id(night_mode_effective) = true;
+      - media_player.stop:
+          announcement: true
+      - switch.turn_off: speaker_enable
+      - light.turn_off: Sled
+      - script.execute: update_status_led
+
+  - id: clear_night_mode_effective
+    then:
+      - lambda: id(night_mode_effective) = false;
+      - switch.turn_on: speaker_enable
+      - light.turn_on: Sled
+      - script.execute: draw_display
+
   - id: draw_display
     # Selector central de pantallas. Decide qué página mostrar según:
     # - inicialización
@@ -950,16 +974,6 @@ switch:
     restore_mode: RESTORE_DEFAULT_ON
 
   - platform: template
-    # Conservado por compatibilidad, pero el beep de wake word local esta
-    # deshabilitado para evitar contencion I2S entre microfono y altavoz.
-    id: wake_sound
-    name: Wake sound
-    icon: "mdi:bullhorn"
-    entity_category: config
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-
-  - platform: template
     # Sonido opcional al conectar con Home Assistant.
     id: startup_sound_switch
     name: Startup sound
@@ -976,15 +990,13 @@ switch:
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
-      - media_player.stop:
-          announcement: true
-      - switch.turn_off: speaker_enable
-      - light.turn_off: Sled
-      - script.execute: update_status_led
+      - if:
+          condition:
+            lambda: return !id(init_in_progress);
+          then:
+            - script.execute: apply_night_mode_effective
     on_turn_off:
-      - switch.turn_on: speaker_enable
-      - light.turn_on: Sled
-      - script.execute: draw_display
+      - script.execute: clear_night_mode_effective
 
   - platform: template
     # Muestra/oculta texto STT/TTS en las pantallas thinking/replying.
@@ -1132,6 +1144,10 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: night_mode_effective
+    type: bool
+    restore_value: no
+    initial_value: "false"
   - id: desired_led_mode
     type: int
     restore_value: no
@@ -1241,7 +1257,7 @@ font:
       family: ${font_family}
       weight: 500
     id: font_idle_clock
-    size: 38
+    size: 50
     glyphs: "0123456789:"
   - file:
       type: gfonts
@@ -1384,7 +1400,7 @@ interval:
               - wifi.connected:
               - api.connected:
               - switch.is_off: mute
-              - lambda: return !id(night_mode).state;
+              - lambda: return !id(night_mode_effective);
               - lambda: return !id(timer_ringing).state;
               - not:
                   voice_assistant.is_running:
@@ -1457,16 +1473,20 @@ display:
                 alarm_text = alarm_text.substr(0, 28) + "...";
               }
               // Bell icon.
-              it.filled_circle(46, 195, 7, id(idle_alarm_icon_color));
-              it.filled_rectangle(39, 195, 14, 6, id(idle_alarm_icon_color));
-              it.filled_circle(46, 203, 2, id(idle_alarm_icon_color));
+              it.filled_circle(42, 186, 2, id(idle_alarm_icon_color));
+              it.filled_circle(42, 194, 6, id(idle_alarm_icon_color));
+              it.filled_rectangle(37, 194, 10, 9, id(idle_alarm_icon_color));
+              it.filled_circle(37, 202, 3, id(idle_alarm_icon_color));
+              it.filled_circle(47, 202, 3, id(idle_alarm_icon_color));
+              it.filled_rectangle(39, 201, 6, 3, id(idle_alarm_icon_color));
+              it.filled_circle(42, 206, 2, id(idle_alarm_icon_color));
               it.printf(it.get_width() / 2, 182, id(font_idle_alarm), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", alarm_text.c_str());
             }
             if (!id(idle_battery_text).state.empty()) {
               // Battery icon.
-              it.rectangle(72, 219, 18, 10, id(idle_battery_icon_color));
-              it.filled_rectangle(90, 222, 2, 4, id(idle_battery_icon_color));
-              it.filled_rectangle(74, 221, 12, 6, id(idle_battery_icon_color));
+              it.rectangle(70, 219, 18, 10, id(idle_battery_icon_color));
+              it.filled_rectangle(88, 222, 2, 4, id(idle_battery_icon_color));
+              it.filled_rectangle(72, 221, 12, 6, id(idle_battery_icon_color));
               it.printf(it.get_width() / 2, 212, id(font_battery), id(idle_dashboard_fg), TextAlign::TOP_CENTER, "%s", id(idle_battery_text).state.c_str());
             }
             id(draw_status_badges).execute();
