@@ -377,6 +377,7 @@ voice_assistant:
   auto_gain: 31dBFS
   volume_multiplier: 2.0
   on_listening:
+    - lambda: id(settings_page_active) = false;
     - lambda: id(idle_avatar_until_ms) = millis() + ${idle_avatar_hold_ms};
     - lambda: id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
     - text_sensor.template.publish:
@@ -648,7 +649,7 @@ script:
     then:
       - lambda: id(night_mode_effective) = false;
       - switch.turn_on: speaker_enable
-      - light.turn_on: Sled
+      - script.execute: apply_screen_brightness
       - script.execute: draw_display
 
   - id: request_night_mode_on
@@ -664,6 +665,62 @@ script:
     then:
       - lambda: id(night_mode_requested) = false;
       - script.execute: clear_night_mode_effective
+
+  - id: open_touch_settings
+    then:
+      - lambda: id(settings_page_active) = true;
+      - script.execute: draw_display
+
+  - id: close_touch_settings
+    then:
+      - lambda: id(settings_page_active) = false;
+      - script.execute: draw_display
+
+  - id: apply_screen_brightness
+    then:
+      - if:
+          condition:
+            lambda: return !id(night_mode_effective);
+          then:
+            - light.turn_on:
+                id: Sled
+                brightness: !lambda return id(screen_brightness_level);
+
+  - id: apply_audio_volume
+    then:
+      - media_player.volume_set:
+          id: external_media_player
+          volume: !lambda return id(audio_volume_level);
+
+  - id: restore_touch_ui_levels
+    then:
+      - script.execute: apply_audio_volume
+      - script.execute: apply_screen_brightness
+      - lambda: id(ui_levels_restored) = true;
+
+  - id: set_screen_brightness_level
+    parameters:
+      level: float
+    then:
+      - lambda: |-
+          float value = level;
+          if (value < 0.05f) value = 0.05f;
+          if (value > 1.0f) value = 1.0f;
+          id(screen_brightness_level) = value;
+      - script.execute: apply_screen_brightness
+      - script.execute: draw_display
+
+  - id: set_audio_volume_level
+    parameters:
+      level: float
+    then:
+      - lambda: |-
+          float value = level;
+          if (value < 0.0f) value = 0.0f;
+          if (value > 1.0f) value = 1.0f;
+          id(audio_volume_level) = value;
+      - script.execute: apply_audio_volume
+      - script.execute: draw_display
 
   - id: draw_display
     # Selector central de pantallas. Decide qué página mostrar según:
@@ -684,40 +741,51 @@ script:
                       condition:
                         api.connected:
                       then:
-                        - lambda: |
-                            switch(id(voice_assistant_phase)) {
-                              case ${voice_assist_listening_phase_id}:
-                                id(s3_box_lcd).show_page(listening_page);
-                                id(s3_box_lcd).update();
-                                break;
-                              case ${voice_assist_thinking_phase_id}:
-                                id(s3_box_lcd).show_page(thinking_page);
-                                id(s3_box_lcd).update();
-                                break;
-                              case ${voice_assist_replying_phase_id}:
-                                id(s3_box_lcd).show_page(replying_page);
-                                id(s3_box_lcd).update();
-                                break;
-                              case ${voice_assist_error_phase_id}:
-                                id(s3_box_lcd).show_page(error_page);
-                                id(s3_box_lcd).update();
-                                break;
-                              case ${voice_assist_muted_phase_id}:
-                                id(s3_box_lcd).show_page(muted_page);
-                                id(s3_box_lcd).update();
-                                break;
-                              case ${voice_assist_not_ready_phase_id}:
-                                id(s3_box_lcd).show_page(no_ha_page);
-                                id(s3_box_lcd).update();
-                                break;
-                              case ${voice_assist_timer_finished_phase_id}:
-                                id(s3_box_lcd).show_page(timer_finished_page);
-                                id(s3_box_lcd).update();
-                                break;
-                              default:
-                                id(s3_box_lcd).show_page(idle_page);
-                                id(s3_box_lcd).update();
-                            }
+                        - if:
+                            condition:
+                              lambda: |-
+                                return id(settings_page_active) &&
+                                       !id(night_mode_effective) &&
+                                       (id(voice_assistant_phase) == ${voice_assist_idle_phase_id} ||
+                                        id(voice_assistant_phase) == ${voice_assist_muted_phase_id});
+                            then:
+                              - display.page.show: settings_page
+                              - component.update: s3_box_lcd
+                            else:
+                              - lambda: |
+                                  switch(id(voice_assistant_phase)) {
+                                    case ${voice_assist_listening_phase_id}:
+                                      id(s3_box_lcd).show_page(listening_page);
+                                      id(s3_box_lcd).update();
+                                      break;
+                                    case ${voice_assist_thinking_phase_id}:
+                                      id(s3_box_lcd).show_page(thinking_page);
+                                      id(s3_box_lcd).update();
+                                      break;
+                                    case ${voice_assist_replying_phase_id}:
+                                      id(s3_box_lcd).show_page(replying_page);
+                                      id(s3_box_lcd).update();
+                                      break;
+                                    case ${voice_assist_error_phase_id}:
+                                      id(s3_box_lcd).show_page(error_page);
+                                      id(s3_box_lcd).update();
+                                      break;
+                                    case ${voice_assist_muted_phase_id}:
+                                      id(s3_box_lcd).show_page(muted_page);
+                                      id(s3_box_lcd).update();
+                                      break;
+                                    case ${voice_assist_not_ready_phase_id}:
+                                      id(s3_box_lcd).show_page(no_ha_page);
+                                      id(s3_box_lcd).update();
+                                      break;
+                                    case ${voice_assist_timer_finished_phase_id}:
+                                      id(s3_box_lcd).show_page(timer_finished_page);
+                                      id(s3_box_lcd).update();
+                                      break;
+                                    default:
+                                      id(s3_box_lcd).show_page(idle_page);
+                                      id(s3_box_lcd).update();
+                                  }
                       else:
                         - display.page.show: no_ha_page
                         - component.update: s3_box_lcd
@@ -1077,6 +1145,22 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: settings_page_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: audio_volume_level
+    type: float
+    restore_value: yes
+    initial_value: "1.0"
+  - id: screen_brightness_level
+    type: float
+    restore_value: yes
+    initial_value: "1.0"
+  - id: ui_levels_restored
+    type: bool
+    restore_value: no
+    initial_value: "false"
   - id: night_mode_effective
     type: bool
     restore_value: no
@@ -1328,6 +1412,12 @@ interval:
             lambda: return id(voice_assistant_phase) == ${voice_assist_idle_phase_id};
           then:
             - script.execute: draw_display
+      - if:
+          condition:
+            lambda: |-
+              return !id(ui_levels_restored) && !id(init_in_progress);
+          then:
+            - script.execute: restore_touch_ui_levels
   - interval: 15s
     then:
       - if:
@@ -1442,6 +1532,37 @@ display:
             }
             id(draw_status_badges).execute();
           }
+      - id: settings_page
+        lambda: |-
+          it.fill(Color::BLACK);
+
+          const int bar_top = 50;
+          const int bar_bottom = 156;
+          const int bar_height = bar_bottom - bar_top;
+          const int bar_width = 34;
+          const int volume_x = 58;
+          const int brightness_x = 148;
+
+          const int volume_fill = static_cast<int>(id(audio_volume_level) * bar_height);
+          const int brightness_fill = static_cast<int>(id(screen_brightness_level) * bar_height);
+
+          // Volume side.
+          it.rectangle(volume_x, bar_top, bar_width, bar_height, Color::WHITE);
+          if (volume_fill > 6) {
+            it.filled_rectangle(volume_x + 3, bar_bottom - volume_fill + 3, bar_width - 6, volume_fill - 6, Color(0, 170, 255));
+          }
+          it.printf(volume_x + bar_width / 2, 16, id(font_status), Color::WHITE, TextAlign::TOP_CENTER, "VOL");
+          it.printf(volume_x + bar_width / 2, 170, id(font_idle_alarm), Color::WHITE, TextAlign::TOP_CENTER, "%.0f%%", id(audio_volume_level) * 100.0f);
+
+          // Brightness side.
+          it.rectangle(brightness_x, bar_top, bar_width, bar_height, Color::WHITE);
+          if (brightness_fill > 6) {
+            it.filled_rectangle(brightness_x + 3, bar_bottom - brightness_fill + 3, bar_width - 6, brightness_fill - 6, Color(255, 196, 64));
+          }
+          it.printf(brightness_x + bar_width / 2, 16, id(font_status), Color::WHITE, TextAlign::TOP_CENTER, "BRI");
+          it.printf(brightness_x + bar_width / 2, 170, id(font_idle_alarm), Color::WHITE, TextAlign::TOP_CENTER, "%.0f%%", id(screen_brightness_level) * 100.0f);
+
+          it.printf(it.get_width() / 2, 198, id(font_status), Color(190, 190, 190), TextAlign::TOP_CENTER, "SWIPE TO EXIT");
       - id: listening_page
         lambda: |-
           // Escuchando al usuario.
