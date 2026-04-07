@@ -1,62 +1,61 @@
 # Xiaozhi Ball V2 ESPHome Notes
 
-## Origen Del Proyecto
+## Project Origin
 
-El codigo original de este proyecto parte de:
+The original code for this device is based on:
 
-- proyecto principal: `https://github.com/RealDeco/xiaozhi-esphome`
-- origen concreto del dispositivo: `https://github.com/RealDeco/xiaozhi-esphome/tree/main/devices/Spotpear%20Balls`
+- Main project: `https://github.com/RealDeco/xiaozhi-esphome`
+- Specific device source: `https://github.com/RealDeco/xiaozhi-esphome/tree/main/devices/Spotpear%20Balls`
 
-Sobre esa base se han hecho adaptaciones, correcciones y cambios de estructura para este repositorio.
+This repository builds on that base with structural changes, fixes, and device-specific improvements.
 
 ## Overview
 
-Este proyecto contiene configuraciones ESPHome para un dispositivo tipo "ball" con:
+This project contains ESPHome configurations for a ball-style device with:
 
 - ESP32-S3
-- pantalla redonda `240x240`
-- LED RGB de estado
-- microfono I2S
-- altavoz con codec ES8311
-- integracion con Home Assistant Voice Assistant
-- wake word local o via Home Assistant
-- botones fisicos y modo noche
-- pantalla tactil en la variante completa
+- `240x240` round display
+- RGB status LED
+- I2S microphone
+- Speaker with ES8311 codec
+- Home Assistant Voice Assistant integration
+- Local wake word or Home Assistant wake word
+- Physical buttons and Night Mode
+- Touchscreen support on the full hardware variant
 
-La configuracion ahora esta separada en base comun + overlays:
+The configuration is split into a common base plus overlays:
 
-- [`ball_v2_base.yaml`](/home/carlos/bolas_ia/ball_v2_base.yaml): toda la logica comun compartida.
-- [`ball_v2_lite.yaml`](/home/carlos/bolas_ia/ball_v2_lite.yaml): wrapper para hardware sin touch ni bateria.
-- [`ball_v2_full_hw.yaml`](/home/carlos/bolas_ia/ball_v2_full_hw.yaml): extras de hardware completo.
-- [`ball_v2.yaml`](/home/carlos/bolas_ia/ball_v2.yaml): wrapper de la variante completa, que carga la base comun y el overlay full.
+- [`ball_v2_base.yaml`](ball_v2_base.yaml): shared common logic
+- [`ball_v2_lite.yaml`](ball_v2_lite.yaml): wrapper for hardware without touch or battery
+- [`ball_v2_full_hw.yaml`](ball_v2_full_hw.yaml): extra hardware for the full variant
+- [`ball_v2.yaml`](ball_v2.yaml): wrapper for the full variant, combining base + full overlay
 
-Esto reduce duplicacion: si cambias audio, UI, wake word, night mode o integracion con Home Assistant, normalmente lo haces una sola vez en la base.
+This reduces duplication: audio, UI, wake word, Night Mode, and Home Assistant integration are usually changed only once in the base file.
 
-Importante:
+Important:
 
-- [`ball_v2_base.yaml`](/home/carlos/bolas_ia/ball_v2_base.yaml) es un paquete base, no un YAML standalone para flashear o validar por si solo
-- valida y compila siempre desde [`ball_v2_lite.yaml`](/home/carlos/bolas_ia/ball_v2_lite.yaml) o [`ball_v2.yaml`](/home/carlos/bolas_ia/ball_v2.yaml)
+- [`ball_v2_base.yaml`](ball_v2_base.yaml) is a shared package, not a standalone YAML meant to be flashed by itself.
+- Always validate and compile from [`ball_v2_lite.yaml`](ball_v2_lite.yaml) or [`ball_v2.yaml`](ball_v2.yaml).
 
+## Main Features
 
-## Funciones Principales
+The device can:
 
-El dispositivo puede:
+- work as a Home Assistant voice satellite
+- show different screens depending on the assistant state
+- play a startup sound
+- display assistant timers
+- show standby information:
+  - digital clock
+  - temperature
+  - humidity
+  - next alarm
+- enter `Night Mode`
+- open a touchscreen settings screen on the full hardware variant
 
-- actuar como satelite de voz para Home Assistant
-- mostrar diferentes pantallas segun el estado del asistente
-- reproducir sonido de arranque
-- mostrar temporizadores del asistente
-- mostrar informacion en reposo:
-  - reloj digital
-  - temperatura
-  - humedad
-  - proxima alarma
-- entrar en `Night Mode`
-- abrir una pantalla tactil de ajustes en la variante completa
+## Visual States
 
-## Estados Visuales
-
-La pantalla cambia segun el estado:
+The screen changes according to the current state:
 
 - `idle`
 - `listening`
@@ -67,241 +66,218 @@ La pantalla cambia segun el estado:
 - `no_wifi`
 - `no_ha`
 - `timer_finished`
-- `settings_page` en la variante con tactil
+- `settings_page` on the touchscreen variant
 
-En la version actual del `idle`:
+In the current `idle` screen:
 
-- el avatar se muestra mientras hablas y durante unos segundos mas al volver a reposo
-- despues se muestra un panel limpio con fondo configurable y texto configurable
-- si hay un temporizador activo, la cuenta atras sustituye temporalmente a la proxima alarma
+- the avatar is shown while speaking and for a few seconds after returning to standby
+- afterwards, the screen switches to a clean panel with configurable background and text colors
+- if a timer is active, the countdown temporarily replaces the next alarm
 
-Por defecto:
+Defaults:
 
-- fondo del panel idle: negro
-- color del texto: blanco
+- idle panel background: black
+- text color: white
 
-## Controles
+## Controls
 
-### Boton fisico
+### Physical Button
 
-Segun la configuracion actual:
+Current behavior:
 
-- pulsacion corta: hablar / parar escucha / cancelar alarma de temporizador
-- triple pulsacion rapida: alterna `Night Mode`
-- pulsacion muy larga: `factory reset`
+- short press: speak / stop listening / cancel timer alarm
+- triple quick press: toggle `Night Mode`
+- very long press: factory reset
 
-### Pantalla tactil
+### Touchscreen
 
-En la variante completa:
+On the full hardware variant:
 
-- swipe a la izquierda desde `idle`: abre la pantalla de ajustes
-- swipe a la derecha: vuelve a la pantalla normal
-- si pasan `5s` sin tocar nada, la pantalla de ajustes se cierra sola
+- swipe left from `idle`: open the settings screen
+- swipe right: return to the normal screen
+- if there is no interaction for `5s`, the settings screen closes automatically
 
-Dentro de la pantalla de ajustes:
+Inside the settings screen:
 
-- izquierda: volumen
-- derecha: brillo
-- ambos se muestran como barras verticales con porcentaje
-- deslizar arriba o abajo en cada mitad ajusta el nivel correspondiente
+- left side: volume
+- right side: brightness
+- both are shown as vertical bars with percentages
+- dragging up or down inside each bar adjusts the corresponding level
 
-Fuera de esa pantalla:
+Outside the settings screen:
 
-- toque corto: misma accion principal que el boton fisico
-- doble toque: alterna `Mute`
+- single tap: same primary action as the physical button
+- double tap: toggle `Mute`
 
 ### Night Mode
 
-`Night Mode` puede activarse:
+`Night Mode` can be activated:
 
-- desde Home Assistant
-- con triple pulsacion rapida del boton
+- from Home Assistant
+- with a triple quick press on the physical button
 
-Cuando se activa:
+When active, it:
 
-- apaga la pantalla
-- apaga el LED
-- detiene reproduccion/anuncios en curso
-- apaga el amplificador (`speaker_enable`)
+- turns off the screen
+- turns off the LED
+- stops any current playback or announcements
+- turns off the amplifier (`speaker_enable`)
 
-Notas:
+Notes:
 
-- `Night Mode` ya no cambia persistentemente el switch `Startup sound`
-- simplemente bloquea el sonido de arranque mientras el modo noche este activo
+- `Night Mode` no longer changes the `Startup sound` switch persistently
+- it simply blocks the startup sound while Night Mode is active
 
-## Variantes De Hardware
+## Hardware Variants
 
-### Estructura de mantenimiento
+### Maintenance Structure
 
-#### Base comun
+#### Common Base
 
-Edita [`ball_v2_base.yaml`](/home/carlos/bolas_ia/ball_v2_base.yaml) para cambios compartidos como:
+Edit [`ball_v2_base.yaml`](ball_v2_base.yaml) for shared changes such as:
 
 - voice assistant
 - wake word
-- scripts y automatizaciones
-- night mode
+- scripts and automations
+- Night Mode
 - display
-- dashboard idle
-- LED de estado
-- sonido
-- integracion con Home Assistant
+- idle dashboard
+- status LED
+- sound
+- Home Assistant integration
 
-#### Overlay full
+#### Full Overlay
 
-Edita [`ball_v2_full_hw.yaml`](/home/carlos/bolas_ia/ball_v2_full_hw.yaml) solo para hardware adicional:
+Edit [`ball_v2_full_hw.yaml`](ball_v2_full_hw.yaml) only for hardware-specific additions:
 
-- bateria
-- tactil
-- gestos tactiles y pantalla de ajustes
-- sensores o controles que solo existan en esa placa
+- battery
+- touchscreen
+- touch gestures and settings screen interaction
+- sensors or controls that only exist on that board
 
 #### Wrappers
 
-Los wrappers solo definen identidad y ensamblan paquetes:
+Wrappers only define identity and assemble packages:
 
-- [`ball_v2_lite.yaml`](/home/carlos/bolas_ia/ball_v2_lite.yaml)
-- [`ball_v2.yaml`](/home/carlos/bolas_ia/ball_v2.yaml)
+- [`ball_v2_lite.yaml`](ball_v2_lite.yaml)
+- [`ball_v2.yaml`](ball_v2.yaml)
 
+### Full Variant
 
-### Variante completa
+Use [`ball_v2.yaml`](ball_v2.yaml) if your device has:
 
-Usa [`ball_v2.yaml`](/home/carlos/bolas_ia/ball_v2.yaml) cuando tu dispositivo tenga:
+- touchscreen
+- battery
+- or if you want to keep compatibility with that hardware
 
-- tactil
-- bateria
-- o quieras mantener compatibilidad con ese hardware
+### Lite Variant
 
-### Variante lite
+Use [`ball_v2_lite.yaml`](ball_v2_lite.yaml) if your device does not have:
 
-Usa [`ball_v2_lite.yaml`](/home/carlos/bolas_ia/ball_v2_lite.yaml) cuando tu dispositivo no tenga:
+- touchscreen
+- battery
 
-- pantalla tactil
-- bateria
+This avoids:
 
-Esto evita:
-
-- errores del controlador tactil
-- lecturas ADC innecesarias
-- spam de log por hardware no presente
+- touch controller errors
+- unnecessary ADC reads
+- log spam from missing hardware
 
 ## Home Assistant Integration
 
-### Que datos puede mostrar en idle
+### Data Shown in Idle
 
-El dispositivo puede mostrar en reposo:
+In standby, the device can show:
 
-- reloj
-- temperatura
-- humedad
-- proxima alarma
+- clock
+- temperature
+- humidity
+- next alarm
 
-En Home Assistant aparecen switches para activar o desactivar cada uno:
+Home Assistant exposes switches to enable or disable each item:
 
 - `Show Idle Clock`
 - `Show Idle Temperature`
 - `Show Idle Humidity`
 - `Show Idle Next Alarm`
 
-Esos switches solo controlan si se muestra el dato.
+These switches only control visibility.
 
-La fuente del dato ya no se lee directamente desde sensores globales de HA. Ahora cada bola expone tres entidades `text` editables:
+The data source is no longer read directly from global Home Assistant sensors. Instead, each device exposes three editable `text` entities:
 
 - `Idle Temperature Text`
 - `Idle Humidity Text`
 - `Idle Next Alarm Text`
 
-Home Assistant decide que mostrar en cada bola y escribe el texto ya formateado en esas entidades.
+Home Assistant decides what to show on each ball and writes already formatted text into those entities.
 
-## Opcion Recomendada: Publicar Texto Desde Home Assistant
+## Recommended Option: Publish Text from Home Assistant
 
-Este enfoque evita que varias bolas compartan accidentalmente los mismos datos.
+This avoids multiple balls accidentally sharing the same data.
 
-La idea es:
+The flow is:
 
-1. cada bola expone sus propios `text`
-2. Home Assistant formatea el contenido
-3. un script o automatizacion actualiza cada bola concreta
+1. each ball exposes its own `text` entities
+2. Home Assistant formats the content
+3. a script or automation updates the specific device
 
-## Ejemplo De Automatizacion En Home Assistant
+## Example Home Assistant Automation
 
-Ejemplo generico para una bola concreta usando entidades `text` expuestas por ESPHome:
+Generic example for a specific ball using ESPHome `text` entities:
 
 ```yaml
-alias: Actualizar idle bola ejemplo
+alias: Update example ball idle
 triggers:
   - trigger: homeassistant
     event: start
   - trigger: state
     entity_id:
-      - sensor.temperatura_ejemplo
-      - sensor.humedad_ejemplo
-      - sensor.proxima_alarma_ejemplo
+      - sensor.example_temperature
+      - sensor.example_humidity
+      - sensor.example_next_alarm
 actions:
   - delay: "00:00:10"
 
   - action: text.set_value
     target:
-      entity_id: text.bola_ejemplo_idle_temperature_text
+      entity_id: text.example_ball_idle_temperature_text
     data:
       value: >-
-        {% set v = states('sensor.temperatura_ejemplo') %}
+        {% set v = states('sensor.example_temperature') %}
         {{ '' if v in ['unknown', 'unavailable', 'none', ''] else '%.2f °C' | format(v | float) }}
 
   - action: text.set_value
     target:
-      entity_id: text.bola_ejemplo_idle_humidity_text
+      entity_id: text.example_ball_idle_humidity_text
     data:
       value: >-
-        {% set v = states('sensor.humedad_ejemplo') %}
+        {% set v = states('sensor.example_humidity') %}
         {{ '' if v in ['unknown', 'unavailable', 'none', ''] else '%.0f %%' | format(v | float) }}
 
   - action: text.set_value
     target:
-      entity_id: text.bola_ejemplo_idle_next_alarm_text
+      entity_id: text.example_ball_idle_next_alarm_text
     data:
       value: >-
-        {% set v = states('sensor.proxima_alarma_ejemplo') %}
+        {% set v = states('sensor.example_next_alarm') %}
         {{ '' if v in ['unknown', 'unavailable', 'none', ''] else as_timestamp(v) | timestamp_custom('%d/%m %H:%M', true) }}
 mode: restart
 ```
 
-Notas:
+## Idle Layout
 
-- el `delay` inicial ayuda a que el nodo ESPHome ya este disponible cuando arranca Home Assistant
-- la entidad de alarma del movil Android suele venir del Companion App; sustituye `sensor.proxima_alarma_ejemplo` por la tuya real
-- el formato final del texto lo controla Home Assistant
+The current `idle` panel shows:
 
-## Configuracion Correspondiente En ESPHome
+- temperature at the top with a thermometer icon
+- humidity below with a water-drop icon
+- a larger centered clock
+- if a timer is active, a countdown below the clock
+- otherwise, the next alarm below the clock with a yellow bell icon
+- on the full variant, battery percentage below the alarm with a battery icon
 
-La logica comun ya crea estas entidades `text` en cada dispositivo:
+The idle fonts already include `°` and `º`.
 
-- `Idle Temperature Text`
-- `Idle Humidity Text`
-- `Idle Next Alarm Text`
-
-La pantalla `idle` usa esos textos directamente. Eso significa:
-
-- Home Assistant puede mandar valores distintos a cada bola
-- el formato final lo controlas en HA
-- el ESP no necesita conocer el sensor real de origen
-
-## Layout Idle Actual
-
-El panel `idle` muestra:
-
-- temperatura arriba con icono de termometro
-- humedad debajo con icono de gota
-- hora centrada y mas grande en el medio
-- si hay temporizador activo, cuenta atras bajo la hora
-- alarma debajo con icono de campana amarilla
-- en la variante completa, porcentaje de bateria debajo de la alarma con icono de bateria
-
-Las fuentes del panel `idle` ya incluyen `°` y `º`.
-
-## Otras Opciones Configurables En El YAML
-
-Algunas opciones utiles en la cabecera del YAML:
+## Useful YAML Options
 
 ```yaml
 idle_dashboard_background_color: "000000"
@@ -309,83 +285,49 @@ idle_dashboard_text_color: "FFFFFF"
 idle_avatar_hold_ms: "2500"
 ```
 
-Sirven para:
+These control:
 
-- color de fondo del panel de reposo
-- color del texto del panel de reposo
-- tiempo durante el que se sigue viendo el avatar al volver a `idle`
+- idle panel background color
+- idle panel text color
+- how long the avatar remains visible before returning to the idle dashboard
 
-## Validacion
+## Validation
 
-Para validar una configuracion:
+To validate:
 
 ```bash
 docker exec -it esphome esphome config ball_v2.yaml
 docker exec -it esphome esphome config ball_v2_lite.yaml
 ```
 
-Para compilar y subir:
+To compile and upload:
 
 ```bash
 docker exec -it esphome esphome run ball_v2.yaml
 docker exec -it esphome esphome run ball_v2_lite.yaml
 ```
 
-## Problemas Conocidos
+## Known Issues
 
-### Strapping pins
+### Strapping Pins
 
-El log puede avisar sobre:
+The log may warn about:
 
 - `GPIO45`
 - `GPIO46`
 
-Son `strapping pins`. No es necesariamente un error, pero hay que usarlos con cuidado porque participan en el arranque del ESP32-S3.
+These are strapping pins. That is not automatically an error, but they must be used carefully because they affect ESP32-S3 boot behavior.
 
-### Carrera de audio al arrancar
+### Audio Race Conditions at Boot
 
-Puede haber conflicto entre:
+There can still be interaction between:
 
-- sonido de arranque
+- startup sound
 - wake word
-- inicializacion de microfono I2S
+- I2S microphone initialization
 
-Ya se endurecio el arranque del wake word para no iniciar mientras el `media_player` no este realmente en `IDLE`, pero sigue siendo un area sensible.
+Wake word startup has already been hardened so it does not begin while the `media_player` is still busy, but this remains a sensitive area.
 
-### Recursos remotos en build time
+### Remote Assets at Build Time
 
-Las imagenes y sonidos del proyecto se obtienen en build time desde el proyecto original y quedan embebidos en el firmware.
-
-Eso significa:
-
-- en ejecucion no hace falta descargar esos recursos de internet
-- en runtime la bola solo necesita hablar con Home Assistant y con los servicios locales que este use
-
-### Restauracion temprana de textos
-
-Las entidades `Idle Temperature Text`, `Idle Humidity Text` e `Idle Next Alarm Text` no restauran su valor al arrancar.
-
-Motivo:
-
-- restaurar esos textos en `setup()` disparaba `draw_display`
-- eso podia tocar LED/display demasiado pronto
-- y provocar boot loop o `safe_mode`
-
-Por eso los textos deben ser repoblados por Home Assistant al iniciar.
-
-### Hardware no presente
-
-Si una variante no tiene tactil o bateria, conviene usar la variante `lite` para evitar:
-
-- errores del controlador tactil
-- lecturas ADC inutiles
-- spam en logs
-
-## Archivos Relacionados
-
-- [`ball_v2_base.yaml`](/home/carlos/bolas_ia/ball_v2_base.yaml)
-- [`ball_v2.yaml`](/home/carlos/bolas_ia/ball_v2.yaml)
-- [`ball_v2_lite.yaml`](/home/carlos/bolas_ia/ball_v2_lite.yaml)
-- [`ball_v2_full_hw.yaml`](/home/carlos/bolas_ia/ball_v2_full_hw.yaml)
-- [`SESSION_NOTES.md`](/home/carlos/bolas_ia/SESSION_NOTES.md)
-- [`secrets.yaml`](/home/carlos/bolas_ia/secrets.yaml)
+Images and sounds are downloaded at build time from the upstream project and embedded in the firmware.
