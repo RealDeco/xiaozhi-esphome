@@ -1,0 +1,220 @@
+sensor:
+  - platform: adc
+    pin: GPIO${battery_adc_pin}
+    name: "Battery Voltage"
+    id: battery_voltage
+    attenuation: 12db
+    accuracy_decimals: 2
+    update_interval: 1s
+    unit_of_measurement: "V"
+    icon: mdi:battery-medium
+    filters:
+      - multiply: 2.0
+      - median:
+          window_size: 7
+          send_every: 7
+          send_first_at: 7
+      - throttle: 1min
+    on_value:
+      then:
+        - component.update: battery_percentage
+
+  - platform: template
+    id: battery_percentage
+    name: "Battery Percentage"
+    lambda: return id(battery_voltage).state;
+    accuracy_decimals: 0
+    unit_of_measurement: "%"
+    icon: mdi:battery-medium
+    filters:
+      - calibrate_linear:
+         method: exact
+         datapoints:
+          - 2.80 -> 0.0
+          - 3.10 -> 10.0
+          - 3.30 -> 20.0
+          - 3.45 -> 30.0
+          - 3.60 -> 40.0
+          - 3.70 -> 50.0
+          - 3.75 -> 60.0
+          - 3.80 -> 70.0
+          - 3.90 -> 80.0
+          - 4.00 -> 90.0
+          - 4.20 -> 100.0
+      - lambda: |-
+          if (x > 100) return 100;
+          if (x < 0) return 0;
+          return x;
+    on_value:
+      then:
+        - text_sensor.template.publish:
+            id: idle_battery_text
+            state: !lambda |-
+              char battery_text[8];
+              snprintf(battery_text, sizeof(battery_text), "%.0f%%", x);
+              return std::string(battery_text);
+
+touchscreen:
+  - platform: cst816
+    display: s3_box_lcd
+    i2c_id: bus_b
+    interrupt_pin: ${touch_input_pin}
+    reset_pin: ${touch_reset_pin}
+    id: touch_dp
+    on_touch:
+      then:
+        - lambda: |-
+            id(touch_start_x) = 0;
+            id(touch_start_y) = 0;
+            id(touch_has_moved) = false;
+            id(touch_gesture_consumed) = false;
+            id(touch_down_started_ms) = millis();
+            id(settings_last_interaction_ms) = millis();
+    on_update:
+      then:
+        - lambda: |-
+            for (auto touch : touches) {
+              if (touch.state > 2) continue;
+
+              id(touch_start_x) = touch.x_org;
+              id(touch_start_y) = touch.y_org;
+              const int dx = touch.x - touch.x_org;
+              const int dy = touch.y - touch.y_org;
+
+              if (abs(dx) > 12 || abs(dy) > 12) {
+                id(touch_has_moved) = true;
+              }
+
+              if (id(settings_page_active)) {
+                id(settings_last_interaction_ms) = millis();
+
+                if (!id(touch_gesture_consumed) && abs(dx) >= 60 && abs(dy) <= 80) {
+                  id(touch_gesture_consumed) = true;
+                  id(close_touch_settings)->execute();
+                  return;
+                }
+
+                const bool inside_left_bar = touch.x >= 58 && touch.x <= 92 && touch.y >= 50 && touch.y <= 156;
+                const bool inside_right_bar = touch.x >= 148 && touch.x <= 182 && touch.y >= 50 && touch.y <= 156;
+
+                if (inside_left_bar || inside_right_bar) {
+                  float level = 1.0f - (float(touch.y - 50) / 106.0f);
+                  if (level < 0.0f) level = 0.0f;
+                  if (level > 1.0f) level = 1.0f;
+
+                  if (inside_left_bar) {
+                    id(set_audio_volume_level)->execute(level);
+                  } else {
+                    id(set_screen_brightness_level)->execute(level);
+                  }
+                  id(touch_gesture_consumed) = true;
+                }
+                return;
+              }
+
+              if (!id(touch_gesture_consumed) &&
+                  dx <= -60 &&
+                  abs(dy) <= 80 &&
+                  (id(voice_assistant_phase) == ${voice_assist_idle_phase_id} ||
+                   id(voice_assistant_phase) == ${voice_assist_muted_phase_id}) &&
+                  !id(night_mode_effective)) {
+                id(touch_gesture_consumed) = true;
+                id(open_touch_settings)->execute();
+                return;
+              }
+            }
+    on_release:
+      then:
+        - lambda: |-
+            const uint32_t now = millis();
+            const uint32_t press_time = now - id(touch_down_started_ms);
+
+            if (!id(touch_gesture_consumed) && !id(touch_has_moved) && press_time < 450) {
+              if (id(touch_last_tap_ms) != 0 && now - id(touch_last_tap_ms) < 350) {
+                id(touch_last_tap_ms) = 0;
+                id(touch_tap_nonce)++;
+                id(toggle_touch_mute)->execute();
+              } else {
+                id(touch_last_tap_ms) = now;
+                id(touch_tap_nonce)++;
+                id(schedule_touch_single_tap)->execute(id(touch_tap_nonce));
+              }
+            }
+
+            id(touch_has_moved) = false;
+            id(touch_gesture_consumed) = false;
+
+globals:
+  - id: last_battery_percent
+    type: int
+    restore_value: no
+    initial_value: '-1'
+  - id: settings_last_interaction_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: touch_start_x
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: touch_start_y
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: touch_has_moved
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: touch_gesture_consumed
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: touch_down_started_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: touch_last_tap_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: '0'
+  - id: touch_tap_nonce
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+script:
+  - id: register_touch_settings_activity
+    then:
+      - lambda: id(settings_last_interaction_ms) = millis();
+  - id: toggle_touch_mute
+    then:
+      - if:
+          condition:
+            switch.is_on: mute
+          then:
+            - switch.turn_off: mute
+          else:
+            - switch.turn_on: mute
+  - id: schedule_touch_single_tap
+    parameters:
+      tap_nonce: int
+    then:
+      - delay: 350ms
+      - lambda: |-
+          if (id(touch_tap_nonce) == tap_nonce &&
+              id(touch_last_tap_ms) != 0 &&
+              !id(settings_page_active)) {
+            id(touch_last_tap_ms) = 0;
+            id(handle_primary_press)->execute();
+          }
+
+interval:
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return id(settings_page_active) &&
+                     (millis() - id(settings_last_interaction_ms) >= 5000);
+          then:
+            - script.execute: close_touch_settings
