@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-0bac48
   friendly_name: "Xiaozhi Ball V2"
 
-## Modular version Main SENDSPIN edition 2026.3.0
+## Modular version Main SENDSPIN edition
 
 ## SETTINGS ######################################################################################################################################
 
@@ -84,15 +84,22 @@ packages:
     refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/ball_v2-sendspin_hw.yaml
+  extcomp:
+    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    ref: main
+    refresh: 0s
+    files:
+      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
 #  core: !include localtest/core-sendspin.yaml
 #  hw:   !include localtest/HW/ball_v2-sendspin_hw.yaml
+#  extcomp:   !include localtest/HW/sendspin-external_components.yaml
 
-#logger:
-#  level: WARN
+logger:
+  level: WARN
 
 ## ENABLE / DISABLE WAKE WORDS ## IF LOW ON MEMORY, USE LESS WAKE WORDS ##########################################################################
 
