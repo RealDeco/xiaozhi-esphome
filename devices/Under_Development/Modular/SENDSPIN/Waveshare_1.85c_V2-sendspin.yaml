@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-d81da0
   friendly_name: Waveshare_1.85 LCD
 
-## Modular SENDSPIN version Main v1.12
+## Modular SENDSPIN version Main 2026.4.0
 
 ## SETTINGS ######################################################################################################################################
 
@@ -70,6 +70,7 @@ esp32:
 psram:
   mode: octal
   speed: 80MHz
+  ignore_not_found: false
 
 ### USE MODULES FROM GITHUB (default) ############################################################################################################
 
@@ -86,13 +87,21 @@ packages:
     refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/waveshare_185c-sendspin_hw.yaml
+  extcomp:
+    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    ref: main
+    refresh: 0s
+    files:
+      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
 #  core: !include localtest/core-sendspin.yaml
 #  hw:   !include localtest/HW/waveshare_185c-sendspin_hw.yaml
+#  extcomp:   !include localtest/HW/sendspin-external_components.yaml
 
+# Debug logging, Uncomment ONLY if debugging, defaults to WARN
 #logger:
 #  level: DEBUG
 
