@@ -4,6 +4,9 @@
 * Guition **1.80 v2**
 * Ball **v2**
 * Ball **v1**
+* Waveshare **1.85C v1**
+* Waveshare **1.85C v2**
+
 
 ## 📦 Voice Assistant Devices — Updated to `2026.3.0`
 
