@@ -91,6 +91,7 @@ online_image:
     url: ${clock_background_file}
     format: PNG
     type: RGB565
+    byte_order: big_endian
     resize: ${screenwidth}x${screenheight}
     update_interval: never
 
@@ -1406,46 +1407,57 @@ image:
     id: casita_error
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${idle_illustration_file}
     id: casita_idle
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${listening_illustration_file}
     id: casita_listening
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${thinking_illustration_file}
     id: casita_thinking
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${replying_illustration_file}
     id: casita_replying
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${timer_finished_illustration_file}
     id: casita_timer_finished
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${loading_illustration_file}
     id: casita_initializing
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${mute_illustration_file}
     id: casita_muted
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: ${playing_illustration_file}
     id: casita_playing
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: https://raw.githubusercontent.com/RealDeco/xiaozhi-esphome/main/images/Other/error-no-wifi.png
     id: error_no_wifi
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
   - file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Other/error-no-ha.png
     id: error_no_ha
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+    byte_order: big_endian
 
 font:
   - file:
