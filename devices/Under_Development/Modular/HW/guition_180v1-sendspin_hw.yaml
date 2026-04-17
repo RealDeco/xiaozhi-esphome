@@ -1,24 +1,9 @@
-# Taichi Pi v1 hardware SENDSPIN edition 2026.3.0
+# Taichi Pi v1 hardware SENDSPIN edition 2026.4.0
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
 
 # --- SENDSPIN -----------------------------------------------------------------
-external_components:
-  - source:
-      # https://github.com/esphome/esphome/pull/14933
-      type: git
-      url: https://github.com/kahrendt/esphome
-      ref: 890e33f99af2c2ea15dc74c3ec4cf32d25203526
-    components: [const, media_source, sendspin, generic_image]
-  - source:
-      # https://github.com/esphome/esphome/pull/12429
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: ff8ce89556748509d7ee8724e12d9d43d3c8c1e8
-    refresh: 0s
-    components: [http_request]
-
 globals:
   - id: sendspin_album_art_valid
     type: bool
@@ -113,6 +98,7 @@ speaker:
     dac_type: external
     channel: stereo
     sample_rate: 48000
+    buffer_duration: 200ms
 
   - platform: mixer
     id: mixing_speaker
@@ -133,6 +119,7 @@ speaker:
     id: media_resampling_speaker
     output_speaker: media_mixing_input
     sample_rate: 48000
+    bits_per_sample: 16
 
 sendspin:
   id: sendspin_hub
