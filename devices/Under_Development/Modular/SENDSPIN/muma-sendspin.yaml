@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-6199a4
   friendly_name: Xiaozhi Muma Box v1
 
-## Modular version Main v1.08 (all Muma versions)
+## Modular version Main v1.08 (all Muma versions) 2026.4.0
 
 ## SETTINGS ######################################################################################################################################
 
@@ -68,6 +68,7 @@ esp32:
 psram:
   mode: octal
   speed: 80MHz
+  ignore_not_found: false
 
 ### USE MODULES FROM GITHUB (default) ############################################################################################################
 
@@ -84,13 +85,21 @@ packages:
     refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/muma-sendspin_hw.yaml
+  extcomp:
+    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    ref: main
+    refresh: 0s
+    files:
+      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
 #  core: !include localtest/core-sendspin.yaml
 #  hw:   !include localtest/HW/muma-sendspin_hw.yaml
+#  extcomp:   !include localtest/HW/sendspin-external_components.yaml
 
+# Debug logging, Uncomment ONLY if debugging, defaults to WARN
 #logger:
 #  level: DEBUG
 
