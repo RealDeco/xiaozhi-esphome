@@ -43,19 +43,6 @@ external_components:
     components: [image]
     refresh: 1h
 
-esp32:
-  variant: ESP32S3
-  flash_size: 16MB
-  cpu_frequency: 240MHz
-  framework:
-    type: esp-idf
-    components:
-      - espressif/esp-nn==1.1.2
-    sdkconfig_options:
-      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
-      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
-      CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB: "y"
-
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
