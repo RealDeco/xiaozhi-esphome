@@ -1,5 +1,5 @@
 
-# waveshare 4.0 p4 eth hardware pack SENDSPIN version.
+# waveshare 4.0 p4 eth hardware pack SENDSPIN version 2026.4.0
 
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
@@ -211,11 +211,11 @@ script:
 
   - id: swipe_playing_left_action
     then:
-      - media_player.next: sendspin_media
+      - media_player.next: sendspin_group_media_player
 
   - id: swipe_playing_right_action
     then:
-      - media_player.previous: sendspin_media
+      - media_player.previous: sendspin_group_media_player
 
   - id: tap_playing_toggle_action
     then:
@@ -224,16 +224,16 @@ script:
 
   - id: tap_playing_hold_action
     then:
-      - media_player.toggle: sendspin_media
+      - media_player.toggle: sendspin_group_media_player
 
   - id: tap_idle_hold_action
     then:
-      - media_player.toggle: sendspin_media
+      - media_player.toggle: sendspin_group_media_player
 
   - id: mp_idle_debounce
     mode: restart
     then:
-      - delay: 1s
+      - delay: 2s
       - if:
           condition:
             and:
@@ -335,68 +335,78 @@ speaker:
     id: mixing_speaker
     output_speaker: box_speaker
     num_channels: 2
+    task_stack_in_psram: true
     source_speakers:
-      - id: announcement_mixer_input
-      - id: media_mixer_input
+      - id: announcement_mixing_input
+      - id: media_mixing_input
 
   - platform: resampler
-    id: media_resampling_input
-    output_speaker: media_mixer_input
+    id: announcement_resampling_speaker
+    output_speaker: announcement_mixing_input
     sample_rate: 48000
+    bits_per_sample: 16
 
   - platform: resampler
-    id: announcement_resampling_input
-    output_speaker: announcement_mixer_input    
+    id: media_resampling_speaker
+    output_speaker: media_mixing_input
     sample_rate: 48000
 
 sendspin:
   id: sendspin_hub
-  task_stack_in_psram: true
-  kalman_process_error: 0.01
+  task_stack_in_psram: false
+
+http_request:
+  buffer_size_rx: 2048  # Reduces CPU load when streaming audio
+
+audio_file:
+  - id: ready_sound
+    file: ${startup_sound_file}
+  - id: timer_finished_sound
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+  - id: wake_word_triggered_sound
+    file: ${wakeup_sound_file}
 
 media_source:
-  - platform: sendspin
-    id: sendspin_source
+  - platform: audio_file
+    id: audio_file_announcement_source
   - platform: http_request
-    id: http_source
+    id: http_announcement_source
+    buffer_size: 250000
+  - platform: http_request
+    id: http_media_source
     buffer_size: 500000
-  - platform: file
-    id: file_source
-    files:
-      - id: timer_finished_sound
-        file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
-      - id: wake_word_triggered_sound
-        file: ${wakeup_sound_file}
-      - id: ready_sound
-        file: ${startup_sound_file}
+  - platform: sendspin
+    id: sendspin_media_source
 
 media_player:
   - platform: sendspin
-    id: sendspin_media
+    id: sendspin_group_media_player
     name: Sendspin Group Media Player
 
   - platform: speaker_source
-    name: Sendspin Media Player
     id: external_media_player
-    announcement_speaker: announcement_resampling_input
-    media_speaker: media_resampling_input
+    name: Media Player
 
     announcement_pipeline:
       format: FLAC
       num_channels: 1
       sample_rate: 48000
+      speaker: announcement_resampling_speaker
+      sources:
+        - audio_file_announcement_source
+        - http_announcement_source
+
     media_pipeline:
       format: FLAC
       num_channels: 2
       sample_rate: 48000
-
+      speaker: media_resampling_speaker
+      sources:
+        - http_media_source
+        - sendspin_media_source
     volume_increment: 0.05
-    volume_min: 0.5
-    volume_max: 0.8
-    sources:
-      - file_source
-      - http_source
-      - sendspin_source
+    volume_min: 0.4
+    volume_max: 0.85
 
     on_announcement:
       - script.stop: mp_idle_debounce
@@ -446,6 +456,7 @@ media_player:
           then:
             - lambda: 'id(playing_internal_sound) = false;'
           else:
+#            - script.execute: reset_screensaver
             - script.execute:
                 id: set_phase
                 phase: ${voice_assist_playing_phase_id}
@@ -455,6 +466,14 @@ media_player:
     on_pause:
       - lambda: |-
           ESP_LOGI("TOUCH", "ON_PAUSE fired");
+#      - if:
+#          condition:
+#            not:
+#              voice_assistant.is_running:
+#          then:
+#            - script.execute: start_wake_word
+#            - script.execute: set_idle_or_mute_phase
+#            - script.execute: draw_display
 
     on_idle:
       - script.execute: mp_idle_debounce
@@ -497,7 +516,7 @@ binary_sensor:
                 lambda: |-
                   return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
               then:
-                - media_player.next: sendspin_media
+                - media_player.next: sendspin_group_media_player
 
       # Triple click => Previous track (only when PLAYING)
       - timing:
@@ -513,7 +532,7 @@ binary_sensor:
                 lambda: |-
                   return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
               then:
-                - media_player.previous: sendspin_media
+                - media_player.previous: sendspin_group_media_player
 
       # Hold => phase-aware action (idle vs playing)
       - timing:
