@@ -1401,6 +1401,15 @@ globals:
     restore_value: no
     initial_value: "0"
 
+external_components:
+  - source: github://pr#15813
+    components: [runtime_image]
+    refresh: 1h
+
+  - source: github://pr#15800
+    components: [image]
+    refresh: 1h
+
 image:
   - file: ${error_illustration_file}
     id: casita_error
