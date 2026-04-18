@@ -10,6 +10,7 @@
 * Spotpear Muma **(all 4 versions)**
 * Waveshare Audio Board
 * Breadboard DIY **(240×320)**
+* Waveshare 4.0 P4 86 eth
 
 
 ## 📦 Voice Assistant Devices — Updated to `2026.3.0`
