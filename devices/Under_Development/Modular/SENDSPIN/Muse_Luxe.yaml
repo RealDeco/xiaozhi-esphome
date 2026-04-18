@@ -59,17 +59,23 @@ external_components:
     refresh: 0s
     components: [http_request]
 
-  - source: github://pr#3552
-    components: [es8388]
-    refresh: 0s
-
 i2c:
   sda: GPIO18
   scl: GPIO23
   frequency: 100kHz
   id: bus_a
 
-es8388:
+audio_dac:
+ - platform: es8388
+   id: es8388_dac
+
+select:
+  - platform: es8388
+    es8388_id: es8388_dac
+    dac_output:
+      name: "DAC Output"
+    adc_input_mic:
+      name: "ADC Input MIC"
 
 i2s_audio:
   - id: i2s_audio_bus
@@ -83,6 +89,7 @@ speaker:
     i2s_dout_pin: GPIO26
     dac_type: external
     channel: stereo
+    audio_dac: es8388_dac
     buffer_duration: 300ms
 
   - platform: mixer
