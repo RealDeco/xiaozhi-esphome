@@ -145,6 +145,9 @@
           // Treat 128x64 (and smaller) as "tiny OLED" layout
           const bool TINY = (W <= 128 && H <= 64);
 
+          // Portrait rectangle layout, e.g. 240x320
+          const bool PORTRAIT_RECT = (!TINY && H > W);
+
           // Text
           std::string artist = id(sendspin_artist).has_state() ? id(sendspin_artist).state : "";
           std::string title  = id(sendspin_title).has_state()  ? id(sendspin_title).state  : "";
@@ -155,19 +158,22 @@
             return s.substr(0, max_chars - 3) + "...";
           };
 
-          // Conservative truncation for tiny screens (avoid wrapping/overrun)
+          // Conservative truncation
           if (TINY) {
             artist = trunc(artist, (size_t) 14);
             title  = trunc(title,  (size_t) 16);
+          } else if (PORTRAIT_RECT) {
+            artist = trunc(artist, (size_t) std::max(16, W / 10));
+            title  = trunc(title,  (size_t) std::max(18, W / 9));
           } else {
             artist = trunc(artist, (size_t) std::max(14, W / 14));
             title  = trunc(title,  (size_t) std::max(16, W / 12));
           }
 
           const bool has_text  = (!artist.empty() || !title.empty());
-          const bool has_album = id(sendspin_album_art_valid);  // your validity flag
+          const bool has_album = id(sendspin_album_art_valid);
 
-          // Helper: draw outlined text (stroke via offsets)
+          // Helper: draw outlined text
           auto print_outlined = [&](int x, int y,
                                     esphome::font::Font *font,
                                     esphome::display::TextAlign align,
@@ -188,7 +194,7 @@
 
           if (TINY) {
             // ------------------------------------------------------------------
-            // TINY OLED (128x64): TEXT ONLY (no album art, no fallback image)
+            // TINY OLED (128x64): TEXT ONLY
             // ------------------------------------------------------------------
             if (has_text) {
               int y = 6;
@@ -205,17 +211,63 @@
               it.printf(cx, cy, id(font_request_response), Color::WHITE, TextAlign::CENTER, "Playing...");
             }
 
-            // Optional: tiny timeline (can be cramped on 128x64)
-            // id(draw_timer_timeline).execute();
+            return;
+          }
 
+          if (PORTRAIT_RECT) {
+            // ------------------------------------------------------------------
+            // PORTRAIT RECTANGLE (e.g. 240x320):
+            // 240x240 image on top, remaining space for text underneath
+            // ------------------------------------------------------------------
+
+            const int pad_y = std::clamp(H / 40, 6, 16);
+            const int gap   = std::clamp(H / 50, 4, 12);
+
+            auto *font_artist = id(font_big_date);
+            auto *font_title  = id(font_request_response);
+
+            const int outline_r = std::clamp(std::min(W, H) / 180, 1, 2);
+
+            // Square image sized from display width
+            const int album_size = W;
+
+            // Place image at top
+            const int art_cx = cx;
+            const int art_cy = album_size / 2;
+
+            if (has_album) {
+              it.image(art_cx, art_cy, id(sendspin_album_art), ImageAlign::CENTER);
+            } else {
+              it.image(art_cx, art_cy, id(casita_playing), ImageAlign::CENTER);
+            }
+
+            if (has_text) {
+              int text_y = album_size + pad_y;
+
+              if (!artist.empty()) {
+                print_outlined(cx, text_y, font_artist, TextAlign::TOP_CENTER, artist,
+                               Color::WHITE, Color::BLACK, outline_r);
+                text_y += font_artist->get_baseline() + gap;
+              }
+
+              if (!title.empty()) {
+                print_outlined(cx, text_y, font_title, TextAlign::TOP_CENTER, title,
+                               Color::WHITE, Color::BLACK, outline_r);
+              }
+            } else {
+              it.printf(cx, album_size + ((H - album_size) / 2),
+                        id(font_request_response), Color::WHITE,
+                        TextAlign::CENTER, "Playing...");
+            }
+
+            id(draw_timer_timeline).execute();
             return;
           }
 
           // --------------------------------------------------------------------
-          // NORMAL DISPLAYS: full-screen art + dynamic outlined text overlay
+          // NORMAL / SQUARE DISPLAYS: full-screen art + text overlay
           // --------------------------------------------------------------------
 
-          // Full-screen image (no bottom band)
           if (has_album) {
             it.image(cx, cy, id(sendspin_album_art), ImageAlign::CENTER);
           } else {
@@ -223,31 +275,21 @@
           }
 
           if (has_text) {
-            // Dynamic padding (keeps text off the edges on all sizes)
             const int pad_y = std::clamp(H / 30, 6, 24);
-
-            // Dynamic outline thickness by size
             const int outline_r = std::clamp(std::min(W, H) / 160, 1, 3);
-
-            // Detect large square panels (480x480, 720x720, etc)
             const bool LARGE_SQUARE = (W >= 400 && H >= 400);
 
-            // Dynamically scale fonts
             auto *font_artist = id(font_big_date);
             auto *font_title  = id(font_request_response);
 
             if (LARGE_SQUARE) {
-              font_artist = id(font_big_clock_mono);  // much larger
-              font_title  = id(font_big_date);        // medium-large
+              font_artist = id(font_big_clock_mono);
+              font_title  = id(font_big_date);
             }
 
             const int artist_h = font_artist->get_baseline();
             const int title_h  = font_title->get_baseline();
-
-            // Gap between lines (scaled)
             const int gap = std::clamp(H / 45, 4, 14);
-
-            // Anchor near bottom
             const int bottom_y = H - pad_y;
 
             bool draw_artist = !artist.empty();
@@ -256,17 +298,14 @@
             int y_title  = bottom_y;
             int y_artist = bottom_y - title_h - gap;
 
-            // If there isn't enough space, drop the artist line first
             if (draw_artist && (y_artist - artist_h < pad_y)) {
               draw_artist = false;
             }
 
-            // If STILL too tight, move title up a bit
             if (draw_title && (y_title - title_h < pad_y)) {
               y_title = pad_y + title_h;
             }
 
-            // Extra truncation for very small widths
             if (W < 200) {
               artist = trunc(artist, (size_t) std::max(10, W / 14));
               title  = trunc(title,  (size_t) std::max(12, W / 12));
@@ -283,7 +322,6 @@
             }
           }
 
-          // Optional: show timer progress while playing
           id(draw_timer_timeline).execute();
 
       - id: default_clock
