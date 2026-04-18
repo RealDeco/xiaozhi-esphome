@@ -98,7 +98,7 @@ packages:
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
-#  core: !include localtest/core-sendspin.yaml
+#  core: !include localtest/core-sendspin_pr.yaml
 #  hw:   !include localtest/HW/guition_180v1-sendspin_hw.yaml
 #  extcomp:   !include localtest/HW/sendspin-external_components.yaml
 
