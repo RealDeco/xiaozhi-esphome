@@ -8,6 +8,7 @@
 * Waveshare **1.85C v1**
 * Waveshare **1.85C v2**
 * Spotpear Muma **(all 4 versions)**
+* Breadboard DIY **(240×320)**
 
 
 ## 📦 Voice Assistant Devices — Updated to `2026.3.0`
