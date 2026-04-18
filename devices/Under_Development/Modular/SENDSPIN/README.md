@@ -8,6 +8,7 @@
 * Waveshare **1.85C v1**
 * Waveshare **1.85C v2**
 * Spotpear Muma **(all 4 versions)**
+* Waveshare Audio Board
 * Breadboard DIY **(240×320)**
 
 
