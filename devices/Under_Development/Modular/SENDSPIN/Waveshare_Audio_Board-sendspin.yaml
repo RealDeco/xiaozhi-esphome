@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-6ee470
   friendly_name: "Waveshare Audio Board"
 
-## Modular SENDSPIN version Main 2026.3.0
+## Modular SENDSPIN version Main 2026.4.0
 
 ## SETTINGS ######################################################################################################################################
 
@@ -68,6 +68,7 @@ esp32:
 psram:
   mode: octal
   speed: 80MHz
+  ignore_not_found: false
 
 ### USE MODULES FROM GITHUB (default) ############################################################################################################
 
@@ -84,12 +85,19 @@ packages:
     refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/waveshare-s3-audio-board-sendspin.hw.yaml
+  extcomp:
+    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    ref: main
+    refresh: 0s
+    files:
+      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
 #  core: !include localtest/core-sendspin.yaml
 #  hw:   !include localtest/HW/waveshare-s3-audio-board-sendspin.hw.yaml
+#  extcomp:   !include localtest/HW/sendspin-external_components.yaml
 
 ## ENABLE / DISABLE WAKE WORDS ## IF LOW ON MEMORY, USE LESS WAKE WORDS ##########################################################################
 
