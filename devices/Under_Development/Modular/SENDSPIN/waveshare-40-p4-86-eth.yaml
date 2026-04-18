@@ -16,7 +16,7 @@ substitutions:
   startup_sound: "Home_Connected" # options are: available, Home_Connected, Home_Connected_Male, Computer_Ready
   wakeup_sound: "popup" # options are: popup, wake_word_triggered
   clock_background_image: "chip" # options are: clock, hacker, mission, starrysky, waves, tron, chip, waterdrops
-  imagemodel: "Shaun" # options are: Gwen, Luffy, Dory, HA-character, Hacker, Shaun
+  imagemodel: "Gwen" # options are: Gwen, Luffy, Dory, HA-character, Hacker, Shaun
 
 # USE ONLINE OR LOCAL MODEL AND WALLPAPER IMAGES, IMAGES SHOULD BE PLACED IN: homeassistant/www/images/
   imagepath: "https://github.com/RealDeco/xiaozhi-esphome/raw/main/images"
@@ -68,6 +68,7 @@ esp32:
 psram:
   mode: hex
   speed: 200MHz
+  ignore_not_found: false
 
 esp_ldo:
   - channel: 3
@@ -99,12 +100,19 @@ packages:
     refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/waveshare-40-p4-86-eth-sendspin_hw.yaml
+  extcomp:
+    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    ref: main
+    refresh: 0s
+    files:
+      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
 #  core: !include localtest/core-sendspin.yaml
 #  hw:   !include localtest/HW/waveshare-40-p4-86-eth-sendspin_hw.yaml
+#  extcomp:   !include localtest/HW/sendspin-external_components.yaml
 
 #logger:
 #  level: info
