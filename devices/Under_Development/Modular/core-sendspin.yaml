@@ -1,4 +1,4 @@
-# Core 2026.4.0 sendspin edition 2026.4.0
+# Core 2026.4.0 sendspin edition 2026.4.1
 
 substitutions:
   allowed_characters: >-
@@ -33,15 +33,6 @@ substitutions:
   voice_assist_muted_phase_id: "12"
   voice_assist_playing_phase_id: "13"
   voice_assist_timer_finished_phase_id: "20"
-
-external_components:
-  - source: github://pr#15813
-    components: [runtime_image]
-    refresh: 1h
-
-  - source: github://pr#15800
-    components: [image]
-    refresh: 1h
 
 esphome:
   name: ${name}
