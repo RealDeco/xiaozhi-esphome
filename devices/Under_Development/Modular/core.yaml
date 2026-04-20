@@ -33,15 +33,6 @@ substitutions:
   voice_assist_playing_phase_id: "13"
   voice_assist_timer_finished_phase_id: "20"
 
-external_components:
-  - source: github://pr#15813
-    components: [runtime_image]
-    refresh: 1h
-
-  - source: github://pr#15800
-    components: [image]
-    refresh: 1h
-
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
