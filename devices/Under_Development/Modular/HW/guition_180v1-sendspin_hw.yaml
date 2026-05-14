@@ -1,4 +1,4 @@
-# Taichi Pi v1 hardware SENDSPIN edition 2026.4.0
+# Taichi Pi v1 hardware SENDSPIN edition 2026.5.0b1
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
@@ -18,11 +18,11 @@ globals:
 generic_image:
   - platform: sendspin
     id: sendspin_album_art
-    format: jpg
+    format: jpeg
     type: RGB565
     resize: 360x360
-    image_source: ALBUM
-    on_image_decoded:
+    source: ALBUM
+    on_image_display:
       - lambda: |-
           id(sendspin_album_art_valid) = true;
       - component.update: main_display
@@ -62,7 +62,9 @@ i2c:
 
 i2s_audio:
   - id: i2s_mic
-    i2s_lrclk_pin: GPIO45
+    i2s_lrclk_pin:
+      number: GPIO45
+      ignore_strapping_warning: true
     i2s_bclk_pin:  GPIO42
 
   - id: i2s_audio_bus
@@ -83,7 +85,9 @@ microphone:
   - platform: i2s_audio
     id: box_mic
     i2s_audio_id: i2s_mic
-    i2s_din_pin: GPIO46
+    i2s_din_pin:
+      number: GPIO46
+      ignore_strapping_warning: true
     adc_type: external
     channel: left
     pdm: ${pdm_mic_type}
@@ -125,9 +129,6 @@ sendspin:
   id: sendspin_hub
   task_stack_in_psram: false
 
-http_request:
-  buffer_size_rx: 2048  # Reduces CPU load when streaming audio
-
 audio_file:
   - id: ready_sound
     file: ${startup_sound_file}
@@ -139,12 +140,10 @@ audio_file:
 media_source:
   - platform: audio_file
     id: audio_file_announcement_source
-  - platform: http_request
+  - platform: audio_http
     id: http_announcement_source
-    buffer_size: 250000
-  - platform: http_request
+  - platform: audio_http
     id: http_media_source
-    buffer_size: 500000
   - platform: sendspin
     id: sendspin_media_source
 
