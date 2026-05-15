@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-e9f624
   friendly_name: Xiaozhi Taichi Pi v1
 
-## Modular version Main SENDSPIN edition
+## Modular version Main SENDSPIN edition 2026.5.0b1
 
 ## SETTINGS ######################################################################################################################################
 
@@ -102,8 +102,8 @@ packages:
 #  hw:   !include localtest/HW/guition_180v1-sendspin_hw.yaml
 
 ### Debug logging, Uncomment ONLY if debugging, defaults to WARN
-logger:
-  level: WARN
+#logger:
+#  level: DEBUG
 
 ## ENABLE / DISABLE WAKE WORDS ## IF LOW ON MEMORY, USE LESS WAKE WORDS ##########################################################################
 
