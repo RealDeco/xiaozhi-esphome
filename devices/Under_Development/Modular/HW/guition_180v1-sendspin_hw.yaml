@@ -102,7 +102,7 @@ speaker:
     dac_type: external
     channel: stereo
     sample_rate: 48000
-    buffer_duration: 200ms
+    buffer_duration: 100ms
 
   - platform: mixer
     id: mixing_speaker
@@ -127,7 +127,7 @@ speaker:
 
 sendspin:
   id: sendspin_hub
-  task_stack_in_psram: false
+  task_stack_in_psram: true
 
 audio_file:
   - id: ready_sound
@@ -144,6 +144,7 @@ media_source:
     id: http_announcement_source
   - platform: audio_http
     id: http_media_source
+    buffer_size: 100000
   - platform: sendspin
     id: sendspin_media_source
 
