@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-7aa010
   friendly_name: Xiaozhi Taichi Pi v2
 
-## Modular version Main SENDSPIN edition
+## Modular version Main SENDSPIN edition 2026.5.0b1
 
 ## SETTINGS ######################################################################################################################################
 
@@ -73,6 +73,11 @@ psram:
   speed: 80MHz
   ignore_not_found: false
 
+external_components:
+  - source: github://pr#16057
+    components: [generic_image, sendspin]
+    refresh: 1h
+  
 ### USE MODULES FROM GITHUB (default) ############################################################################################################
 
 packages:
@@ -88,21 +93,15 @@ packages:
     refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/guition_180v1-sendspin_hw.yaml
-  extcomp:
-    url: https://github.com/RealDeco/xiaozhi-esphome.git
-    ref: main
-    refresh: 0s
-    files:
-      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
+
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
 #  core: !include localtest/core-sendspin.yaml
 #  hw:   !include localtest/HW/guition_180v1-sendspin_hw.yaml
-#  extcomp:   !include localtest/HW/sendspin-external_components.yaml
 
-# Debug logging, Uncomment ONLY if debugging, defaults to WARN
+### Debug logging, Uncomment ONLY if debugging, defaults to WARN
 #logger:
 #  level: DEBUG
 
@@ -124,5 +123,3 @@ micro_wake_word:
 #    - model: https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/hey_home_assistant.json
 #    - model: https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/hey_peppa_pig.json
 #    - model: https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/okay_computer.json
-
-##################################################################################################################################################
