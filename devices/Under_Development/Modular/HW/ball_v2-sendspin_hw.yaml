@@ -79,11 +79,11 @@ image:
 generic_image:
   - platform: sendspin
     id: sendspin_album_art
-    format: jpg
+    format: jpeg
     type: RGB565
     resize: 240x240
-    image_source: ALBUM
-    on_image_decoded:
+    source: ALBUM
+    on_image_display:
       - lambda: |-
           id(sendspin_album_art_valid) = true;
       - component.update: main_display
@@ -190,10 +190,7 @@ speaker:
 
 sendspin:
   id: sendspin_hub
-  task_stack_in_psram: false
-
-http_request:
-  buffer_size_rx: 2048  # Reduces CPU load when streaming audio
+  task_stack_in_psram: true
 
 audio_file:
   - id: ready_sound
@@ -206,12 +203,11 @@ audio_file:
 media_source:
   - platform: audio_file
     id: audio_file_announcement_source
-  - platform: http_request
+  - platform: audio_http
     id: http_announcement_source
-    buffer_size: 250000
-  - platform: http_request
+  - platform: audio_http
     id: http_media_source
-    buffer_size: 500000
+    buffer_size: 100000
   - platform: sendspin
     id: sendspin_media_source
 
