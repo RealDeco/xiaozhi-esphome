@@ -102,12 +102,19 @@ packages:
     refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/guition_180v1-sendspin_hw.yaml
+  extcomp:
+    url: https://github.com/RealDeco/xiaozhi-esphome.git
+    ref: main
+    refresh: 0s
+    files:
+      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
 #  core: !include localtest/core-sendspin.yaml
 #  hw:   !include localtest/HW/guition_180v1-sendspin_hw.yaml
+#  extcomp: !include localtest/HW/sendspin-external_components.yaml
 
 ### Debug logging, Uncomment ONLY if debugging, defaults to WARN
 #logger:
