@@ -1,4 +1,4 @@
-# Core 2026.4.0 sendspin edition 2026.4.1
+# Core 2026.5.0b1 sendspin edition
 
 substitutions:
   allowed_characters: >-
@@ -35,10 +35,6 @@ substitutions:
   voice_assist_timer_finished_phase_id: "20"
 
 esphome:
-  name: ${name}
-  friendly_name: ${friendly_name}
-  min_version: 2026.3.0
-  name_add_mac_suffix: false
   on_boot:
     priority: 600
     then:
