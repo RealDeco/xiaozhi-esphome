@@ -81,11 +81,6 @@ psram:
   mode: octal
   speed: 80MHz
   ignore_not_found: false
-
-external_components:
-  - source: github://pr#16057
-    components: [generic_image, sendspin]
-    refresh: 1h
   
 ### USE MODULES FROM GITHUB (default) ############################################################################################################
 
