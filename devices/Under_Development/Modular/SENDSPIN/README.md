@@ -2,6 +2,7 @@
 
 * Guition **1.80 v1**
 * Guition **1.80 v2**
+* Ball **v2**
 
 
 ## 📦 Voice Assistant Devices — Updated to `2026.4.0`
