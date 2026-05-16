@@ -239,7 +239,7 @@ media_player:
         - sendspin_media_source
     volume_increment: 0.05
     volume_min: 0.5
-    volume_max: 0.7
+    volume_max: 0.8
 
     on_announcement:
       - script.stop: mp_idle_debounce
