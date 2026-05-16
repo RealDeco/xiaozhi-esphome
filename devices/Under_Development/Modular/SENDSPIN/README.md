@@ -1,3 +1,6 @@
+<img width="1913" height="822" alt="ChatGPT Image May 16, 2026, 11_35_54 PM" src="https://github.com/user-attachments/assets/62f698e3-fc62-4ef7-abfa-961b13f8902c" />
+
+
 ## 📦 Voice Assistant Devices — Updated to `2026.5.0b1`
 
 * Guition **1.80 v1**
