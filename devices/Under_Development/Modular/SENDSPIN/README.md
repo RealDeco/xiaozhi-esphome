@@ -1,14 +1,20 @@
 <img width="1913" height="822" alt="ChatGPT Image May 16, 2026, 11_35_54 PM" src="https://github.com/user-attachments/assets/62f698e3-fc62-4ef7-abfa-961b13f8902c" />
 
+Includes everything from the **Modular** version, plus **Sendspin** functionality with album art, synchronized multi-room audio, and player controls.
 
-## 📦 Voice Assistant Devices — Updated to `2026.5.0b1`
+This is the version that will be developed going forward. For now, only a few selected devices have been added because **Sendspin for ESPHome** is still experimental and undergoing frequent changes — but we are getting close 😏
+
+If you have a device you would like me to move higher on the to-do list, please post a comment in **Discussions**.
+
+
+## 📦 Devices Updated to `2026.5.0b1` First Beta!
 
 * Guition **1.80 v1**
 * Guition **1.80 v2**
 * Ball **v2**
 * Spotpear Muma **(all 4 versions)**
 
-## 📦 Voice Assistant Devices — Updated to `2026.4.0`
+## 📦 Devices Updated to `2026.4.0`
 
 * Guition **1.80 v1**
 * Guition **1.80 v2**
@@ -22,7 +28,7 @@
 * Waveshare 4.0 P4 86 eth
 
 
-## 📦 Voice Assistant Devices — Updated to `2026.3.0`
+## 📦 Devices Updated to `2026.3.0`
 
 * Guition **1.80 v1**
 * Guition **1.80 v2**
@@ -33,7 +39,7 @@
 * Breadboard DIY **(240×320)**
 
 
-## 📦 Voice Assistant Devices — Updated to `2026.2.0`
+## 📦 Devices Updated to `2026.2.0`
 
 * Guition **1.80 v1**
 * Guition **1.80 v2**
