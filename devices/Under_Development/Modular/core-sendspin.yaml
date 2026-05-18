@@ -521,9 +521,7 @@ voice_assistant:
 
   on_client_disconnected:
     - script.execute: stop_wake_word
-    - script.execute:
-        id: set_phase
-        phase: ${voice_assist_not_ready_phase_id}
+    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
     - script.execute: draw_display
 
   on_timer_started:
