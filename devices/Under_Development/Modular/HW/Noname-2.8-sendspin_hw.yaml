@@ -66,12 +66,6 @@ i2s_audio:
     i2s_bclk_pin: GPIO5
     i2s_mclk_pin: GPIO4
 
-external_components:
-#  - source: github://NonaSuomy/esphome@es8311-analog-mic
-  - source: github://NonaSuomy/esphome@es8311-analog-mic-002
-    components: [ es8311 ]
-    refresh: 0s
-
 audio_dac:
   - platform: es8311
     id: es8311_dac
@@ -79,8 +73,6 @@ audio_dac:
     address: 0x18
     sample_rate: 16000
     bits_per_sample: 16bit
-#    use_microphone: true
-#    microphone_type: analog  # or "digital"
     mic_gain: 30db
 
 switch:
@@ -235,7 +227,6 @@ media_player:
           then:
             - lambda: 'id(playing_internal_sound) = false;'
           else:
-#            - script.execute: reset_screensaver
             - script.execute:
                 id: set_phase
                 phase: ${voice_assist_playing_phase_id}
