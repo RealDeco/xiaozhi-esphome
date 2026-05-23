@@ -19,7 +19,7 @@ generic_image:
     id: sendspin_album_art
     format: jpeg
     type: RGB565
-    resize: 360x360
+    resize: 240x240
     source: ALBUM
     on_image_display:
       - lambda: |-
