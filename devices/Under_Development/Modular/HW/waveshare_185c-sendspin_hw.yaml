@@ -41,7 +41,7 @@ globals:
 generic_image:
   - platform: sendspin
     id: sendspin_album_art
-    format: jpg
+    format: JPEG
     type: RGB565
     resize: 360x360
     source: ALBUM
