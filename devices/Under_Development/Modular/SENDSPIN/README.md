@@ -58,16 +58,12 @@ If you have a device you would like me to move higher on the to-do list, please 
 
 ---
 
-### ✅ What’s New
-
-* 🎵 **Album art** is back and working
-
-* 👆 **Improved touch controls while playing music:**
+### ✅ Usage:
 
   * ⬅️➡️ Swipe left/right: **Previous / Next track**
   * ⬆️⬇️ Swipe up/down: **Volume + / -**
-  * ✋ Long hold: **Stop / Pause / Play**
-  * 👆 Single tap: **Does nothing while playing** (reserved for future functions)
+  * ✋ Long hold in sendspin mode: Stop playback, or in VA mode: Start Playback.
+  * 👆 Single tap in sendspin mode: **Does nothing while playing** (reserved for future functions)
 
 * 📟 Devices **without touch** and with **only 1 button**:
 
@@ -80,12 +76,6 @@ If you have a device you would like me to move higher on the to-do list, please 
 
 ---
 
-### ❌ Removed
-
-* ✋ Long hold to toggle the battery gauge (do this from Home Assistant instead)
-* 🖼️ API action for uploading images to the device (previously used for cover art) is no longer needed
-
----
 
 
 
