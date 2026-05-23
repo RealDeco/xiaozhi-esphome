@@ -532,6 +532,10 @@ display:
     cs_pin: 10
     dc_pin: 46
     invert_colors: true
-#    reset_pin: 18
+    data_rate: 40MHz
+    transform:
+      mirror_x: true
+      mirror_y: false
+      swap_xy: false
     update_interval: never
     pages: !include ../display_pages-sendspin.yaml
