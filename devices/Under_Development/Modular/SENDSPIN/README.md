@@ -7,8 +7,9 @@ This is the version that will be developed going forward. For now, only a few se
 If you have a device you would like me to move higher on the to-do list, please post a comment in **Discussions**.
 
 
-## 📦 Devices Updated to `2026.5.0b1` First Beta!
+## 📦 Devices Updated to `2026.5.0`
 
+* Freenove 2.8
 * Guition **1.80 v1**
 * Guition **1.80 v2**
 * Ball **v2**
