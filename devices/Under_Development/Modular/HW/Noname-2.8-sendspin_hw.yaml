@@ -14,6 +14,12 @@ globals:
     restore_value: no
     initial_value: "false"
 
+image:
+  - file: ${imagepath}/${imagemodel}/240x240/playing.png
+    id: !extend casita_playing
+    resize: 240x240
+    type: RGB565
+
 generic_image:
   - platform: sendspin
     id: sendspin_album_art
@@ -537,5 +543,6 @@ display:
       mirror_x: true
       mirror_y: false
       swap_xy: false
+#    reset_pin: 18
     update_interval: never
     pages: !include ../display_pages-sendspin.yaml
