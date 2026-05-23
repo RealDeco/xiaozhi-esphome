@@ -14,6 +14,9 @@ If you have a device you would like me to move higher on the to-do list, please 
 * Guition **1.80 v2**
 * Ball **v2**
 * Spotpear Muma **(all 4 versions)**
+* Waveshare **1.85C v1**
+* Waveshare **1.85C v2**
+
 
 ## 📦 Devices Updated to `2026.4.0`
 
