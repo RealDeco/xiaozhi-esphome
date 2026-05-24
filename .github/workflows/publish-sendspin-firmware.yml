@@ -1,0 +1,252 @@
+name: Publish sendspin firmware
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
+
+      - name: Compute firmware version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          commit_date="$(git show -s --format=%cs HEAD)"
+          version="${commit_date//-/.}.${GITHUB_RUN_NUMBER}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Firmware version: $version"
+
+      - name: Generate sites with ewt-gen
+        shell: bash
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+          FW_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+
+          echo "Pages base URL: $PAGES_BASE_URL"
+          echo "Firmware version: $FW_VERSION"
+
+          CONFIG_DIR="devices/Under_Development/Modular/SENDSPIN"
+
+          echo "Listing files in $CONFIG_DIR:"
+          ls -la "$CONFIG_DIR"
+
+          # Test only Ball for now.
+          # Later, to build all Sendspin firmware pages, change this to:
+          # configs=("$CONFIG_DIR"/*-sendspin.yaml)
+          configs=("$CONFIG_DIR"/Ball*.yaml)
+
+          if [ ${#configs[@]} -eq 0 ]; then
+            echo "No firmware config files found in $CONFIG_DIR."
+            exit 1
+          fi
+
+          echo "Found configs:"
+          printf ' - %s\n' "${configs[@]}"
+
+          mkdir -p site
+          failed=0
+
+          for config in "${configs[@]}"; do
+            name="$(basename "${config%.*}")"
+
+            echo "::group::Generating page for $config"
+            echo "Config: $config"
+            echo "Output: site/$name"
+            echo "Publish URL: ${PAGES_BASE_URL%/}/$name"
+
+            if uvx ewt-gen==1.4.2 "$config" \
+              -t "$name" \
+              -o "site/$name" \
+              --publish-url "${PAGES_BASE_URL%/}/$name" \
+              --fw-version "$FW_VERSION"; then
+              echo "OK: $config"
+            else
+              echo "::error::FAILED: $config"
+              failed=1
+            fi
+
+            echo "::endgroup::"
+          done
+
+          {
+            echo '<!doctype html>'
+            echo '<html lang="en">'
+            echo '<head>'
+            echo '  <meta charset="utf-8">'
+            echo '  <meta name="viewport" content="width=device-width, initial-scale=1">'
+            echo '  <title>Sendspin Firmware Installer</title>'
+            echo '  <style>'
+            echo '    :root { color-scheme: dark; }'
+            echo '    * { box-sizing: border-box; }'
+            echo '    body {'
+            echo '      margin: 0;'
+            echo '      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;'
+            echo '      background: radial-gradient(circle at top, #243b55 0, #101827 42%, #070b12 100%);'
+            echo '      color: #f8fafc;'
+            echo '      min-height: 100vh;'
+            echo '      display: flex;'
+            echo '      align-items: center;'
+            echo '      justify-content: center;'
+            echo '      padding: 32px 16px;'
+            echo '    }'
+            echo '    main {'
+            echo '      width: min(980px, 100%);'
+            echo '      text-align: center;'
+            echo '    }'
+            echo '    .card {'
+            echo '      background: rgba(15, 23, 42, 0.82);'
+            echo '      border: 1px solid rgba(148, 163, 184, 0.22);'
+            echo '      border-radius: 28px;'
+            echo '      padding: 36px;'
+            echo '      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.38);'
+            echo '      backdrop-filter: blur(16px);'
+            echo '    }'
+            echo '    .logo {'
+            echo '      max-width: 520px;'
+            echo '      width: 100%;'
+            echo '      height: auto;'
+            echo '      margin: 0 auto 28px;'
+            echo '      display: block;'
+            echo '      border-radius: 24px;'
+            echo '      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);'
+            echo '    }'
+            echo '    h1 {'
+            echo '      font-size: clamp(2.2rem, 6vw, 4.2rem);'
+            echo '      line-height: 1.05;'
+            echo '      margin: 0 0 16px;'
+            echo '      letter-spacing: -0.04em;'
+            echo '    }'
+            echo '    .lead {'
+            echo '      max-width: 760px;'
+            echo '      margin: 0 auto 18px;'
+            echo '      color: #cbd5e1;'
+            echo '      font-size: clamp(1.05rem, 2vw, 1.25rem);'
+            echo '      line-height: 1.7;'
+            echo '    }'
+            echo '    .version {'
+            echo '      display: inline-flex;'
+            echo '      gap: 8px;'
+            echo '      align-items: center;'
+            echo '      padding: 8px 14px;'
+            echo '      border-radius: 999px;'
+            echo '      background: rgba(59, 130, 246, 0.14);'
+            echo '      color: #bfdbfe;'
+            echo '      border: 1px solid rgba(96, 165, 250, 0.24);'
+            echo '      margin: 18px 0 28px;'
+            echo '      font-size: 0.95rem;'
+            echo '    }'
+            echo '    .grid {'
+            echo '      display: grid;'
+            echo '      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));'
+            echo '      gap: 16px;'
+            echo '      margin-top: 28px;'
+            echo '    }'
+            echo '    .device {'
+            echo '      text-align: left;'
+            echo '      padding: 20px;'
+            echo '      border-radius: 22px;'
+            echo '      background: rgba(30, 41, 59, 0.78);'
+            echo '      border: 1px solid rgba(148, 163, 184, 0.18);'
+            echo '    }'
+            echo '    .device h2 {'
+            echo '      font-size: 1.05rem;'
+            echo '      margin: 0 0 14px;'
+            echo '      word-break: break-word;'
+            echo '    }'
+            echo '    .button {'
+            echo '      display: inline-flex;'
+            echo '      align-items: center;'
+            echo '      justify-content: center;'
+            echo '      width: 100%;'
+            echo '      min-height: 46px;'
+            echo '      padding: 12px 18px;'
+            echo '      border-radius: 14px;'
+            echo '      background: linear-gradient(135deg, #22c55e, #14b8a6);'
+            echo '      color: #04111d;'
+            echo '      text-decoration: none;'
+            echo '      font-weight: 800;'
+            echo '    }'
+            echo '    .button:hover { filter: brightness(1.08); }'
+            echo '    .note {'
+            echo '      margin-top: 28px;'
+            echo '      color: #94a3b8;'
+            echo '      font-size: 0.95rem;'
+            echo '    }'
+            echo '  </style>'
+            echo '</head>'
+            echo '<body>'
+            echo '  <main>'
+            echo '    <section class="card">'
+            echo '      <img class="logo" src="https://github.com/user-attachments/assets/62f698e3-fc62-4ef7-abfa-961b13f8902c" alt="Sendspin">'
+            echo '      <h1>Sendspin</h1>'
+            echo '      <p class="lead">A <strong>Voice Assistant</strong>, <strong>Digital Clock</strong>, and <strong>Sendspin Player</strong> all in one.</p>'
+            echo '      <p class="lead">Capable of <strong>multi-room audio playback in sync</strong>, designed for distributed audio setups around your home.</p>'
+            echo "      <div class=\"version\">Firmware version: <strong>$FW_VERSION</strong></div>"
+            echo '      <div class="grid">'
+
+            for config in "${configs[@]}"; do
+              name="$(basename "${config%.*}")"
+              label="${name%-sendspin}"
+              label="${label//_/ }"
+              echo '        <article class="device">'
+              echo "          <h2>$label</h2>"
+              echo "          <a class=\"button\" href=\"./$name/\">Install firmware</a>"
+              echo '        </article>'
+            done
+
+            echo '      </div>'
+            echo '      <p class="note">Use Chrome or Edge on desktop for the best ESP Web Tools experience.</p>'
+            echo '    </section>'
+            echo '  </main>'
+            echo '</body>'
+            echo '</html>'
+          } > site/index.html
+
+          if [ "$failed" -ne 0 ]; then
+            echo "One or more configs failed."
+            exit 1
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
