@@ -1,8 +1,8 @@
 substitutions:
-  name: esphome-web-6199a4
-  friendly_name: Xiaozhi Muma Box v1
+  name: xiaozhi-muma
+  friendly_name: "Xiaozhi Muma Box v1"
 
-## Modular version Main SENDSPIN edition 2026.5.0b1
+## Modular version Main SENDSPIN edition
 
 ## SETTINGS ######################################################################################################################################
 
@@ -16,7 +16,7 @@ substitutions:
   startup_sound: "Home_Connected" # (options are: available, Home_Connected, Home_Connected_Male, Computer_Ready)
   wakeup_sound: "popup" # (options are: popup, wake_word_triggered)
   clock_background_image: "chip" # (options are: clock, hacker, mission, starrysky, waves, tron, chip, waterdrops)
-  imagemodel: "Gwen" # options are: 
+  imagemodel: "Gwen" # options are:
 
 # AlbertQuackmore, Alita, Alfred, Astrobot, Buzz, Casita, Cybergirl, Dory, EVE, Eyes, Eyes2, GLaDOS, Girl1, Guy1, Guy2, Gwen, HA-character, ha-girl, Hacker, Harley,
 # Jarvis, Luffy, Mario, Max, Prime, Robochibi, Robocop, Robot, Robotgirl, Salem, Sarah, Shaun
@@ -58,7 +58,7 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   min_version: 2026.5.0
-  name_add_mac_suffix: false
+  name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
     version: "2026.5.0"
@@ -80,12 +80,7 @@ psram:
   ignore_not_found: false
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
   ap:
-    password: "RZ7D3EzJdPM6"
-
-captive_portal:
 
 improv_serial:
 
@@ -129,7 +124,7 @@ micro_wake_word:
   models:
     - okay_nabu
     - hey_jarvis
-    - alexa
+#    - alexa
 #    - hey_mycroft
 #    - model: https://raw.githubusercontent.com/RealDeco/xiaozhi-esphome/refs/heads/main/MicroWakeWords/models/v2/hey_sarah.json
 #    - model: https://raw.githubusercontent.com/JohnnyPrimus/Custom_V2_MicroWakeWords/refs/heads/main/models/computer/computer.json
