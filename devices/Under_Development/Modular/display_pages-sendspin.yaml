@@ -1278,12 +1278,18 @@
             if (motion) { draw_presence_led(x, y, w, right_side); }
           };
 
+          const char* room_1_label_text = !id(room_1_label).state.empty() ? id(room_1_label).state.c_str() : "${sensor1_label}";
+          const char* room_2_label_text = !id(room_2_label).state.empty() ? id(room_2_label).state.c_str() : "${sensor2_label}";
+          const char* room_3_label_text = !id(room_3_label).state.empty() ? id(room_3_label).state.c_str() : "${sensor3_label}";
+          const char* room_4_label_text = !id(room_4_label).state.empty() ? id(room_4_label).state.c_str() : "${sensor4_label}";
+          const char* room_5_label_text = !id(room_5_label).state.empty() ? id(room_5_label).state.c_str() : "${sensor5_label}";
+
           // Grid
-          draw_room(xL, yT, CELL, CELL, "${sensor1_label}", id(ha_sensor1), id(ha_light1), C1_ON, false);
-          draw_room(xR, yT, CELL, CELL, "${sensor2_label}", id(ha_sensor2), id(ha_light2), C2_ON, true);
-          draw_room(xL, yB, CELL, CELL, "${sensor3_label}", id(ha_sensor3), id(ha_light3), C3_ON, false);
-          draw_room(xR, yB, CELL, CELL, "${sensor4_label}", id(ha_sensor4), id(ha_light4), C4_ON, true);
-          draw_room(cX, cY, CW,   CH,   "${sensor5_label}", id(ha_sensor5), id(ha_light5), C5_ON, false);
+          draw_room(xL, yT, CELL, CELL, room_1_label_text, id(ha_sensor1), id(ha_light1), C1_ON, false);
+          draw_room(xR, yT, CELL, CELL, room_2_label_text, id(ha_sensor2), id(ha_light2), C2_ON, true);
+          draw_room(xL, yB, CELL, CELL, room_3_label_text, id(ha_sensor3), id(ha_light3), C3_ON, false);
+          draw_room(xR, yB, CELL, CELL, room_4_label_text, id(ha_sensor4), id(ha_light4), C4_ON, true);
+          draw_room(cX, cY, CW,   CH,   room_5_label_text, id(ha_sensor5), id(ha_light5), C5_ON, false);
 
           // Time
           if (SHOW_TIME) {
@@ -2048,12 +2054,18 @@
               if (motion) draw_presence_led(x, y, w, h, right_side);
             };
 
+            const char* room_1_label_text = !id(room_1_label).state.empty() ? id(room_1_label).state.c_str() : "${sensor1_label}";
+            const char* room_2_label_text = !id(room_2_label).state.empty() ? id(room_2_label).state.c_str() : "${sensor2_label}";
+            const char* room_3_label_text = !id(room_3_label).state.empty() ? id(room_3_label).state.c_str() : "${sensor3_label}";
+            const char* room_4_label_text = !id(room_4_label).state.empty() ? id(room_4_label).state.c_str() : "${sensor4_label}";
+            const char* room_5_label_text = !id(room_5_label).state.empty() ? id(room_5_label).state.c_str() : "${sensor5_label}";
+
             // Draw full-height rectangular grid
-            draw_room(xLcol, yTop, CELL_W, CELL_H, "${sensor1_label}", id(ha_sensor1), id(ha_light1), C1_ON, false);
-            draw_room(xRcol, yTop, CELL_W, CELL_H, "${sensor2_label}", id(ha_sensor2), id(ha_light2), C2_ON, true);
-            draw_room(xLcol, yBot, CELL_W, CELL_H, "${sensor3_label}", id(ha_sensor3), id(ha_light3), C3_ON, false);
-            draw_room(xRcol, yBot, CELL_W, CELL_H, "${sensor4_label}", id(ha_sensor4), id(ha_light4), C4_ON, true);
-            draw_room(cX,    cY,   CW,     CH,     "${sensor5_label}", id(ha_sensor5), id(ha_light5), C5_ON, false);
+            draw_room(xLcol, yTop, CELL_W, CELL_H, room_1_label_text, id(ha_sensor1), id(ha_light1), C1_ON, false);
+            draw_room(xRcol, yTop, CELL_W, CELL_H, room_2_label_text, id(ha_sensor2), id(ha_light2), C2_ON, true);
+            draw_room(xLcol, yBot, CELL_W, CELL_H, room_3_label_text, id(ha_sensor3), id(ha_light3), C3_ON, false);
+            draw_room(xRcol, yBot, CELL_W, CELL_H, room_4_label_text, id(ha_sensor4), id(ha_light4), C4_ON, true);
+            draw_room(cX,    cY,   CW,     CH,     room_5_label_text, id(ha_sensor5), id(ha_light5), C5_ON, false);
           }
 
           // ===================================================================================
@@ -2743,11 +2755,17 @@
               if (motion) { draw_presence_led(x, y, w, right_side); }
             };
 
-            draw_room(xL, yT, CELL, CELL, "${sensor1_label}", id(ha_sensor1), id(ha_light1), C1_ON, false);
-            draw_room(xR, yT, CELL, CELL, "${sensor2_label}", id(ha_sensor2), id(ha_light2), C2_ON, true);
-            draw_room(xL, yB, CELL, CELL, "${sensor3_label}", id(ha_sensor3), id(ha_light3), C3_ON, false);
-            draw_room(xR, yB, CELL, CELL, "${sensor4_label}", id(ha_sensor4), id(ha_light4), C4_ON, true);
-            draw_room(cX, cY, CW,   CS,   "${sensor5_label}", id(ha_sensor5), id(ha_light5), C5_ON, false);
+            const char* room_1_label_text = !id(room_1_label).state.empty() ? id(room_1_label).state.c_str() : "${sensor1_label}";
+            const char* room_2_label_text = !id(room_2_label).state.empty() ? id(room_2_label).state.c_str() : "${sensor2_label}";
+            const char* room_3_label_text = !id(room_3_label).state.empty() ? id(room_3_label).state.c_str() : "${sensor3_label}";
+            const char* room_4_label_text = !id(room_4_label).state.empty() ? id(room_4_label).state.c_str() : "${sensor4_label}";
+            const char* room_5_label_text = !id(room_5_label).state.empty() ? id(room_5_label).state.c_str() : "${sensor5_label}";
+
+            draw_room(xL, yT, CELL, CELL, room_1_label_text, id(ha_sensor1), id(ha_light1), C1_ON, false);
+            draw_room(xR, yT, CELL, CELL, room_2_label_text, id(ha_sensor2), id(ha_light2), C2_ON, true);
+            draw_room(xL, yB, CELL, CELL, room_3_label_text, id(ha_sensor3), id(ha_light3), C3_ON, false);
+            draw_room(xR, yB, CELL, CELL, room_4_label_text, id(ha_sensor4), id(ha_light4), C4_ON, true);
+            draw_room(cX, cY, CW,   CS,   room_5_label_text, id(ha_sensor5), id(ha_light5), C5_ON, false);
           }
 
           // ======================================================
