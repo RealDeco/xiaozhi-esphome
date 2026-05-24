@@ -1,8 +1,8 @@
 substitutions:
-  name: esphome-web-7aa010
+  name: taichi-pi-v1
   friendly_name: Xiaozhi Taichi Pi v2
 
-## Modular version Main SENDSPIN edition 2026.5.0b1
+## Modular version Main SENDSPIN edition
 
 ## SETTINGS ######################################################################################################################################
 
@@ -61,7 +61,7 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   min_version: 2026.5.0
-  name_add_mac_suffix: false
+  name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
     version: "2026.5.0"
@@ -83,15 +83,10 @@ psram:
   ignore_not_found: false
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
   ap:
-    password: "RZ7D3EzJdPM6"
-
-captive_portal:
 
 improv_serial:
-  
+
 ### USE MODULES FROM GITHUB (default) ############################################################################################################
 
 packages:
@@ -143,3 +138,5 @@ micro_wake_word:
 #    - model: https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/hey_home_assistant.json
 #    - model: https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/hey_peppa_pig.json
 #    - model: https://raw.githubusercontent.com/esphome/micro-wake-word-models/refs/heads/main/models/v2/experiments/okay_computer.json
+
+##################################################################################################################################################
