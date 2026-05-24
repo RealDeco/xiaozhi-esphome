@@ -29,25 +29,25 @@ substitutions:
 
 ## PRESENCE / MOTION SENSORS ########## IF NOT USING THESE LEAVE THEM ALONE, SCRIPT WILL BREAK WITHOUT ###########################################
 
-  sensor1_entity: "binary_sensor.8266_presense_2_presence"
-  light1_entity: "light.livingroom_all_lights"
-  sensor1_label: "Tech Room"
+  sensor1_entity: "binary_sensor.room_1_presence"
+  light1_entity: "binary_sensor.room_1_light"
+  sensor1_label: "Room 1"
 
-  sensor2_entity: "binary_sensor.esp32s3_1_presence"
-  light2_entity: "group.kitchen_lights"
-  sensor2_label: "Kitchen"
+  sensor2_entity: "binary_sensor.room_2_presence"
+  light2_entity: "binary_sensor.room_2_light"
+  sensor2_label: "Room 2"
 
-  sensor3_entity: "binary_sensor.esphome_web_1911bf_presence"
-  light3_entity: "light.mom_s_room"
-  sensor3_label: "Living Room"
+  sensor3_entity: "binary_sensor.room_3_presence"
+  light3_entity: "binary_sensor.room_3_light"
+  sensor3_label: "Room 3"
 
-  sensor4_entity: "binary_sensor.notifier_2_presence"
-  light4_entity: "light.hue_toilet_light_light"
-  sensor4_label: "Toilet"
+  sensor4_entity: "binary_sensor.room_4_presence"
+  light4_entity: "binary_sensor.room_4_light"
+  sensor4_label: "Room 4"
 
-  sensor5_entity: "binary_sensor.8266_presense_presence"
-  light5_entity: "switch.nedis_smart_plug_tasmota1"
-  sensor5_label: "Hall"
+  sensor5_entity: "binary_sensor.room_5_presence"
+  light5_entity: "binary_sensor.room_5_light"
+  sensor5_label: "Room 5"
 
   weather_entity: "weather.forecast_home"
 
@@ -80,6 +80,16 @@ psram:
   mode: octal
   speed: 80MHz
   ignore_not_found: false
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    password: "RZ7D3EzJdPM6"
+
+captive_portal:
+
+improv_serial:
 
 ### USE MODULES FROM GITHUB (default) ############################################################################################################
 
