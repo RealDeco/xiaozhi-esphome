@@ -1,0 +1,124 @@
+name: Publish firmware pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
+
+      - name: Compute firmware version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          commit_date="$(git show -s --format=%cs HEAD)"
+          version="${commit_date//-/.}.${GITHUB_RUN_NUMBER}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Firmware version: $version"
+
+      - name: Generate sites with ewt-gen
+        shell: bash
+        env:
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+          FW_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -uo pipefail
+          shopt -s nullglob
+
+          echo "Pages base URL: $PAGES_BASE_URL"
+          echo "Firmware version: $FW_VERSION"
+
+          CONFIG_DIR="devices/Under_Development/Modular/SENDSPIN"
+          configs=("$CONFIG_DIR"/ball*-sendspin.yaml)
+
+          if [ ${#configs[@]} -eq 0 ]; then
+            echo "No firmware config files found in $CONFIG_DIR."
+            exit 1
+          fi
+
+          echo "Found configs:"
+          printf ' - %s\n' "${configs[@]}"
+
+          mkdir -p site
+          failed=0
+
+          for config in "${configs[@]}"; do
+            name="$(basename "${config%.*}")"
+
+            echo "::group::Generating page for $config"
+            echo "Config: $config"
+            echo "Output: site/$name"
+            echo "Publish URL: ${PAGES_BASE_URL%/}/$name"
+
+            if uvx ewt-gen==1.4.2 "$config" \
+              -t "$name" \
+              -o "site/$name" \
+              --publish-url "${PAGES_BASE_URL%/}/$name" \
+              --fw-version "$FW_VERSION"; then
+              echo "OK: $config"
+            else
+              echo "::error::FAILED: $config"
+              failed=1
+            fi
+
+            echo "::endgroup::"
+          done
+
+          {
+            echo '<!doctype html>'
+            echo '<html><head><meta charset="utf-8"><title>Firmware pages</title><meta name="viewport" content="width=device-width"><style>li { margin: 4px 0 }</style></head><body>'
+            echo '<h1>Firmware pages</h1><ul>'
+
+            for config in "${configs[@]}"; do
+              name="$(basename "${config%.*}")"
+              echo "<li><a href=\"./$name/\">$name</a></li>"
+            done
+
+            echo '</ul></body></html>'
+          } > site/index.html
+
+          if [ "$failed" -ne 0 ]; then
+            echo "One or more configs failed."
+            exit 1
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
