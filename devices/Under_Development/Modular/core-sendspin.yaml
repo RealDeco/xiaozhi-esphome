@@ -27,7 +27,7 @@ substitutions:
   voice_assist_waiting_for_command_phase_id: "2"
   voice_assist_listening_phase_id: "3"
   voice_assist_thinking_phase_id: "4"
-  voice_assist_replying_phase_id: "5"a
+  voice_assist_replying_phase_id: "5"
   voice_assist_not_ready_phase_id: "10"
   voice_assist_error_phase_id: "11"
   voice_assist_muted_phase_id: "12"
