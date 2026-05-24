@@ -13,7 +13,7 @@ substitutions:
   screenheight: "360"
   rotate_display: "180"
 
-  display_model: "JC3636W518" # ("JC3636W518" if V1, "JC3636W518V2" if V2)
+  display_model: "JC3636W518V2" # ("JC3636W518" if V1, "JC3636W518V2" if V2)
 
   startup_sound: "Home_Connected" # (options are: available, Home_Connected, Home_Connected_Male, Computer_Ready)
   wakeup_sound: "popup" # (options are: popup, wake_word_triggered)
