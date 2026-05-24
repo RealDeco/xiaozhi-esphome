@@ -1,5 +1,5 @@
 substitutions:
-  name: esphome-web-e9f624
+  name: taichi-pi-v1
   friendly_name: Xiaozhi Taichi Pi v1
 
 ## Modular version Main SENDSPIN edition
@@ -61,7 +61,7 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   min_version: 2026.5.0
-  name_add_mac_suffix: false
+  name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
     version: "2026.5.0"
@@ -83,12 +83,7 @@ psram:
   ignore_not_found: false
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
   ap:
-    password: "RZ7D3EzJdPM6"
-
-captive_portal:
 
 improv_serial:
 
