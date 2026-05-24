@@ -56,10 +56,8 @@ jobs:
           echo "Listing files in $CONFIG_DIR:"
           ls -la "$CONFIG_DIR"
 
-          # Test only Ball for now.
-          # Later, to build all Sendspin firmware pages, change this to:
-          # configs=("$CONFIG_DIR"/*-sendspin.yaml)
-          configs=("$CONFIG_DIR"/Ball*.yaml)
+          configs=("$CONFIG_DIR"/*-sendspin.yaml)
+          # configs=("$CONFIG_DIR"/Ball*.yaml)
 
           if [ ${#configs[@]} -eq 0 ]; then
             echo "No firmware config files found in $CONFIG_DIR."
