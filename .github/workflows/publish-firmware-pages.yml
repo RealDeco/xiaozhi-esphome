@@ -52,7 +52,7 @@ jobs:
           echo "Firmware version: $FW_VERSION"
 
           CONFIG_DIR="devices/Under_Development/Modular/SENDSPIN"
-          configs=("$CONFIG_DIR"/ball*.yaml)
+          configs=("$CONFIG_DIR"/Ball*.yaml)
 
           if [ ${#configs[@]} -eq 0 ]; then
             echo "No firmware config files found in $CONFIG_DIR."
