@@ -4,6 +4,11 @@ Includes everything from the **Modular** version, plus **Sendspin** functionalit
 
 This is the version that will be developed going forward. For now, only a few selected devices have been added because **Sendspin for ESPHome** is still experimental and undergoing frequent changes — If you have a device you would like me to move higher on the to-do list, please post a comment in **Discussions**.
 
+<h1 align="center">
+  <a href="https://realdeco.github.io/xiaozhi-esphome/">
+    >> INSTALL FIRMWARE <<
+  </a>
+</h1>
 
 ## 📦 Devices Updated to `2026.5.0`
 
