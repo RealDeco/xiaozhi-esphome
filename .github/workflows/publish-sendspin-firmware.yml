@@ -204,9 +204,10 @@ jobs:
             echo '  <main>'
             echo '    <section class="card">'
             echo '      <img class="logo" src="https://github.com/user-attachments/assets/62f698e3-fc62-4ef7-abfa-961b13f8902c" alt="Sendspin">'
-            echo '      <h1>Xiaozhi-ESPHome Sendspin Edition</h1>'
-            echo '      <p class="lead">A <strong>Voice Assistant</strong>, <strong>Digital Clock</strong>, and <strong>Sendspin Player</strong> all in one.</p>'
-            echo '      <p class="lead">Capable of <strong>multi-room audio playback in sync</strong>, designed for distributed audio setups around your home.</p>'
+            echo '      <h1>Firmware Files</h1>'
+            echo '      <p class="lead">Ready-to-flash firmware files for the Xiaozhi-ESPHome Sendspin Edition.</p>'
+            echo '      <p class="lead">These builds are configured with the image model <strong>Gwen</strong>. To use a different model, change the startup sound, wake sound, or wake word, you will need to compile the firmware yourself. This is recommended after you have tried one of the ready-made builds.</p>'
+            echo '      <p class="lead">Connect your device with a USB cable, find your model below, and have fun!</p>'
             echo "      <div class=\"version\">Firmware version: <strong>$FW_VERSION</strong></div>"
             echo '      <div class="grid">'
 
