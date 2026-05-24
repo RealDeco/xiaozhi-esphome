@@ -1,5 +1,5 @@
 substitutions:
-  name: esphome-web-0bac48
+  name: xiaozhi-ball-v2
   friendly_name: "Xiaozhi Ball V2"
 
 ## Modular version Main SENDSPIN edition 2026.5.0b1
@@ -58,7 +58,7 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   min_version: 2026.5.0
-  name_add_mac_suffix: false
+  name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
     version: "2026.5.0"
@@ -80,12 +80,7 @@ psram:
   ignore_not_found: false
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
   ap:
-    password: "RZ7D3EzJdPM6"
-
-captive_portal:
 
 improv_serial:
 
