@@ -1,4 +1,4 @@
-# Core 2026.5.0b1 sendspin edition
+# Core - sendspin edition
 
 substitutions:
   allowed_characters: >-
@@ -55,15 +55,12 @@ logger:
   level: WARN
 
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  ap:
-    password: "RZ7D3EzJdPM6"
   on_connect:
     - component.update: clock_background
     - script.execute: draw_display
   on_disconnect:
     - script.execute: draw_display
+  ap:
 
 captive_portal:
 
@@ -1515,6 +1512,62 @@ text_sensor:
     entity_id: ${weather_entity}
     attribute: pressure_unit
     internal: true
+
+text:
+  - platform: template
+    id: room_1_label
+    name: Room 1 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor1_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_2_label
+    name: Room 2 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor2_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_3_label
+    name: Room 3 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor3_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_4_label
+    name: Room 4 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor4_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_5_label
+    name: Room 5 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor5_label}
+    max_length: 32
+    mode: text
 
 color:
   - id: idle_color
