@@ -47,10 +47,11 @@ This is the version that will be developed going forward. For now, only a few se
 
   * Double-click: **Next track**
   * Triple-click: **Previous track**
+  * Hold: **Stop playback**
 
 * 🎛️ Devices with **3 buttons**:
 
-  * The two extra buttons control **Volume Up / Down**
+  * The two extra buttons control: next & previous song, when hold: volume up & down
 
 ---
 
