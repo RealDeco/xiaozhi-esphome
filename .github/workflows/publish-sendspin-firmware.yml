@@ -56,8 +56,8 @@ jobs:
           echo "Listing files in $CONFIG_DIR:"
           ls -la "$CONFIG_DIR"
 
-          configs=("$CONFIG_DIR"/*-sendspin.yaml)
-          # configs=("$CONFIG_DIR"/*Mini*.yaml)
+          # configs=("$CONFIG_DIR"/*-sendspin.yaml)
+          configs=("$CONFIG_DIR"/*1.75*.yaml)
 
           if [ ${#configs[@]} -eq 0 ]; then
             echo "No firmware config files found in $CONFIG_DIR."
