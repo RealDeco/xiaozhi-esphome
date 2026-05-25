@@ -190,7 +190,7 @@ speaker:
 
 sendspin:
   id: sendspin_hub
-  task_stack_in_psram: true
+  task_stack_in_psram: false
 
 audio_file:
   - id: ready_sound
@@ -590,6 +590,7 @@ display:
   - platform: mipi_spi
     id: main_display
     model: GC9A01A
+    data_rate: 40MHz
     invert_colors: true
     cs_pin: GPIO5
     dc_pin: GPIO47
