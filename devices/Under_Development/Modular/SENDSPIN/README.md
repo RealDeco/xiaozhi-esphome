@@ -20,7 +20,8 @@ This is the version that will be developed going forward. For now, only a few se
 * Waveshare **1.85C v1**
 * Waveshare **1.85C v2**
 * Breadboard DIY **(240×320)**
-
+* Breadboard Mini **(little purple)**
+* 
 
 ## 📦 Devices Updated to `2026.4.0`
 
