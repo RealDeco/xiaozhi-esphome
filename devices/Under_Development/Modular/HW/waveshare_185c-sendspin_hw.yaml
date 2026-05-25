@@ -1,4 +1,4 @@
-# Waveshare ESP32-S3-Touch-LCD-1.85C / 1.85C-BOX SENDSPIN version 2026.4.0
+# Waveshare ESP32-S3-Touch-LCD-1.85C / 1.85C-BOX SENDSPIN version
 # --- CLOCKS PACKAGE -----------------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
@@ -517,6 +517,7 @@ display:
     id: main_display
     model: ${display_model}
     rotation: ${rotate_display}
+    data_rate: 40MHz
     cs_pin: GPIO21
     reset_pin:
       pca9554: pca9554a_device
