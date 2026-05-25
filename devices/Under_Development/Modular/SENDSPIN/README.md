@@ -10,6 +10,7 @@ This is the version that will be developed going forward. For now, only a few se
   </a>
 </h1>
 
+
 ## 📦 Devices Updated to `2026.5.0`
 
 * Freenove 2.8
@@ -21,45 +22,15 @@ This is the version that will be developed going forward. For now, only a few se
 * Waveshare **1.85C v2**
 * Breadboard DIY **(240×320)**
 * Breadboard Mini **(little purple)**
-* 
 
-## 📦 Devices Updated to `2026.4.0`
 
-* Guition **1.80 v1**
-* Guition **1.80 v2**
-* Ball **v2**
+## 📦 Devices on todo list
+
 * Ball **v1**
-* Waveshare **1.85C v1**
-* Waveshare **1.85C v2**
-* Spotpear Muma **(all 4 versions)**
 * Waveshare Audio Board
-* Breadboard DIY **(240×320)**
-* Waveshare 4.0 P4 86 eth
-
-
-## 📦 Devices Updated to `2026.3.0`
-
-* Guition **1.80 v1**
-* Guition **1.80 v2**
-* Ball **v2**
-* Waveshare **1.85C v1**
-* Waveshare **1.85C v2**
-* Waveshare Audio Board
-* Breadboard DIY **(240×320)**
-
-
-## 📦 Devices Updated to `2026.2.0`
-
-* Guition **1.80 v1**
-* Guition **1.80 v2**
-* Ball **v2**
-* Breadboard Mini **(little purple)**
-* Breadboard DIY **(240×320)**
-* Spotpear Muma **(all 4 versions)**
 * Xiaozhi Cube **1.54**
-* Waveshare **1.85C v1**
-* Waveshare **1.85C v2**
 * Waveshare 4.0 P4 86 eth
+* ...
 
 ---
 
