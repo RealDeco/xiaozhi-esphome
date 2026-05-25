@@ -462,6 +462,7 @@ display:
   - platform: mipi_spi
     id: main_display
     model: ST7789V
+    data_rate: 40MHz
     cs_pin: 14
     dc_pin: 8
     reset_pin: 18
