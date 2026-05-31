@@ -9,7 +9,7 @@
 
 The YAML files in `Devices/<device_name>/` are demo configurations and may be outdated, but they are useful for identifying a device.
 
-Use these links for the versions that are still being developed:
+Use these links for the versions updated with more functionality and are still being developed on:
 
 **[Modular](https://github.com/RealDeco/xiaozhi-esphome/tree/main/devices/Under_Development/Modular)**  
 For ESPHome 2026.4.0+
