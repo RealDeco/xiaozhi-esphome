@@ -6,7 +6,10 @@
 
 ## Quick Links
 
-Use these links for the versions currently under development:
+
+The YAML files in `Devices/<device_name>/` are demo configurations and may be outdated, but they are useful for identifying a device.
+
+Use these links for the versions that are still being developed:
 
 **[Modular](https://github.com/RealDeco/xiaozhi-esphome/tree/main/devices/Under_Development/Modular)**  
 For ESPHome 2026.4.0+
@@ -14,7 +17,6 @@ For ESPHome 2026.4.0+
 **[Modular with Sendspin](https://github.com/RealDeco/xiaozhi-esphome/tree/main/devices/Under_Development/Modular/SENDSPIN)**  
 For ESPHome 2026.5.0+
 
-The YAML files in `Devices/<device_name>/` are demo configurations and may be outdated, but they are useful for identifying a device.
 
 <img width="400" src="https://github.com/user-attachments/assets/c26e9291-bd02-4570-8e08-0bee412e07c3" />
 <img width="400" src="https://github.com/user-attachments/assets/0c159139-1c2e-45fe-99f2-6b4a258c1dbe" />
