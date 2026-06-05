@@ -19,8 +19,8 @@ This is the version that will be developed going forward. For now, only a few se
 * Ball **v2**
 * Spotpear Muma **(all 4 versions)**
 * Waveshare **1.75 Amoled**
-* Waveshare **1.85C v1**
-* Waveshare **1.85C v2**
+* Waveshare **1.85C v1-1**
+* Waveshare **1.85C v1-2**
 * Breadboard DIY **(240×320)**
 * Breadboard Mini **(little purple)**
 * Xiaozhi Cube **1.54**
@@ -36,7 +36,7 @@ This is the version that will be developed going forward. For now, only a few se
 
 ---
 
-### ✅ Usage:
+### ✅ Sendspin Usage:
 
   * ⬅️➡️ Swipe left/right: **Previous / Next track**
   * ⬆️⬇️ Swipe up/down: **Volume + / -**
