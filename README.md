@@ -79,7 +79,7 @@ Video going through the esphome install of device was removed by youtube and my 
 * "Breadboard Mini", the $7 custom ESP32-S3 with everything onboard
 * Waveshare 2.06" OLED Wrist Watch
 * Waveshare ESP32-S3-Touch-LCD-1.85C v1
-* Waveshare ESP32-S3-Touch-LCD-1.85C v2
+* Waveshare ESP32-S3-Touch-LCD-1.85C v1.2 (previously called v2)
 * Waveshare ESP32-S3-Touch-LCD-3.49
 * Waveshare ESP32-P4-86-Panel-ETH-2RO **NEW**
 * Waveshare Audio Board **NEW**
