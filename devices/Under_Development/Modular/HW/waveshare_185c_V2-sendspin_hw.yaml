@@ -117,7 +117,7 @@ switch:
 microphone:
   - platform: i2s_audio
     id: box_mic
-    i2s_audio_id: i2s_mic
+    i2s_audio_id: i2s_audio_bus
     i2s_din_pin: GPIO39
     adc_type: external
     channel: right
