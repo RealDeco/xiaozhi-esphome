@@ -1,6 +1,6 @@
 substitutions:
-  name: waveshare-185-v2
-  friendly_name: "Waveshare 1.85 V2"
+  name: waveshare-185-v1-2
+  friendly_name: "Waveshare 1.85 V1-2"
 
 ## Modular SENDSPIN version
 
