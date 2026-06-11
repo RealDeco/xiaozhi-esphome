@@ -62,11 +62,13 @@ esphome:
 
 esp32:
   board: esp32-p4-evboard
+  variant: esp32p4
   flash_size: 32Mb
   cpu_frequency: 360MHz
   framework:
     type: esp-idf
     advanced:
+      execute_from_psram: True
       enable_idf_experimental_features: yes
     sdkconfig_options:
       CONFIG_SPIRAM_FETCH_INSTRUCTIONS: y
