@@ -1,4 +1,4 @@
-# Ball v3 hardware SENDSPIN version 2026.5.0b1
+# Ball v3 hardware SENDSPIN version
 
 # --- CLOCKS & BUTTONS PACKAGE -------------------------------------------------
 packages:
@@ -142,7 +142,6 @@ microphone:
     i2s_din_pin: GPIO10
     adc_type: external
     channel: left
-    pdm: false
     sample_rate: 16000
     bits_per_sample: 16bit
 
