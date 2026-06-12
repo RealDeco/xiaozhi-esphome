@@ -134,29 +134,6 @@ audio_dac:
     bits_per_sample: 16bit
     sample_rate: 16000
 
-esp32_camera:
-  id: ball_camera
-  name: Camera
-  external_clock:
-    pin: GPIO12
-    frequency: 8MHz
-  i2c_id: bus_a
-  data_pins: [GPIO3, GPIO6, GPIO7, GPIO11, GPIO40, GPIO39, GPIO38, GPIO48]
-  vsync_pin: GPIO43
-  href_pin: GPIO46
-  pixel_clock_pin: GPIO44
-  resolution: 640x480
-  jpeg_quality: 6
-  max_framerate: 10fps
-  idle_framerate: 0.1fps
-  contrast: 1
-  brightness: 1
-  aec2: true
-  ae_level: 2
-  agc_gain_ceiling: 64X
-  frame_buffer_count: 2
-  frame_buffer_location: PSRAM
-
 # --- AUDIO DEVICES ------------------------------------------------------------
 microphone:
   - platform: i2s_audio
