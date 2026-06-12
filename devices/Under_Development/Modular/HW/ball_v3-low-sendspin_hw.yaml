@@ -1,0 +1,467 @@
+# Ball v3 hardware SENDSPIN version 2026.5.0b1
+
+# --- CLOCKS & BUTTONS PACKAGE -------------------------------------------------
+packages:
+  clocks: !include ../clocks-standard.yaml
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 0
+      mode: INPUT_PULLUP
+      inverted: true
+    id: !extend left_button
+    on_multi_click:
+      # Double click => Next track (only when PLAYING)
+      - timing:
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.next: sendspin_group_media_player
+
+      # Triple click => Previous track (only when PLAYING)
+      - timing:
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at most 350ms
+          - ON for at most 350ms
+          - OFF for at least 351ms
+        then:
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_playing_phase_id};
+              then:
+                - media_player.previous: sendspin_group_media_player
+
+      # Hold => phase-aware action (idle vs playing)
+      - timing:
+          - ON for at least 700ms
+        then:
+          - lambda: |-
+              const auto phase = id(voice_assistant_phase);
+              const bool playing = (phase == ${voice_assist_playing_phase_id});
+              const bool idle    = (phase == ${voice_assist_idle_phase_id});
+              if (!(playing || idle)) return;
+
+              if (playing) {
+                id(tap_playing_hold_action).execute();
+              } else {  // idle
+                id(tap_idle_hold_action).execute();
+              }
+
+# --- SENDSPIN -----------------------------------------------------------------
+globals:
+  - id: sendspin_album_art_valid
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: gs_hold_fired
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+image:
+  - file: ${playing_illustration_file}
+    id: !extend casita_playing
+    resize: 240x240
+    type: RGB565
+
+generic_image:
+  - platform: sendspin
+    id: sendspin_album_art
+    format: jpeg
+    type: RGB565
+    resize: 240x240
+    source: ALBUM
+    on_image_display:
+      - lambda: |-
+          id(sendspin_album_art_valid) = true;
+      - component.update: main_display
+    on_image_error:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+text_sensor:
+  - platform: sendspin
+    id: sendspin_title
+    type: title
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+  - platform: sendspin
+    id: sendspin_artist
+    type: artist
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+# --- BUSES / PERIPHERALS ------------------------------------------------------
+i2c:
+  - id: bus_a
+    sda: 15
+    scl: 14
+    scan: true
+
+spi:
+  - id: spi_bus
+    clk_pin: GPIO4
+    mosi_pin: GPIO2
+
+i2s_audio:
+  - id: i2s_audio_bus
+    i2s_lrclk_pin: GPIO45
+    i2s_bclk_pin: GPIO9
+    i2s_mclk_pin: GPIO16
+
+audio_dac:
+  - platform: es8311
+    i2c_id: bus_a
+    id: es8311_dac
+    bits_per_sample: 16bit
+    sample_rate: 16000
+
+audio_adc:
+  - platform: es7210
+    id: es7210_adc
+    i2c_id: bus_a
+    bits_per_sample: 16bit
+    sample_rate: 16000
+
+esp32_camera:
+  id: ball_camera
+  name: Camera
+  external_clock:
+    pin: GPIO12
+    frequency: 20MHz
+  i2c_id: bus_a
+  data_pins: [GPIO3, GPIO6, GPIO7, GPIO11, GPIO40, GPIO39, GPIO38, GPIO48]
+  vsync_pin: GPIO43
+  href_pin: GPIO46
+  pixel_clock_pin: GPIO44
+  resolution: 640x480
+  jpeg_quality: 6
+  max_framerate: 10fps
+  idle_framerate: 0.1fps
+  contrast: 1
+  brightness: 1
+  aec2: true
+  ae_level: 2
+  agc_gain_ceiling: 64X
+  frame_buffer_count: 2
+  frame_buffer_location: PSRAM
+
+# --- AUDIO DEVICES ------------------------------------------------------------
+microphone:
+  - platform: i2s_audio
+    id: box_mic
+    i2s_audio_id: i2s_audio_bus
+    i2s_din_pin: GPIO10
+    adc_type: external
+    channel: left
+    pdm: false
+    sample_rate: 16000
+    bits_per_sample: 16bit
+
+speaker:
+  - platform: i2s_audio
+    id: box_speaker
+    i2s_audio_id: i2s_audio_bus
+    i2s_dout_pin: GPIO8
+    dac_type: external
+    audio_dac: es8311_dac
+    sample_rate: 48000
+    channel: mono
+
+  - platform: mixer
+    id: mixing_speaker
+    output_speaker: box_speaker
+    num_channels: 2
+    task_stack_in_psram: true
+    source_speakers:
+      - id: announcement_mixing_input
+      - id: media_mixing_input
+
+  - platform: resampler
+    id: announcement_resampling_speaker
+    output_speaker: announcement_mixing_input
+    sample_rate: 48000
+    bits_per_sample: 16
+
+  - platform: resampler
+    id: media_resampling_speaker
+    output_speaker: media_mixing_input
+    sample_rate: 48000
+
+sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: false
+
+audio_file:
+  - id: ready_sound
+    file: ${startup_sound_file}
+  - id: timer_finished_sound
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/timer_finished.flac
+  - id: wake_word_triggered_sound
+    file: ${wakeup_sound_file}
+
+media_source:
+  - platform: audio_file
+    id: audio_file_announcement_source
+  - platform: audio_http
+    id: http_announcement_source
+  - platform: audio_http
+    id: http_media_source
+    buffer_size: 100000
+  - platform: sendspin
+    id: sendspin_media_source
+
+media_player:
+  - platform: sendspin
+    id: sendspin_group_media_player
+    name: Sendspin Group Media Player
+
+  - platform: speaker_source
+    id: external_media_player
+    name: Media Player
+
+    announcement_pipeline:
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
+      speaker: announcement_resampling_speaker
+      sources:
+        - audio_file_announcement_source
+        - http_announcement_source
+
+    media_pipeline:
+      format: FLAC
+      num_channels: 2
+      sample_rate: 48000
+      speaker: media_resampling_speaker
+      sources:
+        - http_media_source
+        - sendspin_media_source
+    volume_increment: 0.05
+    volume_min: 0.5
+    volume_max: 0.8
+
+    on_announcement:
+      - script.stop: mp_idle_debounce
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+            - script.execute: reset_screensaver
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_play:
+      - script.stop: mp_idle_debounce
+      - if:
+          condition:
+            - microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+            - if:
+                condition:
+                  - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+                then:
+                  - wait_until:
+                      condition:
+                        - not:
+                            voice_assistant.is_running:
+
+      - if:
+          condition:
+            lambda: 'return id(playing_internal_sound);'
+          then:
+            - lambda: 'id(playing_internal_sound) = false;'
+          else:
+#            - script.execute: reset_screensaver
+            - script.execute:
+                id: set_phase
+                phase: ${voice_assist_playing_phase_id}
+            - display.page.show: now_playing_page
+            - component.update: main_display
+
+    on_pause:
+      - lambda: |-
+          ESP_LOGI("TOUCH", "ON_PAUSE fired");
+#      - if:
+#          condition:
+#            not:
+#              voice_assistant.is_running:
+#          then:
+#            - script.execute: start_wake_word
+#            - script.execute: set_idle_or_mute_phase
+#            - script.execute: draw_display
+
+    on_idle:
+      - script.execute: mp_idle_debounce
+
+# --- BACKLIGHT & AUX LED ------------------------------------------------------
+output:
+  - platform: ledc
+    pin: 42
+    id: backlight_output
+    inverted: true
+
+light:
+  - platform: monochromatic
+    id: Sled
+    name: Screen
+    icon: "mdi:television"
+    entity_category: config
+    output: backlight_output
+    restore_mode: ALWAYS_ON
+    default_transition_length: 250ms
+
+# --- SCRIPTS ------------------------------------------------------------------
+
+script:
+  - id: swipe_playing_up_action
+    then:
+      - media_player.volume_up: external_media_player
+
+  - id: swipe_playing_down_action
+    then:
+      - media_player.volume_down: external_media_player
+
+  - id: swipe_playing_left_action
+    then:
+      - media_player.next: sendspin_group_media_player
+
+  - id: swipe_playing_right_action
+    then:
+      - media_player.previous: sendspin_group_media_player
+
+  - id: tap_playing_toggle_action
+    then:
+      - lambda: |-
+          ESP_LOGI("TOUCH", "tap_playing_toggle_action fired");
+
+  - id: tap_playing_hold_action
+    then:
+      - media_player.stop: sendspin_group_media_player
+
+  - id: tap_idle_hold_action
+    then:
+      - script.execute: stop_wake_word
+      - media_player.play: sendspin_group_media_player
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+      
+interval:
+  - interval: 100ms
+    then:
+      - lambda: |-
+          // Fast rejects
+          if (!id(gs_touch_active)) return;
+          if (id(gs_hold_fired)) return;
+          if (!id(swipe_local).state) return;
+
+          const auto phase = id(voice_assistant_phase);
+          const bool playing = (phase == ${voice_assist_playing_phase_id});
+          const bool idle    = (phase == ${voice_assist_idle_phase_id});
+          if (!(playing || idle)) return;
+
+          constexpr uint32_t HOLD_MS = 700;
+          if ((millis() - id(gs_start_ms)) < HOLD_MS) return;
+
+          // Distance threshold scales with screen
+          const int w = id(main_display).get_width();
+          const int h = id(main_display).get_height();
+          const int min_dim = (w < h) ? w : h;
+          const int HOLD_MAX_DIST = std::max(10, min_dim / 18);
+
+          const int dx = id(gs_last_x) - id(gs_start_x);
+          const int dy = id(gs_last_y) - id(gs_start_y);
+          if (std::abs(dx) > HOLD_MAX_DIST || std::abs(dy) > HOLD_MAX_DIST) return;
+
+          // Fire once
+          id(gs_hold_fired) = true;
+
+          if (playing) {
+            id(tap_playing_hold_action).execute();
+          } else { // idle
+            id(tap_idle_hold_action).execute();
+          }
+
+# --- BATTERY ADC --------------------------------------------------------------
+sensor:
+  - platform: adc
+    pin: GPIO1
+    name: "Battery Voltage"
+    id: battery_voltage
+    attenuation: 12db
+    accuracy_decimals: 2
+    update_interval: 10s
+    unit_of_measurement: "V"
+    icon: mdi:battery-medium
+    filters:
+      - multiply: 2.0
+      - median:
+          window_size: 7
+          send_every: 7
+          send_first_at: 1
+      - throttle: 1min
+    on_value:
+      then:
+        - sensor.template.publish:
+            id: battery_percentage
+            state: !lambda 'return x;'
+
+# --- DISPLAY DRIVER (ILI9xxx round GC9A01A) ----------------------------------
+display:
+  - platform: mipi_spi
+    id: main_display
+    model: GC9A01A
+    data_rate: 40MHz
+    invert_colors: true
+    cs_pin: GPIO5
+    dc_pin: GPIO47
+    update_interval: never
+    pages: !include ../display_pages-sendspin.yaml
