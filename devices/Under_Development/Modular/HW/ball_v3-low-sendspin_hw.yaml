@@ -140,7 +140,7 @@ esp32_camera:
   external_clock:
     pin: GPIO12
     frequency: 8MHz
-  i2c_id: codec_i2c
+  i2c_id: bus_a
   data_pins: [GPIO3, GPIO6, GPIO7, GPIO11, GPIO40, GPIO39, GPIO38, GPIO48]
   vsync_pin: GPIO43
   href_pin: GPIO46
