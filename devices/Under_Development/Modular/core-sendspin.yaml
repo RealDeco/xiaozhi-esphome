@@ -38,6 +38,9 @@ esphome:
   on_boot:
     priority: 600
     then:
+      - binary_sensor.template.publish:
+          id: touch_input
+          state: OFF
       - script.execute: draw_display
       - delay: 30s
       - if:
@@ -99,6 +102,7 @@ api:
           }
         }
     - script.execute: reset_screensaver
+    - script.execute: start_wake_word
 
   on_client_disconnected:
     - script.execute: draw_display
@@ -386,7 +390,7 @@ micro_wake_word:
               id: play_sound
               priority: true
               sound_file: "wake_word_triggered_sound"
-          - delay: 300ms
+          - delay: 1200ms
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
 
@@ -787,7 +791,6 @@ script:
   - id: draw_active_timer_widget
     then:
       - lambda: |-
-          // Skip the circular widget on tiny screens; keep for larger panels
           const int W = id(main_display).get_width();
           const int H = id(main_display).get_height();
           if (W <= 128 && H <= 64) return;
@@ -795,82 +798,165 @@ script:
           id(check_if_timers_active).execute();
           if (!id(global_is_timer_active)) return;
 
-          // --- original circular widget (unchanged) ---
-          const int cx = W / 2;
-          const int cy = H / 2;
-
           const int S = std::min(W, H);
-          const int R_SEC = (int)(S * 0.30f);
-          const int L_SEC = std::max(5, S / 28);
-          const int TH_SEC = 2;
-
-          const int GAP   = std::max(6, S / 60);
-          const int R_MIN = R_SEC - L_SEC - GAP;
-          const int L_MIN = std::max(4, L_SEC - 3);
-          const int TH_MIN = 2;
-
-          const Color GREY(60, 60, 60);
-          const Color SEC_COL = id(paused_timer_color); // blue
-          const Color MIN_COL(255, 64, 64);             // red
 
           id(fetch_first_active_timer).execute();
-          uint32_t left  = id(global_first_active_timer).seconds_left;
-          int hours_left   = left / 3600;
-          int minutes_left = (left / 60) % 60;
-          int seconds_left = left % 60;
+          const uint32_t total = std::max(id(global_first_active_timer).total_seconds, (uint32_t)1);
+          const uint32_t left  = id(global_first_active_timer).seconds_left;
 
-          int sec_active = seconds_left;
-          if ((minutes_left + hours_left) > 0 && seconds_left == 0) sec_active = 60;
+          const int hours_left   = left / 3600;
+          const int minutes_left = (left / 60) % 60;
+          const int seconds_left = left % 60;
 
-          int min_active = minutes_left;
-          if (hours_left > 0 && minutes_left == 0) min_active = 60;
+          float remain = (float) left / (float) total;
+          if (remain < 0.0f) remain = 0.0f;
+          if (remain > 1.0f) remain = 1.0f;
 
-          auto draw_tick = [&](float angle, int r_end, int len, Color col, int thick) {
-            const float ca = cosf(angle), sa = sinf(angle);
-            const int x1 = cx + (int)((r_end - len) * ca);
-            const int y1 = cy + (int)((r_end - len) * sa);
-            const int x2 = cx + (int)(r_end * ca);
-            const int y2 = cy + (int)(r_end * sa);
+          const int widget_w = std::min(W - 24, std::max(112, (int)(S * 0.68f)));
+          const int widget_h = std::min(H - 54, std::max(74, (int)(S * 0.42f)));
 
+          const int gap = std::max(8, widget_w / 20);
+          const int hourglass_w = std::min((int)(widget_w * 0.38f), (int)(widget_h * 0.56f));
+          const int hourglass_h = widget_h;
+          const int text_w = 48;
+          const int visual_w = hourglass_w + gap + text_w;
+          const int content_nudge_x = std::max(2, S / 90);
+          const int hg_x = std::max(4, (W - visual_w) / 2 + content_nudge_x);
+          const int hg_y = std::max(8, (H - hourglass_h) / 2);
+          const int hg_cx = hg_x + hourglass_w / 2;
+          const int badge_cx = W / 2;
+          const int badge_cy = hg_y + hourglass_h / 2;
+          const int badge_pad = std::max(14, S / 20);
+          const int badge_needed_r = (int) ceilf(sqrtf(
+            (visual_w * visual_w + hourglass_h * hourglass_h) / 4.0f
+          ));
+          const int badge_r = std::min(
+            std::min(W, H) / 2 - 2,
+            badge_needed_r + badge_pad
+          );
+          const int hg_top = hg_y;
+          const int hg_mid = hg_y + hourglass_h / 2;
+          const int hg_bot = hg_y + hourglass_h;
+
+          const int rim_h = std::max(4, S / 42);
+          const int throat_w = std::max(4, hourglass_w / 12);
+          const int top_inner_y = hg_top + rim_h + 2;
+          const int bot_inner_y = hg_bot - rim_h - 2;
+          const int chamber_pad = std::max(5, hourglass_w / 12);
+
+          const Color outline = Color::WHITE;
+          const Color badge_bg(0x08, 0x0b, 0x10);
+          const Color badge_edge(0x4d, 0x58, 0x68);
+          const Color badge_outline = Color::WHITE;
+          const Color sand(0xff, 0xc1, 0x07);
+          const Color sand_dim(0xb8, 0x88, 0x12);
+          auto thick_line = [&](int x1, int y1, int x2, int y2, Color col, int thick) {
             if (thick <= 1) {
               id(main_display).line(x1, y1, x2, y2, col);
               return;
             }
-            const float px = -sa, py = ca;
-            for (int t = -thick/2; t <= thick/2; ++t) {
-              int ox = (int) lroundf(px * t);
-              int oy = (int) lroundf(py * t);
-              id(main_display).line(x1 + ox, y1 + oy, x2 + ox, y2 + oy, col);
+            for (int o = -thick / 2; o <= thick / 2; ++o) {
+              id(main_display).line(x1 + o, y1, x2 + o, y2, col);
+              id(main_display).line(x1, y1 + o, x2, y2 + o, col);
             }
           };
 
-          const float TWO_PI = 6.2831853f;
-          for (int i = 0; i < 60; ++i) {
-            float a = -3.1415926f/2 + (i / 60.0f) * TWO_PI;
-            draw_tick(a, R_SEC, L_SEC, (i < sec_active) ? SEC_COL : GREY, TH_SEC);
+          const int line_thick = std::max(1, S / 120);
+
+          id(main_display).filled_circle(badge_cx, badge_cy, badge_r, badge_bg);
+          id(main_display).circle(badge_cx, badge_cy, badge_r, badge_outline);
+          if (badge_r > 2) {
+            id(main_display).circle(badge_cx, badge_cy, badge_r - 1, badge_edge);
+          }
+          if (badge_r > 5) {
+            id(main_display).circle(badge_cx, badge_cy, badge_r - 4, Color::BLACK);
           }
 
-          if (left >= 60) {
-            for (int i = 0; i < 60; ++i) {
-              float a = -3.1415926f/2 + (i / 60.0f) * TWO_PI;
-              draw_tick(a, R_MIN, L_MIN, (i < min_active) ? MIN_COL : GREY, TH_MIN);
+          id(main_display).filled_rectangle(hg_x, hg_top, hourglass_w, rim_h, outline);
+          id(main_display).filled_rectangle(hg_x, hg_bot - rim_h, hourglass_w, rim_h, outline);
+
+          thick_line(hg_x + chamber_pad, top_inner_y, hg_cx - throat_w / 2, hg_mid, outline, line_thick);
+          thick_line(hg_x + hourglass_w - chamber_pad, top_inner_y, hg_cx + throat_w / 2, hg_mid, outline, line_thick);
+          thick_line(hg_cx - throat_w / 2, hg_mid, hg_x + chamber_pad, bot_inner_y, outline, line_thick);
+          thick_line(hg_cx + throat_w / 2, hg_mid, hg_x + hourglass_w - chamber_pad, bot_inner_y, outline, line_thick);
+
+          const int top_chamber_h = std::max(1, hg_mid - top_inner_y - 3);
+          const int bot_chamber_h = std::max(1, bot_inner_y - hg_mid - 3);
+          const int top_surface_y = top_inner_y + (int) lroundf(top_chamber_h * (1.0f - remain));
+          const int bot_fill_h = (int) lroundf(bot_chamber_h * (1.0f - remain));
+
+          auto top_half_width_at = [&](int y) -> int {
+            float t = (float)(y - top_inner_y) / (float)std::max(1, hg_mid - top_inner_y);
+            if (t < 0.0f) t = 0.0f;
+            if (t > 1.0f) t = 1.0f;
+            const int wide = hourglass_w / 2 - chamber_pad;
+            const int neck = std::max(throat_w / 2, 2);
+            return wide - (int)lroundf((wide - neck) * t);
+          };
+
+          auto bottom_half_width_at = [&](int y) -> int {
+            float t = (float)(y - hg_mid) / (float)std::max(1, bot_inner_y - hg_mid);
+            if (t < 0.0f) t = 0.0f;
+            if (t > 1.0f) t = 1.0f;
+            const int wide = hourglass_w / 2 - chamber_pad;
+            const int neck = std::max(throat_w / 2, 2);
+            return neck + (int)lroundf((wide - neck) * t);
+          };
+
+          if (remain > 0.0f) {
+            const int y_end = hg_mid - 4;
+            const int y_start = std::min(std::max(top_surface_y, top_inner_y), y_end);
+            for (int y = y_start; y <= y_end; ++y) {
+              const int hw = top_half_width_at(y);
+              const Color col = (y == y_start) ? sand : sand_dim;
+              id(main_display).line(hg_cx - hw, y, hg_cx + hw, y, col);
             }
           }
 
-          char s_buf[8];
-          snprintf(s_buf, sizeof(s_buf), "%02d", seconds_left);
-          id(main_display).printf(cx, cy + 2, id(font_big_clock_mono), Color::WHITE,
-                                  TextAlign::CENTER, "%s", s_buf);
-
-          if (left >= 60) {
-            int total_minutes = left / 60;
-            char m_buf[12];
-            snprintf(m_buf, sizeof(m_buf), "%d", total_minutes);
-            const int TEXT_PAD = std::max(16, S / 14);
-            int y_min = cy - (L_SEC + TEXT_PAD);
-            id(main_display).printf(cx, y_min, id(font_big_clock_mono), Color::WHITE,
-                                    TextAlign::CENTER, "%s", m_buf);
+          if (bot_fill_h > 0) {
+            const int y_end = bot_inner_y;
+            const int y_start = std::max(hg_mid + 4, bot_inner_y - bot_fill_h);
+            for (int y = y_start; y <= y_end; ++y) {
+              const int hw = bottom_half_width_at(y);
+              const Color col = (y > y_start + (y_end - y_start) / 2) ? sand_dim : sand;
+              id(main_display).line(hg_cx - hw, y, hg_cx + hw, y, col);
+            }
           }
+
+          const int drop_top = hg_mid + std::max(3, S / 80);
+          const int bottom_surface_y = (bot_fill_h > 0)
+            ? std::max(hg_mid + 5, bot_inner_y - bot_fill_h)
+            : bot_inner_y;
+          const int drop_bot = std::max(drop_top + 1, bottom_surface_y - 2);
+          const int drop_steps = std::max(4, std::min(10, (drop_bot - drop_top) / 3));
+          const uint32_t elapsed_seconds = total > left ? total - left : 0;
+          const int drop_step = elapsed_seconds % drop_steps;
+          const int drop_radius = std::max(1, S / 95);
+          const int second_drop_step = (drop_step + drop_steps / 2) % drop_steps;
+          const int drop_y1 = drop_top + ((drop_bot - drop_top) * drop_step) / std::max(1, drop_steps - 1);
+          const int drop_y2 = drop_top + ((drop_bot - drop_top) * second_drop_step) / std::max(1, drop_steps - 1);
+          id(main_display).filled_circle(hg_cx, drop_y1, drop_radius, sand);
+          id(main_display).filled_circle(hg_cx, drop_y2, drop_radius, sand_dim);
+
+          char hh_buf[4], mm_buf[4], ss_buf[4];
+          snprintf(hh_buf, sizeof(hh_buf), "%02d", hours_left);
+          snprintf(mm_buf, sizeof(mm_buf), "%02d", minutes_left);
+          snprintf(ss_buf, sizeof(ss_buf), "%02d", seconds_left);
+
+          const int text_x = hg_x + hourglass_w + gap + text_w / 2;
+          const int text_area_h = hourglass_h;
+          const int row_gap = std::max(4, S / 42);
+          const int row_h = (text_area_h - row_gap * 2) / 3;
+          const int text_y1 = hg_y + row_h / 2;
+          const int text_y2 = text_y1 + row_h + row_gap;
+          const int text_y3 = text_y2 + row_h + row_gap;
+
+          id(main_display).printf(text_x + 1, text_y1 + 1, id(font_small_clock_mono), Color::BLACK, TextAlign::CENTER, "%s", hh_buf);
+          id(main_display).printf(text_x,     text_y1,     id(font_small_clock_mono), Color::WHITE, TextAlign::CENTER, "%s", hh_buf);
+          id(main_display).printf(text_x + 1, text_y2 + 1, id(font_small_clock_mono), Color::BLACK, TextAlign::CENTER, "%s", mm_buf);
+          id(main_display).printf(text_x,     text_y2,     id(font_small_clock_mono), Color::WHITE, TextAlign::CENTER, "%s", mm_buf);
+          id(main_display).printf(text_x + 1, text_y3 + 1, id(font_small_clock_mono), Color::BLACK, TextAlign::CENTER, "%s", ss_buf);
+          id(main_display).printf(text_x,     text_y3,     id(font_small_clock_mono), Color::WHITE, TextAlign::CENTER, "%s", ss_buf);
 
   - id: start_wake_word
     then:
@@ -882,6 +968,9 @@ script:
 #              - not:
 #                  speaker.is_playing:
 #                    id: box_speaker
+              - not:
+                  micro_wake_word.is_running:
+
               - lambda: return id(wake_word_engine_location).current_option() == "On device";
           then:
             - lambda: id(va).set_use_wake_word(false);
