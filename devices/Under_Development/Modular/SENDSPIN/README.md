@@ -17,10 +17,12 @@ This is the version that will be developed going forward. For now, only a few se
 * Guition **1.80 v1**
 * Guition **1.80 v2**
 * Ball **v2**
+* Ball **v3**
 * Spotpear Muma **(all 4 versions)**
 * Waveshare **1.75 Amoled**
 * Waveshare **1.85C v1-1**
 * Waveshare **1.85C v1-2**
+* Waveshare **1.85C v2**
 * Breadboard DIY **(240×320)**
 * Breadboard Mini **(little purple)**
 * Xiaozhi Cube **1.54**
