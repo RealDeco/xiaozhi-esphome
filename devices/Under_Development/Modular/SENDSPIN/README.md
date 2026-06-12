@@ -23,6 +23,7 @@ This is the version that will be developed going forward. For now, only a few se
 * Waveshare **1.85C v1-1**
 * Waveshare **1.85C v1-2**
 * Waveshare **1.85C v2**
+* Waveshare 4.0 P4 86 eth
 * Breadboard DIY **(240×320)**
 * Breadboard Mini **(little purple)**
 * Xiaozhi Cube **1.54**
@@ -33,7 +34,6 @@ This is the version that will be developed going forward. For now, only a few se
 
 * Ball **v1**
 * Waveshare Audio Board
-* Waveshare 4.0 P4 86 eth
 * ...
 
 ---
