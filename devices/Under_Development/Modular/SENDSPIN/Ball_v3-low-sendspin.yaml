@@ -1,6 +1,6 @@
 ### Ball v3 "low" this model does not have es7210 and uses a unsupported camera ((0.3 mp GC0308)) so no cam,
 substitutions:
-  name: Bxiaozhi-ball-v3-low
+  name: xiaozhi-ball-v3-low
   friendly_name: Xiaozhi Ball v3 low
 
 ## Modular version Main SENDSPIN edition
