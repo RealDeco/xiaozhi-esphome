@@ -46,8 +46,12 @@ text_sensor:
     id: sendspin_artist
     type: artist
     on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+  - platform: sendspin
+    id: sendspin_album
+    type: album
+    on_value:
       - component.update: main_display
 
 # --- BUSES / PERIPHERALS ------------------------------------------------------
