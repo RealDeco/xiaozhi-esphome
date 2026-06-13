@@ -161,6 +161,18 @@ esp32_camera:
   frame_buffer_location: PSRAM
 
 # --- AUDIO DEVICES ------------------------------------------------------------
+switch:
+  - platform: template
+    name: "Speaker Enabled"
+    id: speaker_enabled_switch
+    icon: "mdi:speaker"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    turn_on_action:
+      - speaker.mute_off: box_speaker
+    turn_off_action:
+      - speaker.mute_on: box_speaker
+
 microphone:
   - platform: i2s_audio
     id: box_mic
@@ -378,7 +390,7 @@ script:
   - id: mp_idle_debounce
     mode: restart
     then:
-      - delay: 1s
+      - delay: 2s
       - if:
           condition:
             and:
