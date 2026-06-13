@@ -16,8 +16,10 @@ This is the version that will be developed going forward. For now, only a few se
 * Freenove 2.8
 * Guition **1.80 v1**
 * Guition **1.80 v2**
-* Ball **v2**
-* Ball **v3**
+* Spotpear Ball **v2**
+* Spotpear Ball **v3**
+* Spotpear Ball **v3 LOW** (lower cam resolution and no es7210)
+* Spotpear TV 3.5"
 * Spotpear Muma **(all 4 versions)**
 * Waveshare **1.75 Amoled**
 * Waveshare **1.85C v1-1**
