@@ -543,6 +543,7 @@ display:
   - platform: mipi_dsi
     id: main_display
     model: WAVESHARE-P4-86-PANEL
+    rotation: ${rotate_display}
     reset_pin:
       number: 27
       inverted: false
