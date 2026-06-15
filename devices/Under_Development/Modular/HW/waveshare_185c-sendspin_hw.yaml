@@ -517,6 +517,11 @@ display:
     id: main_display
     model: ${display_model}
     rotation: ${rotate_display}
+    dimensions:
+      height: ${screenheight}
+      width: ${screenwidth}
+      offset_width: ${offset_w}
+      offset_height: ${offset_h}
     data_rate: 40MHz
     cs_pin: GPIO21
     reset_pin:
