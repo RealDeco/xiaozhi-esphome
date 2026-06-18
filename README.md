@@ -67,6 +67,7 @@ Video going through the esphome install of device was removed by youtube and my 
 * Espressif EchoEar v1.2
 * Spotpear Ball v1
 * Spotpear Ball v2
+* Spotpear Ball v3
 * Spotpear Muma Box v1
 * Spotpear Muma Box v2
 * Spotpear Muma Horse v1
@@ -97,6 +98,8 @@ Video going through the esphome install of device was removed by youtube and my 
 EchoEar: https://www.aliexpress.com/item/1005009834934442.html
 
 Ball v1 & v2: https://vi.aliexpress.com/item/1005008627679270.html
+
+Ball v3: https://www.aliexpress.com/item/1005012340328884.html
 
 alternative link: https://www.aliexpress.com/item/1005009762104155.html
 
