@@ -260,6 +260,7 @@ spi:
 display:
   - platform: mipi_spi
     id: main_display
+    spi_mode: MODE0
     model: ST7796
     dc_pin: GPIO3
     invert_colors: true
