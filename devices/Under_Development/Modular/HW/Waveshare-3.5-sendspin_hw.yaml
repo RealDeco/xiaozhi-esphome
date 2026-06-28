@@ -1,6 +1,26 @@
 packages:
   clocks: !include ../clocks-standard.yaml
 
+select:
+  - platform: template
+    name: "Audio Output"
+    icon: "mdi:volume-high"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_option: Internal Speaker
+    options:
+      - "Internal Speaker"
+      - "External Speaker"
+    on_value:
+      - router.speaker.switch_output:
+          id: box_speaker
+          target_speaker: !lambda |-
+            if (x == "Internal Speaker") {
+              return id(internal_speaker);
+            }
+            return id(external_speaker);
+
 # --- SENDSPIN -----------------------------------------------------------------
 globals:
   - id: sendspin_album_art_valid
@@ -72,6 +92,9 @@ i2s_audio:
     i2s_lrclk_pin: GPIO15
     i2s_bclk_pin: GPIO13
     i2s_mclk_pin: GPIO12
+  - id: i2s_lineout
+    i2s_lrclk_pin: GPIO44
+    i2s_bclk_pin: GPIO48
 
 audio_dac:
   - platform: es8311
@@ -91,6 +114,7 @@ switch:
 microphone:
   - platform: i2s_audio
     id: box_mic
+    i2s_audio_id: i2s_audio_bus
     sample_rate: 16000
     i2s_din_pin: GPIO14
     bits_per_sample: 16bit
@@ -98,14 +122,35 @@ microphone:
 
 speaker:
   - platform: i2s_audio
-    id: box_speaker
+    id: internal_speaker
     i2s_dout_pin: GPIO16
+    i2s_audio_id: i2s_audio_bus
     dac_type: external
     sample_rate: 48000
     bits_per_sample: 16bit
     channel: left
     audio_dac: es8311_dac
     buffer_duration: 100ms
+
+  - platform: i2s_audio
+    id: external_speaker
+    i2s_audio_id: i2s_lineout
+    i2s_dout_pin: GPIO43
+    dac_type: external
+    channel: stereo
+    buffer_duration: 100ms
+    bits_per_sample: 16bit
+    sample_rate: 48000
+
+  - platform: router
+    id: box_speaker
+    output_speakers:
+      - internal_speaker
+      - external_speaker
+    bits_per_sample: 16
+    num_channels: 2
+    sample_rate: 48000
+
 
   - platform: mixer
     id: mixing_speaker
@@ -508,9 +553,12 @@ display:
     id: main_display
     model: ST7796
     dc_pin: GPIO3
+    reset_pin:
+      pca9554: pca9554a_device
+      number: 1
     invert_colors: true
     rotation: ${rotate_display}
-    data_rate: 80MHz
+    data_rate: 40MHz
     auto_clear_enabled: false
     update_interval: never
     pages: !include ../display_pages-sendspin.yaml
