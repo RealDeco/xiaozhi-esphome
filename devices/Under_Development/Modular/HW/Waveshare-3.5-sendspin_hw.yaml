@@ -559,7 +559,7 @@ display:
       number: 1
     invert_colors: true
     rotation: ${rotate_display}
-    data_rate: 40MHz
+    data_rate: 80MHz
     auto_clear_enabled: false
     update_interval: never
     pages: !include ../display_pages-sendspin.yaml
