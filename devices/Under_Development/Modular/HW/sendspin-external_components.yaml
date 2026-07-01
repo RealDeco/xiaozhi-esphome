@@ -3,7 +3,3 @@ external_components:
     components: [generic_image, sendspin, psram]
     refresh: 1h
 
-  - source: github://pr#17247
-    # https://github.com/esphome/esphome/pull/17247
-    components: [mipi_spi]
-    refresh: 1h
