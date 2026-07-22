@@ -1,5 +1,5 @@
 substitutions:
-  name: esphome-web-0bac48
+  name: esphome-va
   friendly_name: "Xiaozhi Ball V2"
 
 ############ 2026.2.0 FIXED ############
@@ -22,7 +22,7 @@ substitutions:
 
 ## SETTINGS ######################################################################################################################################
 
-  imagemodel: "HA-character" # (options are: Alfred,Astrobot,Buzz,Casita,Cybergirl,Dory,EVE,Eyes,Eyes2,GLaDOS,Girl1,Guy1,Guy2,Gwen,HA-character,Harley,Jarvis,Luffy,Mario,Max,Prime,Robochibi,Robocop,Robot,Robotgirl,Shaun)
+  imagemodel: "Shaun" # (options are: Alfred,Astrobot,Buzz,Casita,Cybergirl,Dory,EVE,Eyes,Eyes2,GLaDOS,Girl1,Guy1,Guy2,Gwen,HA-character,Harley,Jarvis,Luffy,Mario,Max,Prime,Robochibi,Robocop,Robot,Robotgirl,Shaun)
   startup_sound: "Home_Connected" # (options are: available,Home_Connected,Computer_Ready)
 
   imagewidth: "240" # GC9A01A (Ball v2 & Muma & Puck) "240"
@@ -88,10 +88,10 @@ substitutions:
   voice_assist_muted_phase_id: "12"
   voice_assist_timer_finished_phase_id: "20"
 
-  allowed_characters: " !#%'()+,-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWYZ[]_abcdefghijklmnopqrstuvwxyz{|}°²³µ¿ÁÂÄÅÉÖÚßàáâãäåæçèéêëìíîðñòóôõöøùúûüýþāăąćčďĐđēėęěğĮįıļľŁłńňőřśšťũūůűųźŻżŽžơưșțΆΈΌΐΑΒΓΔΕΖΗΘΚΜΝΠΡΣΤΥΦάέήίαβγδεζηθικλμνξοπρςστυφχψωϊόύώАБВГДЕЖЗИКЛМНОПРСТУХЦЧШЪЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяёђєіїјљњћאבגדהוזחטיכלםמןנסעפץצקרשת،ءآأإئابةتجحخدذرزسشصضطظعغفقكلمنهوىيٹپچڈکگںھہیےংকচতধনফবযরলশষস়ািু্చయలిెొ్ംഅആഇഈഉഎഓകഗങചജഞടഡണതദധനപഫബഭമയരറലളവശസഹാിീുൂെേൈ്ൺൻർൽൾაბგდევზთილმნოპრსტუფქყშჩცძჭხạảấầẩậắặẹẽếềểệỉịọỏốồổỗộớờởợụủứừửữựỳ—、一上不个中为主乾了些亮人任低佔何作供依侧係個側偵充光入全关冇冷几切到制前動區卧厅厨及口另右吊后吗启吸呀咗哪唔問啟嗎嘅嘛器圍在场執場外多大始安定客室家密寵对將小少左已帘常幫幾库度庫廊廚廳开式後恆感態成我戲戶户房所扇手打执把拔换掉控插摄整斯新明是景暗更最會有未本模機檯櫃欄次正氏水沒没洗活派温測源溫漏潮激濕灯為無煙照熱燈燥物狀玄现現瓦用發的盞目着睡私空窗立笛管節簾籬紅線红罐置聚聲脚腦腳臥色节著行衣解設調請謝警设调走路車车运連遊運過道邊部都量鎖锁門閂閉開關门闭除隱離電震霧面音頂題顏颜風风食餅餵가간감갔강개거게겨결경고공과관그금급기길깥꺼껐꼽나난내네놀누는능니다닫담대더데도동됐되된됨둡드든등디때떤뜨라래러렇렌려로료른를리림링마많명몇모무문물뭐바밝방배변보부불블빨뽑사산상색서설성세센션소쇼수스습시신실싱아안않알았애야어얼업없었에여연열옆오온완외왼요운움워원위으은을음의이인일임입있작잠장재전절정제져조족종주줄중줘지직진짐쪽차창천최추출충치침커컴켜켰쿠크키탁탄태탬터텔통트튼티파팬퍼폰표퓨플핑한함해했행혀현화활후휴힘，？"
+#  allowed_characters: " !#%'()+,-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWYZ[]_abcdefghijklmnopqrstuvwxyz{|}°²³µ¿ÁÂÄÅÉÖÚßàáâãäåæçèéêëìíîðñòóôõöøùúûüýþāăąćčďĐđēėęěğĮįıļľŁłńňőřśšťũūůűųźŻżŽžơưșțΆΈΌΐΑΒΓΔΕΖΗΘΚΜΝΠΡΣΤΥΦάέήίαβγδεζηθικλμνξοπρςστυφχψωϊόύώАБВГДЕЖЗИКЛМНОПРСТУХЦЧШЪЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяёђєіїјљњћאבגדהוזחטיכלםמןנסעפץצקרשת،ءآأإئابةتجحخدذرزسشصضطظعغفقكلمنهوىيٹپچڈکگںھہیےংকচতধনফবযরলশষস়ািু্చయలిెొ్ംഅആഇഈഉഎഓകഗങചജഞടഡണതദധനപഫബഭമയരറലളവശസഹാിീുൂെേൈ്ൺൻർൽൾაბგდევზთილმნოპრსტუფქყშჩცძჭხạảấầẩậắặẹẽếềểệỉịọỏốồổỗộớờởợụủứừửữựỳ—、一上不个中为主乾了些亮人任低佔何作供依侧係個側偵充光入全关冇冷几切到制前動區卧厅厨及口另右吊后吗启吸呀咗哪唔問啟嗎嘅嘛器圍在场執場外多大始安定客室家密寵对將小少左已帘常幫幾库度庫廊廚廳开式後恆感態成我戲戶户房所扇手打执把拔换掉控插摄整斯新明是景暗更最會有未本模機檯櫃欄次正氏水沒没洗活派温測源溫漏潮激濕灯為無煙照熱燈燥物狀玄现現瓦用發的盞目着睡私空窗立笛管節簾籬紅線红罐置聚聲脚腦腳臥色节著行衣解設調請謝警设调走路車车运連遊運過道邊部都量鎖锁門閂閉開關门闭除隱離電震霧面音頂題顏颜風风食餅餵가간감갔강개거게겨결경고공과관그금급기길깥꺼껐꼽나난내네놀누는능니다닫담대더데도동됐되된됨둡드든등디때떤뜨라래러렇렌려로료른를리림링마많명몇모무문물뭐바밝방배변보부불블빨뽑사산상색서설성세센션소쇼수스습시신실싱아안않알았애야어얼업없었에여연열옆오온완외왼요운움워원위으은을음의이인일임입있작잠장재전절정제져조족종주줄중줘지직진짐쪽차창천최추출충치침커컴켜켰쿠크키탁탄태탬터텔통트튼티파팬퍼폰표퓨플핑한함해했행혀현화활후휴힘，？"
 
   font_glyphsets: "GF_Latin_Core"
-  font_family: Figtree
+  font_family: Noto Sans #Roboto #I.L.Y.A Figtree
 
 esphome:
   name: ${name}
@@ -99,19 +99,20 @@ esphome:
   min_version: 2025.5.0
   name_add_mac_suffix: false
   on_boot:
-    priority: 600
+    priority: 100
     then:
+      - delay: 3s
       - script.execute: draw_display
+      - delay: 10s
       - component.update: battery_voltage
       - component.update: battery_percentage
-      - delay: 30s
+      - delay: 10s
       - if:
           condition:
             lambda: return id(init_in_progress);
           then:
             - lambda: id(init_in_progress) = false;
             - script.execute: draw_display
-
 esp32:
   board: esp32-s3-devkitc-1
   flash_size: 16MB
@@ -172,7 +173,7 @@ sensor:
     id: battery_voltage
     attenuation: 12db
     accuracy_decimals: 2
-    update_interval: 1s
+    update_interval: 60s
     unit_of_measurement: "V"
     icon: mdi:battery-medium
     filters:
@@ -181,7 +182,7 @@ sensor:
           window_size: 7
           send_every: 7
           send_first_at: 7
-      - throttle: 1min
+      - throttle: 3min
     on_value:
       then:
         - component.update: battery_percentage
@@ -352,7 +353,7 @@ i2c:
   - id: bus_a
     sda: GPIO${sda_pin_bus_a}
     scl: GPIO${scl_pin_bus_a}
-    scan: true
+    scan: false
   - id: bus_b
     sda: GPIO${sda_pin_bus_b}
     scl: GPIO${scl_pin_bus_b}
@@ -366,10 +367,14 @@ i2s_audio:
 
 audio_dac:
   - platform: es8311
-    i2c_id: bus_a 
+    i2c_id: bus_a
     id: es8311_dac
-    bits_per_sample: 16bit
-    sample_rate: 16000
+    bits_per_sample: 24bit
+    sample_rate: 48000
+    use_microphone: false
+    use_mclk: true
+    mic_gain: 18DB
+    address: 0x18
 
 microphone:
   - platform: i2s_audio
@@ -378,27 +383,43 @@ microphone:
     i2s_din_pin: GPIO${i2s_din_pin}
     bits_per_sample: 16bit
     adc_type: external
-    channel: left
+    channel: right  #I.L.Y.A
+    i2s_audio_id: i2s_audio_bus
+#    i2s_mode: primary
+    mclk_multiple: 384
+    use_apll: true
+    correct_dc_offset: true
+    num_channels: 1
+    pdm: false
 
 speaker:
   - platform: i2s_audio
     id: i2s_audio_speaker
     i2s_dout_pin: GPIO${i2s_dout_pin}
     dac_type: external
-    sample_rate: 16000
-    bits_per_sample: 16bit
-    channel: left
+    sample_rate: 48000
+    bits_per_sample: 24bit
+    channel: stereo  #I.L.Y.A
     audio_dac: es8311_dac
-    buffer_duration: 100ms
+    buffer_duration: 500ms
+    i2s_audio_id: i2s_audio_bus
+    mclk_multiple: 384
+    use_apll: true
+#    i2s_mode: primary
+    num_channels: 1
+    i2s_comm_fmt: stand_i2s
 
 media_player:
   - platform: speaker
     name: None
     id: external_media_player
+    icon: "mdi:cast-audio"
+    volume_min: "0.0"
+    buffer_size: 2000000
     announcement_pipeline:
       speaker: i2s_audio_speaker
       format: FLAC
-      sample_rate: 16000
+      sample_rate: 48000
       num_channels: 1  # S3 Box only has one output channel
     files:
       - id: timer_finished_sound
@@ -443,12 +464,13 @@ media_player:
             - script.execute: set_idle_or_mute_phase
             - script.execute: draw_display
 
+
 micro_wake_word:
   id: mww
   models:
-    - okay_nabu
-    - hey_jarvis
     - alexa
+#    - okay_nabu
+#    - hey_jarvis
   on_wake_word_detected:
     - if:
         condition:
@@ -461,15 +483,25 @@ micro_wake_word:
           - delay: 300ms
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
+  microphone:
+    microphone: i2s_mics
+    gain_factor: 1
+    bits_per_sample: 16
+  stop_after_detection: true
 
 voice_assistant:
   id: va
-  microphone: i2s_mics
+  microphone:
+    - id: va_mic
+      bits_per_sample: 16
+      gain_factor: 1
+      microphone: i2s_mics
   media_player: external_media_player
   micro_wake_word: mww
-  noise_suppression_level: 2
   auto_gain: 31dBFS
-  volume_multiplier: 2.0
+  volume_multiplier: 1
+  noise_suppression_level: 0
+#  conversation_timeout: 120s
   on_listening:
     - lambda: id(voice_assistant_phase) = ${voice_assist_listening_phase_id};
     - text_sensor.template.publish:
@@ -670,17 +702,17 @@ script:
           id(check_if_timers).execute();
           if (id(global_is_timer_active)){
             id(fetch_first_active_timer).execute();
-            int active_pixels = round( 320 * id(global_first_active_timer).seconds_left / max(id(global_first_active_timer).total_seconds , static_cast<uint32_t>(1)) );
+            int active_pixels = round( 240 * id(global_first_active_timer).seconds_left / max(id(global_first_active_timer).total_seconds , static_cast<uint32_t>(1)) );
             if (active_pixels > 0){
-              id(s3_box_lcd).filled_rectangle(0 , 225 , 240 , 15 , Color::WHITE );
-              id(s3_box_lcd).filled_rectangle(0 , 226 , active_pixels , 13 , id(active_timer_color) );
+              id(s3_box_lcd).filled_rectangle(0 , 113 , 240 , 15 , Color::WHITE );
+              id(s3_box_lcd).filled_rectangle(0 , 114 , active_pixels , 13 , id(active_timer_color) );
             }
           } else if (id(global_is_timer)){
             id(fetch_first_timer).execute();
-            int active_pixels = round( 320 * id(global_first_timer).seconds_left / max(id(global_first_timer).total_seconds , static_cast<uint32_t>(1)));
+            int active_pixels = round( 240 * id(global_first_timer).seconds_left / max(id(global_first_timer).total_seconds , static_cast<uint32_t>(1)));
             if (active_pixels > 0){
-              id(s3_box_lcd).filled_rectangle(0 , 225 , 240 , 15 , Color::WHITE );
-              id(s3_box_lcd).filled_rectangle(0 , 226 , active_pixels , 13 , id(paused_timer_color) );
+              id(s3_box_lcd).filled_rectangle(0 , 113 , 240 , 15 , Color::WHITE );
+              id(s3_box_lcd).filled_rectangle(0 , 114 , active_pixels , 13 , id(paused_timer_color) );
             }
           }
   - id: draw_active_timer_widget
@@ -688,8 +720,8 @@ script:
       - lambda: |
           id(check_if_timers_active).execute();
           if (id(global_is_timer_active)){
-            id(s3_box_lcd).filled_rectangle(80 , 40 , 160 , 50 , Color::WHITE );
-            id(s3_box_lcd).rectangle(80 , 40 , 160 , 50 , Color::BLACK );
+            id(s3_box_lcd).filled_rectangle(40 , 40 , 160 , 50 , Color::WHITE );
+            id(s3_box_lcd).rectangle(40 , 40 , 160 , 50 , Color::BLACK );
 
             id(fetch_first_active_timer).execute();
             int hours_left = floor(id(global_first_active_timer).seconds_left / 3600);
@@ -705,7 +737,7 @@ script:
             } else {
               display_string = display_minute + ":" + display_seconds;
             }
-            id(s3_box_lcd).printf(120, 47, id(font_timer), Color::BLACK, "%s", display_string.c_str());
+            id(s3_box_lcd).printf(80, 47, id(font_timer), Color::BLACK, "%s", display_string.c_str());
           }
   - id: start_wake_word
     then:
@@ -901,6 +933,25 @@ select:
                         switch.is_off: mute
                       then:
                         - micro_wake_word.start
+  - platform: template
+    entity_category: config
+    name: "Noise Suppression Level"
+    id: noise_suppression_level
+    icon: "mdi:ear-hearing"
+    optimistic: true
+    restore_value: true
+    options:
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+    initial_option: "1"
+    on_value:
+      then:
+        - lambda: |-
+            int level = atoi(x.c_str());
+            id(va).set_noise_suppression_level(level);
 
 globals:
   - id: init_in_progress
@@ -937,54 +988,64 @@ globals:
     initial_value: "false"
 
 image:
-  - file: ${error_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/error.png
     id: casita_error
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: ${idle_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/idle.png
     id: casita_idle
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: ${listening_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/listening.png
     id: casita_listening
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: ${thinking_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/thinking.png
     id: casita_thinking
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: ${replying_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/replying.png
     id: casita_replying
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: ${timer_finished_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/timer_finished.png
     id: casita_timer_finished
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: ${loading_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/loading.png
     id: casita_initializing
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: ${mute_illustration_file}
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Shaun/240x240/mute.png
     id: casita_muted
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-wifi.png
+  - platform: file
+    file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-wifi.png
     id: error_no_wifi
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
-  - file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-ha.png
+  - platform: file
+    file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-ha.png
     id: error_no_ha
-    resize: ${imagewidth}x${imageheight}
+    resize: 240x240
     type: RGB565
     transparency: alpha_channel
 
@@ -993,10 +1054,11 @@ font:
       type: gfonts
       family: ${font_family}
       weight: 300
-      italic: true
+      italic: false
     id: font_request
     size: 15
     glyphsets:
+      - GF_Cyrillic_Core
       - ${font_glyphsets}
   - file:
       type: gfonts
@@ -1005,6 +1067,7 @@ font:
     id: font_response
     size: 15
     glyphsets:
+      - GF_Cyrillic_Core
       - ${font_glyphsets}
   - file:
       type: gfonts
@@ -1013,6 +1076,7 @@ font:
     id: font_battery
     size: 24
     glyphsets:
+      - GF_Cyrillic_Core
       - ${font_glyphsets}
   - file:
       type: gfonts
@@ -1021,6 +1085,7 @@ font:
     id: font_timer
     size: 30
     glyphsets:
+      - GF_Cyrillic_Core
       - ${font_glyphsets}
 
 text_sensor:
@@ -1028,9 +1093,9 @@ text_sensor:
     platform: template
     on_value:
       lambda: |-
-        if(id(text_request).state.length()>32) {
+        if(id(text_request).state.length()>50) {
           std::string name = id(text_request).state.c_str();
-          std::string truncated = esphome::str_truncate(name.c_str(),31);
+          std::string truncated = esphome::str_truncate(name.c_str(),50);
           id(text_request).state = (truncated+"...").c_str();
         }
 
@@ -1038,9 +1103,9 @@ text_sensor:
     platform: template
     on_value:
       lambda: |-
-        if(id(text_response).state.length()>32) {
+        if(id(text_response).state.length()>50) {
           std::string name = id(text_response).state.c_str();
-          std::string truncated = esphome::str_truncate(name.c_str(),31);
+          std::string truncated = esphome::str_truncate(name.c_str(),50);
           id(text_response).state = (truncated+"...").c_str();
         }
 
@@ -1068,7 +1133,7 @@ spi:
     mosi_pin: GPIO${spi_mosi_pin}
 
 display:
-  - platform: ili9xxx
+  - platform: mipi_spi #ili9xxx #I.L.Y.A. 
     id: s3_box_lcd
     model: ${displaymodel}
     invert_colors: ${invertcolors}
@@ -1124,7 +1189,7 @@ display:
           if (id(show_text).state) {
             it.filled_rectangle(20, y_offset, 200, 30, Color::WHITE);
             it.rectangle(20, y_offset, 200, 30, Color::BLACK);
-            it.printf(30, y_offset + 5, id(font_response), Color::BLACK, "%s", id(text_response).state.c_str());
+            it.printf(30, y_offset + 5, id(font_response), Color::BLACK, TextAlign::TOP_CENTER, "%s", id(text_response).state.c_str());
           }
           id(draw_timer_timeline).execute();
       - id: timer_finished_page
