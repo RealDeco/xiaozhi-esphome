@@ -1,7 +1,7 @@
-#esp32:
-#  framework:
-#    type: esp-idf
-#    version: 5.5.4
+esp32:
+  framework:
+    type: esp-idf
+    version: 5.5.4
 
 external_components:
   - source: github://pr#16057
