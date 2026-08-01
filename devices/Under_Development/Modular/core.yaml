@@ -1,4 +1,4 @@
-# Core 2026.4.1
+# Core
 
 substitutions:
   allowed_characters: >-
@@ -36,7 +36,7 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2026.4.0
+  min_version: 2026.7.0
   name_add_mac_suffix: false
   on_boot:
     priority: 600
@@ -71,20 +71,6 @@ wifi:
 captive_portal:
 
 http_request:
-
-online_image:
-  - id: clock_background
-    url: ${clock_background_file}
-    format: PNG
-    type: RGB565
-    resize: ${screenwidth}x${screenheight}
-    update_interval: never
-  - id: temp_fullscreen
-    url: ${clock_background_file}
-    format: PNG
-    type: RGB565
-    resize: ${screenwidth}x${screenheight}
-    update_interval: never
 
 time:
   - platform: homeassistant
@@ -1425,50 +1411,76 @@ globals:
     initial_value: "0"
 
 image:
-  - file: ${error_illustration_file}
+  - platform: file
+    file: ${error_illustration_file}
     id: casita_error
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${idle_illustration_file}
+  - platform: file
+    file: ${idle_illustration_file}
     id: casita_idle
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${listening_illustration_file}
+  - platform: file
+    file: ${listening_illustration_file}
     id: casita_listening
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${thinking_illustration_file}
+  - platform: file
+    file: ${thinking_illustration_file}
     id: casita_thinking
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${replying_illustration_file}
+  - platform: file
+    file: ${replying_illustration_file}
     id: casita_replying
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${timer_finished_illustration_file}
+  - platform: file
+    file: ${timer_finished_illustration_file}
     id: casita_timer_finished
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${loading_illustration_file}
+  - platform: file
+    file: ${loading_illustration_file}
     id: casita_initializing
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${mute_illustration_file}
+  - platform: file
+    file: ${mute_illustration_file}
     id: casita_muted
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: ${playing_illustration_file}
+  - platform: file
+    file: ${playing_illustration_file}
     id: casita_playing
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: https://raw.githubusercontent.com/RealDeco/xiaozhi-esphome/main/images/Other/error-no-wifi.png
+  - platform: file
+    file: https://raw.githubusercontent.com/RealDeco/xiaozhi-esphome/main/images/Other/error-no-wifi.png
     id: error_no_wifi
     resize: ${screenwidth}x${screenheight}
     type: RGB565
-  - file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Other/error-no-ha.png
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Other/error-no-ha.png
     id: error_no_ha
     resize: ${screenwidth}x${screenheight}
     type: RGB565
+
+  - platform: online_image
+    id: clock_background
+    url: ${clock_background_file}
+    format: PNG
+    type: RGB565
+    resize: ${screenwidth}x${screenheight}
+    update_interval: never
+  - platform: online_image
+    id: temp_fullscreen
+    url: ${clock_background_file}
+    format: PNG
+    type: RGB565
+    resize: ${screenwidth}x${screenheight}
+    update_interval: never
 
 font:
   - file:
