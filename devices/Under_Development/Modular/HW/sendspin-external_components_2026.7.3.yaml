@@ -1,0 +1,4 @@
+external_components:
+  - source: github://pr#17937
+    components: [runtime_image, sendspin]
+    refresh: 1h
