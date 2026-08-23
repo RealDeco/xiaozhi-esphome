@@ -1,4 +1,4 @@
-# Ball v2 hardware SENDSPIN version 2026.5.0b1
+# Ball v2 hardware SENDSPIN version
 
 # --- CLOCKS & BUTTONS PACKAGE -------------------------------------------------
 packages:
@@ -57,57 +57,6 @@ binary_sensor:
               } else {  // idle
                 id(tap_idle_hold_action).execute();
               }
-
-# --- SENDSPIN -----------------------------------------------------------------
-globals:
-  - id: sendspin_album_art_valid
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-  - id: gs_hold_fired
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-image:
-  - file: ${playing_illustration_file}
-    id: !extend casita_playing
-    resize: 240x240
-    type: RGB565
-
-generic_image:
-  - platform: sendspin
-    id: sendspin_album_art
-    format: jpeg
-    type: RGB565
-    resize: 240x240
-    source: ALBUM
-    on_image_display:
-      - lambda: |-
-          id(sendspin_album_art_valid) = true;
-      - component.update: main_display
-    on_image_error:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-text_sensor:
-  - platform: sendspin
-    id: sendspin_title
-    type: title
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-  - platform: sendspin
-    id: sendspin_artist
-    type: artist
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
 
 # --- BUSES / PERIPHERALS ------------------------------------------------------
 i2c:
@@ -510,21 +459,6 @@ script:
       - script.execute: stop_wake_word
       - media_player.play: sendspin_group_media_player
 
-  - id: mp_idle_debounce
-    mode: restart
-    then:
-      - delay: 1s
-      - if:
-          condition:
-            and:
-              - media_player.is_idle: external_media_player
-              - not:
-                  voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
-      
 interval:
   - interval: 100ms
     then:
