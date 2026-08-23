@@ -3,51 +3,6 @@
 packages:
   clocks: !include ../clocks-standard.yaml
 
-# --- SENDSPIN -----------------------------------------------------------------
-globals:
-  - id: sendspin_album_art_valid
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-  - id: gs_hold_fired
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-generic_image:
-  - platform: sendspin
-    id: sendspin_album_art
-    format: jpeg
-    type: RGB565
-    resize: 360x360
-    source: ALBUM
-    on_image_display:
-      - lambda: |-
-          id(sendspin_album_art_valid) = true;
-      - component.update: main_display
-    on_image_error:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-text_sensor:
-  - platform: sendspin
-    id: sendspin_title
-    type: title
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-  - platform: sendspin
-    id: sendspin_artist
-    type: artist
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
 # --- BUSES / PERIPHERALS ------------------------------------------------------
 spi:
   id: display_qspi
@@ -423,21 +378,6 @@ script:
       - script.execute: stop_wake_word
       - media_player.play: sendspin_group_media_player
 
-  - id: mp_idle_debounce
-    mode: restart
-    then:
-      - delay: 3s
-      - if:
-          condition:
-            and:
-              - media_player.is_idle: external_media_player
-              - not:
-                  voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
-      
 interval:
   - interval: 100ms
     then:
@@ -499,6 +439,6 @@ display:
     data_rate: 40MHz
     update_interval: never
     dimensions:
-        height: ${imageheight}
-        width: ${imagewidth}
+        height: ${screenheight}
+        width: ${screenwidth}
     pages: !include ../display_pages-sendspin.yaml
