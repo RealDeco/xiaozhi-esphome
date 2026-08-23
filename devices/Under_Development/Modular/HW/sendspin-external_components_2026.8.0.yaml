@@ -1,1 +1,10 @@
-### currently no external components
+### https://github.com/esphome/esphome/pull/17937
+#external_components:
+#  - source: github://pr#17937
+#    components: [runtime_image, sendspin]
+#    refresh: 1h
+
+### https://github.com/esphome/esphome/pull/18289
+#  - source: github://pr#18289
+#    components: [sendspin]
+#    refresh: 1h
