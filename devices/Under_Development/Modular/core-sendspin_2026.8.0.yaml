@@ -1,0 +1,1757 @@
+# Core - sendspin edition
+
+substitutions:
+  allowed_characters: >-
+    !#%'()+,-./0123456789:;<>?@ABCDEFGHIJKLMNOPQRSTUVWYZ[]_abcdefghijklmnopqrstuvwxyz{|}°²³µ¿ÁÂÄÅÉÖÚßàáâãäåæçèéêëìíîðñòóôõöøùúûüýþāăąćčďĐđēėęěğĮįıļľŁłńňőřśšťũūůűųźŻżŽžơưșțΆΈΌΐΑΒΓΔΕΖΗΘΚΜΝΠΡΣΤΥΦάέήίαβγδεζηθικλμνξοπρςστυφχψωϊόύώАБВГДЕЖЗИКЛМНОПРСТУХЦЧШЪЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюяёђєіїјљњћאבגדהוזחטיכלםמןנסעפץצקרשת،ءآأإئابةتجحخدذرزسشصضطظعغفقكلمنهوىيٹپچڈکگںھہیےংকচতধনফবযরলশষস়ািু্చయలిెొ్ംഅആഇഈഉഎഓകഗങചജഞടഡണതദധനപഫബഭമയരറലളവശസഹാിീുൂെേൈ്ൺൻർൽൾაბგდევზთილმნოპრსტუფქყშჩცძჭხạảấầẩậắặẹẽếềểệỉịọỏốồổỗộớờởợụủứừửữựỳ—、一上不个中为主乾了些亮人任低佔何作供依侧係個側偵充光入全关冇冷几切到制前動區卧厅厨及口另右吊后吗启吸呀咗哪唔問啟嗎嘅嘛器圍在场執場外多大始安定客室家密寵对將小少左已帘常幫幾库度庫廊廚廳开式後恆感態成我戲戶户房所扇手打执把拔换掉控插摄整斯新明是景暗更最會有未本模機檯櫃欄次正氏水沒没洗活派温測源溫漏潮激濕灯為無煙照熱燈燥物狀玄现現瓦用發的盞目着睡私空窗立笛管節簾籬紅線红罐置聚聲脚腦腳臥色节著行衣解設調請謝警设调走路車车运連遊運過道邊部都量鎖锁門閂閉開關门闭除隱離電震霧面音頂題顏颜風风食餅餵가간감갔강개거게겨결경고공과관그금급기길깥꺼껐꼽나난내네놀누는능니다닫담대더데도동됐되된됨둡드든등디때떤뜨라래러렇렌려로료른를리림링마많명몇모무문물뭐바밝방배변보부불블빨뽑사산상색서설성세센션소쇼수스습시신실싱아안않알았애야어얼업없었에여연열옆오온완외왼요운움워원위으은을음의이인일임입있작잠장재전절정제져조족종주줄중줘지직진짐쪽차창천최추출충치침커컴켜켰쿠크키탁탄태탬터텔통트튼티파팬퍼폰표퓨플핑한함해했행혀현화활후휴힘，？
+  loading_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/loading.png
+  idle_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/idle.png
+  listening_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/listening.png
+  thinking_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/thinking.png
+  replying_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/replying.png
+  error_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/error.png
+  timer_finished_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/timer_finished.png
+  mute_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/mute.png
+  playing_illustration_file: ${imagepath}/${imagemodel}/${imagewidth}x${imageheight}/playing.png
+  clock_background_file: ${imagepath}/Other/${screenwidth}x${screenheight}/${clock_background_image}.png
+  startup_sound_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/${startup_sound}.flac
+  wakeup_sound_file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/sounds/${wakeup_sound}.flac
+
+  loading_illustration_background_color: "000000"
+  idle_illustration_background_color: "000000"
+  listening_illustration_background_color: "000000"
+  thinking_illustration_background_color: "000000"
+  replying_illustration_background_color: "000000"
+  error_illustration_background_color: "000000"
+
+  voice_assist_idle_phase_id: "1"
+  voice_assist_waiting_for_command_phase_id: "2"
+  voice_assist_listening_phase_id: "3"
+  voice_assist_thinking_phase_id: "4"
+  voice_assist_replying_phase_id: "5"
+  voice_assist_not_ready_phase_id: "10"
+  voice_assist_error_phase_id: "11"
+  voice_assist_muted_phase_id: "12"
+  voice_assist_playing_phase_id: "13"
+  voice_assist_timer_finished_phase_id: "20"
+
+  albumsize: ${imagewidth}x${imageheight}
+
+esphome:
+  on_boot:
+    priority: 600
+    then:
+      - binary_sensor.template.publish:
+          id: touch_input
+          state: OFF
+      - script.execute: draw_display
+      - delay: 30s
+      - if:
+          condition:
+            lambda: return id(init_in_progress);
+          then:
+            - lambda: id(init_in_progress) = false;
+            - script.execute: draw_display
+
+ota:
+  - platform: esphome
+    id: ota_esphome
+
+logger:
+  level: WARN
+
+wifi:
+  on_connect:
+    - component.update: clock_background
+    - script.execute: draw_display
+  on_disconnect:
+    - script.execute: draw_display
+  ap:
+
+captive_portal:
+
+http_request:
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      - seconds: 0
+        then:
+          - if:
+              condition:
+                lambda: return id(show_clock) && !id(clock_show_seconds).state;
+              then:
+                - component.update: main_display
+
+api:
+  on_client_connected:
+    - script.execute: draw_display
+    - script.execute: stop_wake_word
+    - delay: 2000ms
+    - lambda: |-
+        if (!id(boot_sound_played)) {
+          id(boot_sound_played) = true;
+          if (id(startup_sound_switch).state) {
+            id(play_sound)->execute(true, std::string("ready_sound"));
+          }
+        }
+    - script.execute: reset_screensaver
+    - script.execute: start_wake_word
+
+  on_client_disconnected:
+    - script.execute: draw_display
+
+button:
+  - platform: factory_reset
+    id: factory_reset_btn
+    internal: true
+
+  - platform: template
+    name: "Virtual Touch"
+    id: virtual_touch
+    on_press:
+      - script.execute: handle_screen_tap
+
+number:
+  - platform: template
+    id: clock_delay_seconds
+    name: "Clock Screensaver Delay"
+    unit_of_measurement: "s"
+    icon: "mdi:timer-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    mode: box
+    min_value: 5
+    max_value: 600
+    step: 5
+    initial_value: 10
+
+
+sensor:
+  # Hardware pack provides the ADC that publishes into this template
+  - platform: template
+    id: battery_percentage
+    name: "Battery Percentage"
+    update_interval: never
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:battery-medium
+    filters:
+      - calibrate_linear:
+          method: exact
+          datapoints:
+            - 2.80 -> 0.0
+            - 3.10 -> 10.0
+            - 3.30 -> 20.0
+            - 3.45 -> 30.0
+            - 3.60 -> 40.0
+            - 3.70 -> 50.0
+            - 3.75 -> 60.0
+            - 3.80 -> 70.0
+            - 3.90 -> 80.0
+            - 4.00 -> 90.0
+            - 4.20 -> 100.0
+      - lambda: |-
+          if (x > 100) return 100;
+          if (x < 0) return 0;
+          return x;
+    on_value:
+      then:
+        - lambda: |-
+            int current = (int) x;
+            if (current == id(last_battery_percent)) return;
+            id(last_battery_percent) = current;
+        - if:
+            condition:
+              switch.is_on: show_battery_status
+            then:
+              - component.update: main_display
+
+  - platform: homeassistant
+    id: ha_weather_temperature
+    entity_id: ${weather_entity}
+    attribute: temperature
+    internal: true
+  - platform: homeassistant
+    id: ha_weather_cloud_coverage
+    entity_id: ${weather_entity}
+    attribute: cloud_coverage
+    internal: true
+  - platform: homeassistant
+    id: ha_weather_uv_index
+    entity_id: ${weather_entity}
+    attribute: uv_index
+    internal: true
+  - platform: homeassistant
+    id: ha_weather_wind_speed
+    entity_id: ${weather_entity}
+    attribute: wind_speed
+    internal: true
+  - platform: homeassistant
+    id: ha_weather_wind_gust
+    entity_id: ${weather_entity}
+    attribute: wind_gust_speed
+    internal: true
+  - platform: homeassistant
+    id: ha_weather_humidity
+    entity_id: ${weather_entity}
+    attribute: humidity
+    internal: true
+  - platform: homeassistant
+    id: ha_weather_pressure
+    entity_id: ${weather_entity}
+    attribute: pressure
+    internal: true
+
+binary_sensor:
+  - platform: template
+    name: "Touch Button"
+    id: touch_input
+    on_click:
+      min_length: 30ms
+      max_length: 600ms
+      then:
+        - if:
+            condition:
+              switch.is_on: timer_ringing
+            then:
+              - switch.turn_off: timer_ringing
+            else:
+              - if:
+                  condition:
+                    lambda: return id(wake_word_engine_location).current_option() == "On device";
+                  then:
+                    - media_player.stop:
+                        id: external_media_player
+                    - if:
+                        condition:
+                          not:
+                            voice_assistant.is_running:
+                        then:
+                          - voice_assistant.start:
+                        else:
+                          - voice_assistant.stop:
+
+  - platform: gpio
+    pin:
+      number: 0
+      mode: INPUT_PULLUP
+      inverted: true
+    id: left_button
+    on_multi_click:
+      - timing:
+          - ON for 40ms to 400ms
+          - OFF for at least 330ms
+        then:
+          - if:
+              condition:
+                switch.is_on: timer_ringing
+              then:
+                - switch.turn_off: timer_ringing
+              else:
+                - if:
+                    condition:
+                      lambda: |-
+                        return id(wake_word_engine_location).current_option() == "On device"
+                          && id(voice_assistant_phase) != ${voice_assist_playing_phase_id};
+                    then:
+                      - media_player.stop:
+                          id: external_media_player
+                      - if:
+                          condition:
+                            not:
+                              voice_assistant.is_running:
+                          then:
+                            - voice_assistant.start:
+                          else:
+                            - voice_assistant.stop:
+
+  - platform: template
+    name: "Timer Ringing Active"
+    id: timer_ringing_active
+    device_class: sound
+    lambda: |-
+      return id(timer_ringing).state;
+
+  - platform: template
+    id: swipe_left
+    name: "Swipe Left"
+    device_class: moving
+    entity_category: diagnostic
+
+  - platform: template
+    id: swipe_right
+    name: "Swipe Right"
+    device_class: moving
+    entity_category: diagnostic
+    
+  - platform: template
+    id: swipe_up
+    name: "Swipe Up"
+    device_class: moving
+    entity_category: diagnostic
+    
+  - platform: template
+    id: swipe_down
+    name: "Swipe Down"
+    device_class: moving
+    entity_category: diagnostic
+    
+  - platform: homeassistant
+    id: ha_sensor1
+    entity_id: ${sensor1_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_sensor2
+    entity_id: ${sensor2_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_sensor3
+    entity_id: ${sensor3_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_sensor4
+    entity_id: ${sensor4_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_sensor5
+    entity_id: ${sensor5_entity}
+    internal: true
+
+  - platform: homeassistant
+    id: ha_light1
+    entity_id: ${light1_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_light2
+    entity_id: ${light2_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_light3
+    entity_id: ${light3_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_light4
+    entity_id: ${light4_entity}
+    internal: true
+  - platform: homeassistant
+    id: ha_light5
+    entity_id: ${light5_entity}
+    internal: true
+
+output:
+  # colors for the clock (logical; not the screen backlight)
+  - platform: template
+    id: clock_color_r
+    type: float
+    write_action:
+      - lambda: |-
+          return;
+
+  - platform: template
+    id: clock_color_g
+    type: float
+    write_action:
+      - lambda: |-
+          return;
+
+  - platform: template
+    id: clock_color_b
+    type: float
+    write_action:
+      - lambda: |-
+          return;
+
+light:
+  - platform: rgb
+    id: clock_color_picker
+    name: "Clock Color"
+    entity_category: config
+    red: clock_color_r
+    green: clock_color_g
+    blue: clock_color_b
+
+micro_wake_word:
+  id: !extend mww
+  on_wake_word_detected:
+    - script.execute: reset_screensaver
+    - if:
+        condition:
+          switch.is_on: wake_sound
+        then:
+          - script.execute:
+              id: play_sound
+              priority: true
+              sound_file: "wake_word_triggered_sound"
+          - delay: 1200ms
+    - voice_assistant.start:
+        wake_word: !lambda return wake_word;
+
+voice_assistant:
+  id: va
+  microphone: box_mic
+  media_player: external_media_player
+  micro_wake_word: mww
+  noise_suppression_level: 2
+  auto_gain: 31dBFS
+  volume_multiplier: 2.0
+
+  on_listening:
+    - script.execute: reset_screensaver
+    - script.execute:
+        id: set_phase
+        phase: ${voice_assist_waiting_for_command_phase_id}
+    - text_sensor.template.publish:
+        id: text_request
+        state: "..."
+    - text_sensor.template.publish:
+        id: text_response
+        state: "..."
+    - script.execute: draw_display
+
+  on_stt_vad_start:
+    - script.execute:
+        id: set_phase
+        phase: ${voice_assist_listening_phase_id}
+
+  on_stt_vad_end:
+    - script.execute:
+        id: set_phase
+        phase: ${voice_assist_thinking_phase_id}
+    - script.execute: draw_display
+
+  on_stt_end:
+    - script.execute:
+        id: send_stt_text_event
+        stt_text: !lambda 'return x;'
+    - text_sensor.template.publish:
+        id: text_request
+        state: !lambda return x;
+    - script.execute: draw_display
+
+
+  on_tts_start:
+    - script.execute:
+        id: send_tts_text_event
+        tts_text: !lambda 'return x;'
+    - script.execute: reset_screensaver
+    - text_sensor.template.publish:
+        id: text_response
+        state: !lambda return x;
+    - script.execute:
+        id: set_phase
+        phase: ${voice_assist_replying_phase_id}
+    - lambda: 'id(playing_internal_sound) = true;'
+    - script.execute: draw_display
+
+  on_tts_end:
+    - script.execute:
+        id: send_tts_uri_event
+        tts_uri: !lambda 'return x;'
+
+  on_end:
+    - wait_until:
+        condition:
+          media_player.is_announcing:
+            id: external_media_player
+        timeout: 0.5s
+
+    - wait_until:
+        condition:
+          - and:
+              - not:
+                  media_player.is_announcing:
+                    id: external_media_player
+              - not:
+                  speaker.is_playing:
+                    id: box_speaker
+
+    - if:
+        condition:
+          lambda: return id(wake_word_engine_location).current_option() == "On device";
+        then:
+          - lambda: id(va).set_use_wake_word(false);
+          - script.execute: start_wake_word
+          - script.execute: set_idle_or_mute_phase
+          - script.execute: draw_display
+        else:
+          - if:
+              condition:
+                lambda: |-
+                  return id(voice_assistant_phase) == ${voice_assist_replying_phase_id}
+                      || id(voice_assistant_phase) == ${voice_assist_thinking_phase_id};
+              then:
+                - script.execute: set_idle_or_mute_phase
+                - script.execute: draw_display
+
+  on_error:
+    - if:
+        condition:
+          lambda: return !id(init_in_progress);
+        then:
+          - script.execute:
+              id: set_phase
+              phase: ${voice_assist_error_phase_id}
+          - script.execute: draw_display
+          - delay: 1s
+          - if:
+              condition:
+                switch.is_off: mute
+              then:
+                - script.execute:
+                    id: set_phase
+                    phase: ${voice_assist_idle_phase_id}
+              else:
+                - script.execute:
+                    id: set_phase
+                    phase: ${voice_assist_muted_phase_id}
+                - script.execute: draw_display
+
+  on_client_connected:
+    - lambda: id(init_in_progress) = false;
+    - script.execute: start_wake_word
+    - script.execute: set_idle_or_mute_phase
+    - script.execute: draw_display
+
+  on_client_disconnected:
+    - script.execute: stop_wake_word
+    - lambda: id(voice_assistant_phase) = ${voice_assist_not_ready_phase_id};
+    - script.execute: draw_display
+
+  on_timer_started:
+    - script.execute: reset_screensaver
+    - script.execute: draw_display
+
+  on_timer_cancelled:
+    - component.update: main_display
+
+  on_timer_updated:
+    - component.update: main_display
+
+  on_timer_tick:
+    - component.update: main_display
+
+  on_timer_finished:
+    - switch.turn_on: timer_ringing
+    - wait_until:
+        condition:
+          media_player.is_announcing:
+            id: external_media_player
+    - script.execute:
+        id: set_phase
+        phase: ${voice_assist_timer_finished_phase_id}
+    - script.execute: draw_display
+
+interval:
+  - interval: 1s
+    then:
+      - lambda: |-
+          const bool idle_phase   = (id(voice_assistant_phase) == ${voice_assist_idle_phase_id});
+          const bool not_muted    = !id(mute).state;
+          const bool clock_ok     = id(clock_enabled).state;
+
+          id(check_if_timers_active).execute();
+          const bool has_active_timer = id(global_is_timer_active);
+
+          if (!id(init_in_progress) && idle_phase && not_muted && clock_ok && !has_active_timer) {
+            id(idle_seconds)++;
+            int delay_s = (int) id(clock_delay_seconds).state;
+            if (delay_s <= 0) delay_s = 30;
+            if (id(idle_seconds) >= delay_s && !id(show_clock)) {
+              id(show_clock) = true;
+              id(show_clock_page).execute();
+            }
+          } else {
+            if (id(show_clock)) id(show_clock) = false;
+            id(idle_seconds) = 0;
+          }
+      - if:
+          condition:
+            lambda: return id(show_clock) && id(clock_show_seconds).state;
+          then:
+            - component.update: main_display
+
+  - interval: 5s
+    then:
+      - if:
+          condition:
+            lambda: return id(show_clock) && !id(clock_show_seconds).state;
+          then:
+           - component.update: main_display
+
+script:
+  - id: draw_display
+    then:
+      - if:
+          condition:
+            lambda: return !id(init_in_progress);
+          then:
+            - if:
+                condition:
+                  wifi.connected:
+                then:
+                  - if:
+                      condition:
+                        api.connected:
+                      then:
+                        - lambda: |-
+                            if (id(voice_assistant_phase) == ${voice_assist_idle_phase_id}
+                                && id(show_clock)
+                                && id(clock_enabled).state) {
+                              id(show_clock_page).execute();
+                              return;
+                            }
+                            switch(id(voice_assistant_phase)) {
+                              case ${voice_assist_waiting_for_command_phase_id}:
+                              case ${voice_assist_listening_phase_id}:
+                                id(main_display).show_page(listening_page);
+                                break;
+                              case ${voice_assist_thinking_phase_id}:
+                                id(main_display).show_page(thinking_page);
+                                break;
+                              case ${voice_assist_replying_phase_id}:
+                                id(main_display).show_page(replying_page);
+                                break;
+                              case ${voice_assist_error_phase_id}:
+                                id(main_display).show_page(error_page);
+                                break;
+                              case ${voice_assist_muted_phase_id}:
+                                id(main_display).show_page(muted_page);
+                                break;
+                              case ${voice_assist_not_ready_phase_id}:
+                                id(main_display).show_page(no_ha_page);
+                                break;
+                              case ${voice_assist_timer_finished_phase_id}:
+                                id(main_display).show_page(timer_finished_page);
+                                break;
+                              default:
+                                id(main_display).show_page(idle_page);
+                                break;
+                            }
+                            id(main_display).update();
+                      else:
+                        - display.page.show: no_ha_page
+                        - component.update: main_display
+                else:
+                  - display.page.show: no_wifi_page
+                  - component.update: main_display
+          else:
+            - display.page.show: initializing_page
+            - component.update: main_display
+
+  - id: fetch_first_active_timer
+    then:
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
+          if (timers.empty()) return;
+
+          auto output_timer = *timers.begin();
+          for (const auto &timer : timers) {
+            if (timer.is_active && timer.seconds_left <= output_timer.seconds_left) {
+              output_timer = timer;
+            }
+          }
+          id(global_first_active_timer) = output_timer;
+
+  - id: check_if_timers_active
+    then:
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
+          bool output = false;
+          for (const auto &timer : timers) {
+            if (timer.is_active) {
+              output = true;
+              break;
+            }
+          }
+          id(global_is_timer_active) = output;
+
+  - id: fetch_first_timer
+    then:
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
+          if (timers.empty()) return;
+
+          auto output_timer = *timers.begin();
+          for (const auto &timer : timers) {
+            if (timer.seconds_left <= output_timer.seconds_left) {
+              output_timer = timer;
+            }
+          }
+          id(global_first_timer) = output_timer;
+
+  - id: check_if_timers
+    then:
+      - lambda: |-
+          const auto &timers = id(va).get_timers();
+          id(global_is_timer) = !timers.empty();
+
+  - id: draw_timer_timeline
+    then:
+      - lambda: |-
+          const int W = id(main_display).get_width();
+          const int H = id(main_display).get_height();
+          const bool SMALL = (W <= 128 && H <= 64);
+
+          // refresh timer state
+          id(check_if_timers_active).execute();
+          id(check_if_timers).execute();
+          if (!id(global_is_timer_active) && !id(global_is_timer)) return;
+
+          if (SMALL) {
+            // ---------- compact UI for tiny screens (monochrome safe) ----------
+            const int pad    = 6;
+            const int bar_h  = 6;
+            const int bar_w  = W - (pad * 2);
+            const int x      = pad;
+            const int y      = H - bar_h - pad;
+
+            uint32_t total = 0, left = 0;
+            if (id(global_is_timer_active)) {
+              id(fetch_first_active_timer).execute();
+              total = std::max(id(global_first_active_timer).total_seconds, (uint32_t)1);
+              left  = id(global_first_active_timer).seconds_left;
+            } else {
+              id(fetch_first_timer).execute();
+              total = std::max(id(global_first_timer).total_seconds, (uint32_t)1);
+              left  = id(global_first_timer).seconds_left;
+            }
+
+            // label "m:ss" if >=60s, else "ss"
+            char label[16];
+            if (left >= 60) {
+              unsigned long mm = left / 60;
+              unsigned long ss = left % 60;
+              snprintf(label, sizeof(label), "%lu:%02lu", mm, ss);
+            } else {
+              snprintf(label, sizeof(label), "%lus", (unsigned long) left);
+            }
+
+            // centered box (clear interior first)
+            const int box_w = 78;
+            const int box_h = 26;
+            const int box_x = (W - box_w) / 2;
+            const int box_y = (H - box_h) / 2 - 2;
+
+            id(main_display).filled_rectangle(box_x + 1, box_y + 1, box_w - 2, box_h - 2, Color::BLACK);
+            id(main_display).rectangle(box_x, box_y, box_w, box_h, Color::WHITE);
+            id(main_display).printf(W/2, box_y + box_h/2, id(font_big_date), Color::WHITE,
+                                    TextAlign::CENTER, "%s", label);
+
+            // progress bar (outline, clear interior, then fill progress)
+            id(main_display).rectangle(x, y, bar_w, bar_h, Color::WHITE);
+            const int in_w = bar_w - 2;
+            const int in_h = bar_h - 2;
+            id(main_display).filled_rectangle(x + 1, y + 1, in_w, in_h, Color::BLACK);
+
+            int filled_px = (int) lroundf(in_w * (float) left / (float) total);
+            if (filled_px > 0) {
+              id(main_display).filled_rectangle(x + 1, y + 1, filled_px, in_h, Color::WHITE);
+            }
+            return;  // small-screen path done
+          }
+
+          // ---------- original timeline for larger panels (unchanged) ----------
+          const int padding = 20;
+          const int bar_h   = 15;
+          const int bar_w   = W - (padding * 2);
+          const int x       = (W - bar_w) / 2;
+          const int y       = H - (bar_h + 15);
+          const int fill_h  = bar_h - 2;
+
+          if (id(global_is_timer_active)) {
+            id(fetch_first_active_timer).execute();
+            int filled = round(
+              bar_w * id(global_first_active_timer).seconds_left
+              / std::max(id(global_first_active_timer).total_seconds, (uint32_t)1)
+            );
+            id(main_display).filled_rectangle(x, y, bar_w, bar_h, Color::WHITE);
+            if (filled > 0) {
+              id(main_display).filled_rectangle(x, y + 1, filled, fill_h, id(active_timer_color));
+            }
+          } else if (id(global_is_timer)) {
+            id(fetch_first_timer).execute();
+            int filled = round(
+              bar_w * id(global_first_timer).seconds_left
+              / std::max(id(global_first_timer).total_seconds, (uint32_t)1)
+            );
+            id(main_display).filled_rectangle(x, y, bar_w, bar_h, Color::WHITE);
+            if (filled > 0) {
+              id(main_display).filled_rectangle(x, y + 1, filled, fill_h, id(paused_timer_color));
+            }
+          }
+
+  - id: draw_active_timer_widget
+    then:
+      - lambda: |-
+          const int W = id(main_display).get_width();
+          const int H = id(main_display).get_height();
+          if (W <= 128 && H <= 64) return;
+
+          id(check_if_timers_active).execute();
+          if (!id(global_is_timer_active)) return;
+
+          const int S = std::min(W, H);
+
+          id(fetch_first_active_timer).execute();
+          const uint32_t total = std::max(id(global_first_active_timer).total_seconds, (uint32_t)1);
+          const uint32_t left  = id(global_first_active_timer).seconds_left;
+
+          const int hours_left   = left / 3600;
+          const int minutes_left = (left / 60) % 60;
+          const int seconds_left = left % 60;
+
+          float remain = (float) left / (float) total;
+          if (remain < 0.0f) remain = 0.0f;
+          if (remain > 1.0f) remain = 1.0f;
+
+          const int widget_w = std::min(W - 24, std::max(112, (int)(S * 0.68f)));
+          const int widget_h = std::min(H - 54, std::max(74, (int)(S * 0.42f)));
+
+          const int gap = std::max(8, widget_w / 20);
+          const int hourglass_w = std::min((int)(widget_w * 0.38f), (int)(widget_h * 0.56f));
+          const int hourglass_h = widget_h;
+          const int text_w = 48;
+          const int visual_w = hourglass_w + gap + text_w;
+          const int content_nudge_x = std::max(2, S / 90);
+          const int hg_x = std::max(4, (W - visual_w) / 2 + content_nudge_x);
+          const int hg_y = std::max(8, (H - hourglass_h) / 2);
+          const int hg_cx = hg_x + hourglass_w / 2;
+          const int badge_cx = W / 2;
+          const int badge_cy = hg_y + hourglass_h / 2;
+          const int badge_pad = std::max(14, S / 20);
+          const int badge_needed_r = (int) ceilf(sqrtf(
+            (visual_w * visual_w + hourglass_h * hourglass_h) / 4.0f
+          ));
+          const int badge_r = std::min(
+            std::min(W, H) / 2 - 2,
+            badge_needed_r + badge_pad
+          );
+          const int hg_top = hg_y;
+          const int hg_mid = hg_y + hourglass_h / 2;
+          const int hg_bot = hg_y + hourglass_h;
+
+          const int rim_h = std::max(4, S / 42);
+          const int throat_w = std::max(4, hourglass_w / 12);
+          const int top_inner_y = hg_top + rim_h + 2;
+          const int bot_inner_y = hg_bot - rim_h - 2;
+          const int chamber_pad = std::max(5, hourglass_w / 12);
+
+          const Color outline = Color::WHITE;
+          const Color badge_bg(0x08, 0x0b, 0x10);
+          const Color badge_edge(0x4d, 0x58, 0x68);
+          const Color badge_outline = Color::WHITE;
+          const Color sand(0xff, 0xc1, 0x07);
+          const Color sand_dim(0xb8, 0x88, 0x12);
+          auto thick_line = [&](int x1, int y1, int x2, int y2, Color col, int thick) {
+            if (thick <= 1) {
+              id(main_display).line(x1, y1, x2, y2, col);
+              return;
+            }
+            for (int o = -thick / 2; o <= thick / 2; ++o) {
+              id(main_display).line(x1 + o, y1, x2 + o, y2, col);
+              id(main_display).line(x1, y1 + o, x2, y2 + o, col);
+            }
+          };
+
+          const int line_thick = std::max(1, S / 120);
+
+          id(main_display).filled_circle(badge_cx, badge_cy, badge_r, badge_bg);
+          id(main_display).circle(badge_cx, badge_cy, badge_r, badge_outline);
+          if (badge_r > 2) {
+            id(main_display).circle(badge_cx, badge_cy, badge_r - 1, badge_edge);
+          }
+          if (badge_r > 5) {
+            id(main_display).circle(badge_cx, badge_cy, badge_r - 4, Color::BLACK);
+          }
+
+          id(main_display).filled_rectangle(hg_x, hg_top, hourglass_w, rim_h, outline);
+          id(main_display).filled_rectangle(hg_x, hg_bot - rim_h, hourglass_w, rim_h, outline);
+
+          thick_line(hg_x + chamber_pad, top_inner_y, hg_cx - throat_w / 2, hg_mid, outline, line_thick);
+          thick_line(hg_x + hourglass_w - chamber_pad, top_inner_y, hg_cx + throat_w / 2, hg_mid, outline, line_thick);
+          thick_line(hg_cx - throat_w / 2, hg_mid, hg_x + chamber_pad, bot_inner_y, outline, line_thick);
+          thick_line(hg_cx + throat_w / 2, hg_mid, hg_x + hourglass_w - chamber_pad, bot_inner_y, outline, line_thick);
+
+          const int top_chamber_h = std::max(1, hg_mid - top_inner_y - 3);
+          const int bot_chamber_h = std::max(1, bot_inner_y - hg_mid - 3);
+          const int top_surface_y = top_inner_y + (int) lroundf(top_chamber_h * (1.0f - remain));
+          const int bot_fill_h = (int) lroundf(bot_chamber_h * (1.0f - remain));
+
+          auto top_half_width_at = [&](int y) -> int {
+            float t = (float)(y - top_inner_y) / (float)std::max(1, hg_mid - top_inner_y);
+            if (t < 0.0f) t = 0.0f;
+            if (t > 1.0f) t = 1.0f;
+            const int wide = hourglass_w / 2 - chamber_pad;
+            const int neck = std::max(throat_w / 2, 2);
+            return wide - (int)lroundf((wide - neck) * t);
+          };
+
+          auto bottom_half_width_at = [&](int y) -> int {
+            float t = (float)(y - hg_mid) / (float)std::max(1, bot_inner_y - hg_mid);
+            if (t < 0.0f) t = 0.0f;
+            if (t > 1.0f) t = 1.0f;
+            const int wide = hourglass_w / 2 - chamber_pad;
+            const int neck = std::max(throat_w / 2, 2);
+            return neck + (int)lroundf((wide - neck) * t);
+          };
+
+          if (remain > 0.0f) {
+            const int y_end = hg_mid - 4;
+            const int y_start = std::min(std::max(top_surface_y, top_inner_y), y_end);
+            for (int y = y_start; y <= y_end; ++y) {
+              const int hw = top_half_width_at(y);
+              const Color col = (y == y_start) ? sand : sand_dim;
+              id(main_display).line(hg_cx - hw, y, hg_cx + hw, y, col);
+            }
+          }
+
+          if (bot_fill_h > 0) {
+            const int y_end = bot_inner_y;
+            const int y_start = std::max(hg_mid + 4, bot_inner_y - bot_fill_h);
+            for (int y = y_start; y <= y_end; ++y) {
+              const int hw = bottom_half_width_at(y);
+              const Color col = (y > y_start + (y_end - y_start) / 2) ? sand_dim : sand;
+              id(main_display).line(hg_cx - hw, y, hg_cx + hw, y, col);
+            }
+          }
+
+          const int drop_top = hg_mid + std::max(3, S / 80);
+          const int bottom_surface_y = (bot_fill_h > 0)
+            ? std::max(hg_mid + 5, bot_inner_y - bot_fill_h)
+            : bot_inner_y;
+          const int drop_bot = std::max(drop_top + 1, bottom_surface_y - 2);
+          const int drop_steps = std::max(4, std::min(10, (drop_bot - drop_top) / 3));
+          const uint32_t elapsed_seconds = total > left ? total - left : 0;
+          const int drop_step = elapsed_seconds % drop_steps;
+          const int drop_radius = std::max(1, S / 95);
+          const int second_drop_step = (drop_step + drop_steps / 2) % drop_steps;
+          const int drop_y1 = drop_top + ((drop_bot - drop_top) * drop_step) / std::max(1, drop_steps - 1);
+          const int drop_y2 = drop_top + ((drop_bot - drop_top) * second_drop_step) / std::max(1, drop_steps - 1);
+          id(main_display).filled_circle(hg_cx, drop_y1, drop_radius, sand);
+          id(main_display).filled_circle(hg_cx, drop_y2, drop_radius, sand_dim);
+
+          char hh_buf[4], mm_buf[4], ss_buf[4];
+          snprintf(hh_buf, sizeof(hh_buf), "%02d", hours_left);
+          snprintf(mm_buf, sizeof(mm_buf), "%02d", minutes_left);
+          snprintf(ss_buf, sizeof(ss_buf), "%02d", seconds_left);
+
+          const int text_x = hg_x + hourglass_w + gap + text_w / 2;
+          const int text_area_h = hourglass_h;
+          const int row_gap = std::max(4, S / 42);
+          const int row_h = (text_area_h - row_gap * 2) / 3;
+          const int text_y1 = hg_y + row_h / 2;
+          const int text_y2 = text_y1 + row_h + row_gap;
+          const int text_y3 = text_y2 + row_h + row_gap;
+
+          id(main_display).printf(text_x + 1, text_y1 + 1, id(font_small_clock_mono), Color::BLACK, TextAlign::CENTER, "%s", hh_buf);
+          id(main_display).printf(text_x,     text_y1,     id(font_small_clock_mono), Color::WHITE, TextAlign::CENTER, "%s", hh_buf);
+          id(main_display).printf(text_x + 1, text_y2 + 1, id(font_small_clock_mono), Color::BLACK, TextAlign::CENTER, "%s", mm_buf);
+          id(main_display).printf(text_x,     text_y2,     id(font_small_clock_mono), Color::WHITE, TextAlign::CENTER, "%s", mm_buf);
+          id(main_display).printf(text_x + 1, text_y3 + 1, id(font_small_clock_mono), Color::BLACK, TextAlign::CENTER, "%s", ss_buf);
+          id(main_display).printf(text_x,     text_y3,     id(font_small_clock_mono), Color::WHITE, TextAlign::CENTER, "%s", ss_buf);
+
+  - id: start_wake_word
+    then:
+      - if:
+          condition:
+            and:
+              - not:
+                  voice_assistant.is_running:
+#              - not:
+#                  speaker.is_playing:
+#                    id: box_speaker
+              - not:
+                  micro_wake_word.is_running:
+
+              - lambda: return id(wake_word_engine_location).current_option() == "On device";
+          then:
+            - lambda: id(va).set_use_wake_word(false);
+            - micro_wake_word.start:
+      - if:
+          condition:
+            and:
+              - not:
+                  voice_assistant.is_running:
+              - lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+          then:
+            - lambda: id(va).set_use_wake_word(true);
+            - voice_assistant.start_continuous:
+
+  - id: stop_wake_word
+    then:
+      - if:
+          condition:
+            lambda: return id(wake_word_engine_location).current_option() == "In Home Assistant";
+          then:
+            - lambda: id(va).set_use_wake_word(false);
+            - voice_assistant.stop:
+      - if:
+          condition:
+            lambda: return id(wake_word_engine_location).current_option() == "On device";
+          then:
+            - micro_wake_word.stop:
+
+  - id: set_idle_or_mute_phase
+    then:
+      - if:
+          condition:
+            switch.is_off: mute
+          then:
+            - script.execute:
+                id: set_phase
+                phase: ${voice_assist_idle_phase_id}
+          else:
+            - script.execute:
+                id: set_phase
+                phase: ${voice_assist_muted_phase_id}
+
+  # Script executed when the timer is ringing, to playback sounds.
+  - id: ring_timer
+    then:
+      - script.execute: enable_repeat_one
+      - script.execute:
+          id: play_sound
+          priority: true
+          sound_file: "timer_finished_sound"
+
+  # Script executed when the timer is ringing, to repeat the timer finished sound.
+  - id: enable_repeat_one
+    then:
+      - media_player.repeat_one:
+          id: external_media_player
+          announcement: true
+      # Turn on the repeat mode and pause for 500 ms between playlist items/repeats
+      - lambda: |-
+            id(external_media_player)->set_playlist_delay_ms(1, 500);
+
+  # Script execute when the timer is done ringing, to disable repeat mode.
+  - id: disable_repeat
+    then:
+      # Turn off the repeat mode and pause for 0 ms between playlist items/repeats
+      - media_player.repeat_off:
+          id: external_media_player
+          announcement: true
+      - lambda: |-
+            id(external_media_player)->set_playlist_delay_ms(1, 0);
+
+  # Script executed when we want to play sounds on the device.
+  - id: play_sound
+    parameters:
+      priority: bool
+      sound_file: string
+    then:
+      - lambda: |-
+          id(playing_internal_sound) = true;
+      - if:
+          condition:
+            lambda: return priority;
+          then:
+            - media_player.stop:
+                id: external_media_player
+                announcement: true
+      - lambda: |-
+          if ( (id(external_media_player).state != media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING ) || priority) {
+            id(external_media_player)
+              ->make_call()
+              .set_media_url("audio-file://" + sound_file)
+              .set_announcement(true)
+              .perform();
+          }
+
+
+  - id: reset_screensaver
+    then:
+      - lambda: |-
+          id(show_clock) = false;
+          id(idle_seconds) = 0;
+
+  - id: handle_screen_tap
+    then:
+      - script.execute: reset_screensaver
+      - if:
+          condition:
+            switch.is_on: timer_ringing
+          then:
+            - switch.turn_off: timer_ringing
+          else:
+            - if:
+                condition:
+                  lambda: return id(wake_word_engine_location).current_option() == "On device";
+                then:
+                  - if:
+                      condition:
+                        not:
+                          voice_assistant.is_running:
+                      then:
+                        - voice_assistant.start:
+                      else:
+                        - voice_assistant.stop:
+      - display.page.show: idle_page
+      - component.update: main_display
+
+
+  - id: pulse_swipe_left
+    mode: restart
+    then:
+      - binary_sensor.template.publish: { id: swipe_left,  state: ON }
+      - delay: 150ms
+      - binary_sensor.template.publish: { id: swipe_left,  state: OFF }
+
+  - id: pulse_swipe_right
+    mode: restart
+    then:
+      - binary_sensor.template.publish: { id: swipe_right, state: ON }
+      - delay: 150ms
+      - binary_sensor.template.publish: { id: swipe_right, state: OFF }
+
+  - id: pulse_swipe_up
+    mode: restart
+    then:
+      - binary_sensor.template.publish: { id: swipe_up,    state: ON }
+      - delay: 150ms
+      - binary_sensor.template.publish: { id: swipe_up,    state: OFF }
+
+  - id: pulse_swipe_down
+    mode: restart
+    then:
+      - binary_sensor.template.publish: { id: swipe_down,  state: ON }
+      - delay: 150ms
+      - binary_sensor.template.publish: { id: swipe_down,  state: OFF }
+
+  - id: pulse_touch_input
+    then:
+      - binary_sensor.template.publish: { id: touch_input, state: ON }
+      - delay: 150ms
+      - binary_sensor.template.publish: { id: touch_input, state: OFF }
+
+  - id: send_tts_uri_event
+    parameters:
+      tts_uri: string
+    then:
+      - homeassistant.event:
+          event: esphome.tts_uri
+          data:
+            node: ${name}
+            uri: !lambda return tts_uri;
+  - id: send_stt_text_event
+    parameters:
+      stt_text: string
+    then:
+      - homeassistant.event:
+          event: esphome.stt_text
+          data:
+            node: ${name}
+            text: !lambda return stt_text;
+  - id: send_tts_text_event
+    parameters:
+      tts_text: string
+    then:
+      - homeassistant.event:
+          event: esphome.tts_text
+          data:
+            node: ${name}
+            text: !lambda return tts_text;
+
+  - id: set_phase
+    parameters:
+      phase: int
+    then:
+      - lambda: id(voice_assistant_phase) = phase;
+      - text_sensor.template.publish:
+          id: voice_assistant_phase_sensor
+          state: !lambda |-
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%d", phase);
+            return std::string(buf);
+      - homeassistant.event:
+          event: esphome.phase_id
+          data:
+            node: ${name}
+            phase: !lambda return phase;
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 2s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+
+switch:
+  - platform: template
+    name: Mute
+    id: mute
+    icon: "mdi:microphone-off"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    entity_category: config
+    on_turn_off:
+      - microphone.unmute:
+      - script.execute:
+          id: set_phase
+          phase: ${voice_assist_idle_phase_id}
+      - script.execute: reset_screensaver
+      - script.execute: draw_display
+    on_turn_on:
+      - microphone.mute:
+      - script.execute:
+          id: set_phase
+          phase: ${voice_assist_muted_phase_id}
+      - script.execute: reset_screensaver
+      - script.execute: draw_display
+
+  - platform: template
+    id: timer_ringing
+    optimistic: true
+    internal: true
+    restore_mode: ALWAYS_OFF
+    on_turn_off:
+      - script.execute: disable_repeat
+      - if:
+          condition:
+            media_player.is_announcing:
+              id: external_media_player
+          then:
+            media_player.stop:
+              announcement: true
+              id: external_media_player
+    on_turn_on:
+      - script.execute: ring_timer
+      - delay: 15min
+      - switch.turn_off: timer_ringing
+
+  - platform: template
+    id: wake_sound
+    name: Wake sound
+    icon: "mdi:bullhorn"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: startup_sound_switch
+    name: Startup sound
+    icon: "mdi:card-text-outline"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: show_text
+    name: Show Text
+    icon: "mdi:card-text-outline"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: show_battery_status
+    name: Show Battery Status
+    icon: "mdi:card-text-outline"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - component.update: main_display
+    on_turn_off:
+      - component.update: main_display
+
+  - platform: template
+    id: clock_enabled
+    name: "Clock Screensaver"
+    icon: "mdi:clock-outline"
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    entity_category: config
+    on_turn_off:
+      - lambda: |-
+          if (id(show_clock)) id(show_clock) = false;
+          id(idle_seconds) = 0;
+      - display.page.show: idle_page
+      - component.update: main_display
+
+  - platform: template
+    id: clock_24h
+    name: "Clock 24h Format"
+    icon: "mdi:clock-time-four-outline"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - component.update: main_display
+    on_turn_off:
+      - component.update: main_display
+
+  - platform: template
+    id: clock_show_time
+    name: "Clock Show Time"
+    icon: "mdi:clock-digital"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - component.update: main_display
+    on_turn_off:
+      - component.update: main_display
+
+  - platform: template
+    id: clock_show_seconds
+    name: "Clock Show Seconds"
+    icon: "mdi:timer-outline"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - component.update: main_display
+    on_turn_off:
+      - component.update: main_display
+
+  - platform: template
+    id: clock_show_date
+    name: "Clock Show Date"
+    icon: "mdi:calendar"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - component.update: main_display
+    on_turn_off:
+      - component.update: main_display
+
+  - platform: template
+    id: clock_show_dots
+    name: "Clock Show Dots"
+    icon: "mdi:dots-circle"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+    on_turn_on:
+      - component.update: main_display
+    on_turn_off:
+      - component.update: main_display
+
+  - platform: template
+    id: clock_show_wallpaper
+    name: "Clock Show Wallpaper"
+    icon: "mdi:image"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+  - platform: template
+    id: swipe_local
+    name: "Handle swipes on device"
+    icon: "mdi:gesture-swipe"
+    entity_category: config
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+select:
+  - platform: template
+    entity_category: config
+    name: Wake word engine location
+    id: wake_word_engine_location
+    icon: "mdi:account-voice"
+    optimistic: true
+    restore_value: true
+    options:
+      - In Home Assistant
+      - On device
+    initial_option: On device
+    on_value:
+      - if:
+          condition:
+            lambda: return !id(init_in_progress);
+          then:
+            - wait_until:
+                lambda: return id(voice_assistant_phase) == ${voice_assist_muted_phase_id}
+                           || id(voice_assistant_phase) == ${voice_assist_idle_phase_id};
+            - if:
+                condition:
+                  lambda: return x == "In Home Assistant";
+                then:
+                  - micro_wake_word.stop
+                  - delay: 500ms
+                  - if:
+                      condition:
+                        switch.is_off: mute
+                      then:
+                        - lambda: id(va).set_use_wake_word(true);
+                        - voice_assistant.start_continuous:
+            - if:
+                condition:
+                  lambda: return x == "On device";
+                then:
+                  - lambda: id(va).set_use_wake_word(false);
+                  - voice_assistant.stop
+                  - delay: 500ms
+                  - if:
+                      condition:
+                        switch.is_off: mute
+                      then:
+                        - script.execute: start_wake_word
+
+globals:
+  - id: init_in_progress
+    type: bool
+    restore_value: false
+    initial_value: "true"
+
+  - id: voice_assistant_phase
+    type: int
+    restore_value: false
+    initial_value: ${voice_assist_not_ready_phase_id}
+
+  - id: global_first_active_timer
+    type: voice_assistant::Timer
+    restore_value: false
+
+  - id: global_is_timer_active
+    type: bool
+    restore_value: false
+
+  - id: global_first_timer
+    type: voice_assistant::Timer
+    restore_value: false
+
+  - id: global_is_timer
+    type: bool
+    restore_value: false
+
+  - id: last_battery_percent
+    type: int
+    restore_value: no
+    initial_value: "-1"
+
+  - id: playing_internal_sound
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: boot_sound_played
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: idle_seconds
+    type: int
+    restore_value: no
+    initial_value: "0"
+
+  - id: show_clock
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: gs_touch_active
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: gs_start_x
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: gs_start_y
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: gs_last_x
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: gs_last_y
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: gs_start_ms
+    type: uint32_t
+    restore_value: no
+    initial_value: "0"
+
+  - id: sendspin_album_art_valid
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: gs_hold_fired
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+image:
+  - platform: file
+    file: ${error_illustration_file}
+    id: casita_error
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${idle_illustration_file}
+    id: casita_idle
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${listening_illustration_file}
+    id: casita_listening
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${thinking_illustration_file}
+    id: casita_thinking
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${replying_illustration_file}
+    id: casita_replying
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${timer_finished_illustration_file}
+    id: casita_timer_finished
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${loading_illustration_file}
+    id: casita_initializing
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${mute_illustration_file}
+    id: casita_muted
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: ${playing_illustration_file}
+    id: casita_playing
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: https://raw.githubusercontent.com/RealDeco/xiaozhi-esphome/main/images/Other/error-no-wifi.png
+    id: error_no_wifi
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+  - platform: file
+    file: https://github.com/RealDeco/xiaozhi-esphome/raw/main/images/Other/error-no-ha.png
+    id: error_no_ha
+    resize: ${screenwidth}x${screenheight}
+    type: RGB565
+
+  - platform: online_image
+    id: clock_background
+    url: ${clock_background_file}
+    format: PNG
+    type: RGB565
+    resize: ${screenwidth}x${screenheight}
+    update_interval: never
+
+  - platform: sendspin
+    id: album_slot
+    source: ALBUM
+    format: jpeg
+    type: RGB565
+    resize: ${albumsize}
+    current_image:
+      id: sendspin_album_art
+    on_image_display:
+      - lambda: |-
+          id(sendspin_album_art_valid) = true;
+      - component.update: main_display
+    on_image_clear:
+      - logger.log: "Album art cleared"
+    on_image_error:
+      - logger.log: "Album art error"
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+font:
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 300
+    id: font_request_response
+    size: 15
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 300
+    id: font_battery
+    size: 14
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: Syne Mono
+      weight: 400
+    id: font_big_clock_mono
+    size: 42
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: ${font_family}
+      weight: 400
+    id: font_big_date
+    size: 22
+    glyphsets:
+      - ${font_glyphsets}
+  - file:
+      type: gfonts
+      family: Syne Mono
+      weight: 400
+    id: font_small_clock_mono
+    size: 24
+    glyphsets:
+      - ${font_glyphsets}
+
+text_sensor:
+  - id: text_request
+    name: "Text Request"
+    platform: template
+    on_value:
+      lambda: |-
+        auto &s = id(text_request).state;
+        if (s.length() > 30) {
+          s.resize(30);
+          s += "...";
+        }
+
+  - id: text_response
+    name: "Text Response"
+    platform: template
+    on_value:
+      lambda: |-
+        auto &s = id(text_response).state;
+        if (s.length() > 30) {
+          s.resize(30);
+          s += "...";
+        }
+
+  - platform: template
+    id: voice_assistant_phase_sensor
+    name: "Voice Assistant Phase ID"
+    update_interval: never
+
+  - platform: homeassistant
+    id: ha_weather_temperature_unit
+    entity_id: ${weather_entity}
+    attribute: temperature_unit
+    internal: true
+
+  - platform: homeassistant
+    id: ha_weather_wind_speed_unit
+    entity_id: ${weather_entity}
+    attribute: wind_speed_unit
+    internal: true
+
+  - platform: homeassistant
+    id: ha_weather_pressure_unit
+    entity_id: ${weather_entity}
+    attribute: pressure_unit
+    internal: true
+
+  - platform: sendspin
+    id: sendspin_title
+    type: title
+    on_value:
+      - component.update: main_display
+
+  - platform: sendspin
+    id: sendspin_artist
+    type: artist
+    on_value:
+      - component.update: main_display
+
+  - platform: sendspin
+    id: sendspin_album
+    type: album
+    on_value:
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
+
+text:
+  - platform: template
+    id: room_1_label
+    name: Room 1 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor1_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_2_label
+    name: Room 2 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor2_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_3_label
+    name: Room 3 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor3_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_4_label
+    name: Room 4 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor4_label}
+    max_length: 32
+    mode: text
+
+  - platform: template
+    id: room_5_label
+    name: Room 5 Label
+    icon: "mdi:label-outline"
+    entity_category: config
+    optimistic: true
+    restore_value: true
+    initial_value: ${sensor5_label}
+    max_length: 32
+    mode: text
+
+color:
+  - id: idle_color
+    hex: ${loading_illustration_background_color}
+  - id: listening_color
+    hex: ${listening_illustration_background_color}
+  - id: thinking_color
+    hex: ${thinking_illustration_background_color}
+  - id: replying_color
+    hex: ${replying_illustration_background_color}
+  - id: loading_color
+    hex: ${loading_illustration_background_color}
+  - id: error_color
+    hex: ${error_illustration_background_color}
+  - id: active_timer_color
+    hex: "26ed3a"
+  - id: paused_timer_color
+    hex: "3b89e3"
+  - id: seconds_dot_color
+    hex: "3b89e3"
