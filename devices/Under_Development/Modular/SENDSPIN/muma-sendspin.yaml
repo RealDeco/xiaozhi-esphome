@@ -77,7 +77,7 @@ esp32:
 psram:
   mode: octal
   speed: 80MHz
-  ignore_not_found: true
+  ignore_not_found: false
 
 wifi:
   ap:
