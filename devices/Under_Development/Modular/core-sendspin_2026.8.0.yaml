@@ -1171,21 +1171,6 @@ script:
             node: ${name}
             phase: !lambda return phase;
 
-  - id: mp_idle_debounce
-    mode: restart
-    then:
-      - delay: 2s
-      - if:
-          condition:
-            and:
-              - media_player.is_idle: external_media_player
-              - not:
-                  voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
-
 switch:
   - platform: template
     name: Mute
@@ -1565,7 +1550,9 @@ image:
           id(sendspin_album_art_valid) = true;
       - component.update: main_display
     on_image_clear:
-      - logger.log: "Album art cleared"
+      - lambda: |-
+          id(sendspin_album_art_valid) = false;
+      - component.update: main_display
     on_image_error:
       - logger.log: "Album art error"
       - lambda: |-
@@ -1676,8 +1663,6 @@ text_sensor:
     id: sendspin_album
     type: album
     on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
       - component.update: main_display
 
 text:
