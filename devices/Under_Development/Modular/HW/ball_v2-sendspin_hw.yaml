@@ -165,6 +165,16 @@ media_player:
     id: sendspin_group_media_player
     name: Sendspin Group Media Player
 
+    on_idle:
+      - if:
+          condition:
+            not:
+              voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
+
   - platform: speaker_source
     id: external_media_player
     name: Media Player
@@ -191,7 +201,6 @@ media_player:
     volume_max: 0.8
 
     on_announcement:
-      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -217,7 +226,6 @@ media_player:
             - component.update: main_display
 
     on_play:
-      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -256,9 +264,6 @@ media_player:
 #            - script.execute: start_wake_word
 #            - script.execute: set_idle_or_mute_phase
 #            - script.execute: draw_display
-
-    on_idle:
-      - script.execute: mp_idle_debounce
 
 # --- BACKLIGHT & AUX LED ------------------------------------------------------
 output:
