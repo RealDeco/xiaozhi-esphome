@@ -5,6 +5,8 @@ substitutions:
 ############ 2026.2.0 FIXED ############
 
 
+## v1.08 16-sep-2026 #############################################################################################################################
+## Remove image: section warning
 ## v1.07 26-jul-2025 #############################################################################################################################
 ## changed how to play startup sound to avoid double triggering
 ## v1.06 19-jul-2025 #############################################################################################################################
@@ -937,52 +939,62 @@ globals:
     initial_value: "false"
 
 image:
-  - file: ${error_illustration_file}
+  - platform: file
+    file: ${error_illustration_file}
     id: casita_error
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: ${idle_illustration_file}
+  - platform: file
+    file: ${idle_illustration_file}
     id: casita_idle
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: ${listening_illustration_file}
+  - platform: file
+    file: ${listening_illustration_file}
     id: casita_listening
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: ${thinking_illustration_file}
+  - platform: file
+    file: ${thinking_illustration_file}
     id: casita_thinking
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: ${replying_illustration_file}
+  - platform: file
+    file: ${replying_illustration_file}
     id: casita_replying
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: ${timer_finished_illustration_file}
+  - platform: file
+    file: ${timer_finished_illustration_file}
     id: casita_timer_finished
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: ${loading_illustration_file}
+  - platform: file
+    file: ${loading_illustration_file}
     id: casita_initializing
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: ${mute_illustration_file}
+  - platform: file
+    file: ${mute_illustration_file}
     id: casita_muted
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-wifi.png
+  - platform: file
+    file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-wifi.png
     id: error_no_wifi
     resize: ${imagewidth}x${imageheight}
     type: RGB565
     transparency: alpha_channel
-  - file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-ha.png
+  - platform: file
+    file: https://github.com/esphome/wake-word-voice-assistants/raw/main/error_box_illustrations/error-no-ha.png
     id: error_no_ha
     resize: ${imagewidth}x${imageheight}
     type: RGB565
