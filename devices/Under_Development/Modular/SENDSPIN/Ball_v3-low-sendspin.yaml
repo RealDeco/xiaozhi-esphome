@@ -38,7 +38,7 @@ substitutions:
 
   sensor3_entity: "binary_sensor.room_2_presence"
   light3_entity: "binary_sensor.room_2_light"
-  sensor3_label: "Room 2"
+  sensor3_label: "Jette"
 
   sensor4_entity: "binary_sensor.room_5_presence"
   light4_entity: "binary_sensor.room_5_light"
@@ -58,11 +58,11 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2026.5.0
+  min_version: 2026.8.0
   name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
-    version: "2026.5.0"
+    version: "2026.8.0"
 
 esp32:
   variant: ESP32S3
