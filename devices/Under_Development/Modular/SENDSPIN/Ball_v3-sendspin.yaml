@@ -1,4 +1,4 @@
-### Ball v3 "low" this model does not have es7210 and uses a unsupported camera ((0.3 mp GC0308)) so no cam,
+### Ball v3
 substitutions:
   name: xiaozhi-ball-v3
   friendly_name: Xiaozhi Ball v3
