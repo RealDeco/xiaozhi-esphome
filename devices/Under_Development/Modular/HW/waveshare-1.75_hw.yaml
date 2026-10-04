@@ -4,11 +4,6 @@
 packages:
   clocks: !include ../clocks-standard.yaml
 
-external_components:
-  - source: 
-      type: git
-      url: https://github.com/shelson/esphome-cst9217
-
 # --- BUSES / PERIPHERALS ------------------------------------------------------
 i2c:
   - id: bus_a
@@ -151,7 +146,7 @@ light:
 
 # --- TOUCHSCREEN --------------------------------------------------------------
 touchscreen:
-  - platform: cst9217
+  - platform: cst9220
     id: my_touchscreen
     interrupt_pin: GPIO11
     reset_pin: GPIO40
