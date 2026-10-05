@@ -118,6 +118,12 @@ button:
     on_press:
       - script.execute: handle_screen_tap
 
+  - platform: restart
+    id: restart_button
+    name: "Restart"
+    entity_category: config
+    icon: "mdi:restart"
+
 number:
   - platform: template
     id: clock_delay_seconds
@@ -380,6 +386,7 @@ light:
 
 micro_wake_word:
   id: !extend mww
+  task_stack_in_psram: true
   on_wake_word_detected:
     - script.execute: reset_screensaver
     - if:
@@ -455,14 +462,21 @@ voice_assistant:
     - script.execute:
         id: send_tts_uri_event
         tts_uri: !lambda 'return x;'
+    - lambda: 'id(tts_reply_pending) = true;'
 
   on_end:
-    # tts_media_player reports ANNOUNCING as soon as the TTS URL arrives
-    - wait_until:
+    # Only wait for reply audio if a TTS URL was received (not on cancel/no speech/error)
+    # tts_media_player reports ANNOUNCING within ms of the URL, 1s is just a safety net
+    - if:
         condition:
-          media_player.is_announcing:
-            id: tts_media_player
-        timeout: 5s
+          lambda: 'return id(tts_reply_pending);'
+        then:
+          - lambda: 'id(tts_reply_pending) = false;'
+          - wait_until:
+              condition:
+                media_player.is_announcing:
+                  id: tts_media_player
+              timeout: 1s
 
     - wait_until:
         condition:
@@ -1432,6 +1446,11 @@ globals:
     initial_value: "-1"
 
   - id: playing_internal_sound
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+  - id: tts_reply_pending
     type: bool
     restore_value: no
     initial_value: "false"
