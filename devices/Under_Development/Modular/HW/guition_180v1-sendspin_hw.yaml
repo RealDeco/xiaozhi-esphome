@@ -67,6 +67,7 @@ speaker:
     source_speakers:
       - id: announcement_mixing_input
       - id: media_mixing_input
+      - id: tts_mixing_input
 
   - platform: resampler
     id: announcement_resampling_speaker
@@ -77,6 +78,13 @@ speaker:
   - platform: resampler
     id: media_resampling_speaker
     output_speaker: media_mixing_input
+    sample_rate: 48000
+    bits_per_sample: 16
+
+  # VA replies (TTS) via platform: speaker media player
+  - platform: resampler
+    id: tts_resampling_speaker
+    output_speaker: tts_mixing_input
     sample_rate: 48000
     bits_per_sample: 16
 
@@ -108,15 +116,20 @@ media_player:
     id: sendspin_group_media_player
     name: Sendspin Group Media Player
 
-    on_idle:
-      - if:
-          condition:
-            not:
-              voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
+  # VA replies only. Reports ANNOUNCING as soon as the TTS URL arrives,
+  # so the VA's 2s playback timeout can't fire while HA is still generating
+  - platform: speaker
+    id: tts_media_player
+    name: VA Reply Player
+    internal: true
+    volume_increment: 0.05
+    volume_min: 0.4
+    volume_max: 0.85
+    announcement_pipeline:
+      speaker: tts_resampling_speaker
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
 
   - platform: speaker_source
     id: external_media_player
@@ -143,7 +156,18 @@ media_player:
     volume_min: 0.4
     volume_max: 0.85
 
+    # Keep VA reply volume/mute in step with the main player
+    on_volume:
+      - media_player.volume_set:
+          id: tts_media_player
+          volume: !lambda return x;
+    on_mute:
+      - media_player.mute: tts_media_player
+    on_unmute:
+      - media_player.unmute: tts_media_player
+
     on_announcement:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -169,6 +193,7 @@ media_player:
             - component.update: main_display
 
     on_play:
+      - script.stop: mp_idle_debounce
       - if:
           condition:
             - microphone.is_capturing:
@@ -207,6 +232,9 @@ media_player:
 #            - script.execute: start_wake_word
 #            - script.execute: set_idle_or_mute_phase
 #            - script.execute: draw_display
+
+    on_idle:
+      - script.execute: mp_idle_debounce
 
 # --- BACKLIGHT ----------------------------------------------------------------
 output:
@@ -382,6 +410,21 @@ script:
     then:
       - script.execute: stop_wake_word
       - media_player.play: sendspin_group_media_player
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
 
 interval:
   - interval: 100ms
