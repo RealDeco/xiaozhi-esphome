@@ -87,16 +87,21 @@ time:
 api:
   on_client_connected:
     - script.execute: draw_display
-    - script.execute: stop_wake_word
-    - delay: 2000ms
-    - lambda: |-
-        if (!id(boot_sound_played)) {
-          id(boot_sound_played) = true;
-          if (id(startup_sound_switch).state) {
-            id(play_sound)->execute(true, id(ready_sound));
-          }
-        }
-    - script.execute: reset_screensaver
+    # Only for Home Assistant, log viewers (ESPHome Logs) also trigger this
+    - if:
+        condition:
+          lambda: 'return client_info.rfind("Home Assistant", 0) == 0;'
+        then:
+          - script.execute: stop_wake_word
+          - delay: 2000ms
+          - lambda: |-
+              if (!id(boot_sound_played)) {
+                id(boot_sound_played) = true;
+                if (id(startup_sound_switch).state) {
+                  id(play_sound)->execute(true, id(ready_sound));
+                }
+              }
+          - script.execute: reset_screensaver
   on_client_disconnected:
     - script.execute: draw_display
 
