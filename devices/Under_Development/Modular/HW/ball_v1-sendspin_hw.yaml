@@ -1,6 +1,6 @@
-# Xiaozhi ball v1 sendspin version — 2026.4.0
+# Ball v1 hardware SENDSPIN version (full duplex: mic on its own I2S bus)
 
-# --- CLOCKS PACKAGE -----------------------------------------------------------
+# --- CLOCKS & BUTTONS PACKAGE -------------------------------------------------
 packages:
   clocks: !include ../clocks-standard.yaml
 
@@ -58,82 +58,6 @@ binary_sensor:
                 id(tap_idle_hold_action).execute();
               }
 
-script:
-  - id: tap_playing_hold_action
-    then:
-      - media_player.stop: sendspin_group_media_player
-
-  - id: tap_idle_hold_action
-    then:
-      - script.execute: stop_wake_word
-      - media_player.play: sendspin_group_media_player
-
-  - id: mp_idle_debounce
-    mode: restart
-    then:
-      - delay: 3s
-      - if:
-          condition:
-            and:
-              - media_player.is_idle: external_media_player
-              - not:
-                  voice_assistant.is_running:
-          then:
-            - script.execute: start_wake_word
-            - script.execute: set_idle_or_mute_phase
-            - script.execute: draw_display
-
-# --- SENDSPIN -----------------------------------------------------------------
-globals:
-  - id: sendspin_album_art_valid
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-  - id: gs_hold_fired
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-image:
-  - file: ${imagepath}/${imagemodel}/240x240/playing.png
-    id: !extend casita_playing
-    resize: 240x240
-    type: RGB565
-
-generic_image:
-  - platform: sendspin
-    id: sendspin_album_art
-    format: jpg
-    type: RGB565
-    resize: 240x240
-    image_source: ALBUM
-    on_image_decoded:
-      - lambda: |-
-          id(sendspin_album_art_valid) = true;
-      - component.update: main_display
-    on_image_error:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-text_sensor:
-  - platform: sendspin
-    id: sendspin_title
-    type: title
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-  - platform: sendspin
-    id: sendspin_artist
-    type: artist
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
 # --- BUSES / PERIPHERALS ------------------------------------------------------
 spi:
   - id: spi_bus
@@ -179,6 +103,7 @@ speaker:
     source_speakers:
       - id: announcement_mixing_input
       - id: media_mixing_input
+      - id: tts_mixing_input
 
   - platform: resampler
     id: announcement_resampling_speaker
@@ -191,12 +116,16 @@ speaker:
     output_speaker: media_mixing_input
     sample_rate: 48000
 
+  # VA replies (TTS) via platform: speaker media player
+  - platform: resampler
+    id: tts_resampling_speaker
+    output_speaker: tts_mixing_input
+    sample_rate: 48000
+    bits_per_sample: 16
+
 sendspin:
   id: sendspin_hub
   task_stack_in_psram: false
-
-http_request:
-  buffer_size_rx: 2048  # Reduces CPU load when streaming audio
 
 audio_file:
   - id: ready_sound
@@ -209,12 +138,11 @@ audio_file:
 media_source:
   - platform: audio_file
     id: audio_file_announcement_source
-  - platform: http_request
+  - platform: audio_http
     id: http_announcement_source
-    buffer_size: 250000
-  - platform: http_request
+  - platform: audio_http
     id: http_media_source
-    buffer_size: 500000
+    buffer_size: 100000
   - platform: sendspin
     id: sendspin_media_source
 
@@ -222,6 +150,21 @@ media_player:
   - platform: sendspin
     id: sendspin_group_media_player
     name: Sendspin Group Media Player
+
+  # VA replies only. Reports ANNOUNCING as soon as the TTS URL arrives,
+  # so the VA's 2s playback timeout can't fire while HA is still generating
+  - platform: speaker
+    id: tts_media_player
+    name: VA Reply Player
+    internal: true
+    volume_increment: 0.05
+    volume_min: 0.5
+    volume_max: 0.8
+    announcement_pipeline:
+      speaker: tts_resampling_speaker
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
 
   - platform: speaker_source
     id: external_media_player
@@ -245,8 +188,18 @@ media_player:
         - http_media_source
         - sendspin_media_source
     volume_increment: 0.05
-    volume_min: 0.4
-    volume_max: 0.85
+    volume_min: 0.5
+    volume_max: 0.8
+
+    # Keep VA reply volume/mute in step with the main player
+    on_volume:
+      - media_player.volume_set:
+          id: tts_media_player
+          volume: !lambda return x;
+    on_mute:
+      - media_player.mute: tts_media_player
+    on_unmute:
+      - media_player.unmute: tts_media_player
 
     on_announcement:
       - script.stop: mp_idle_debounce
@@ -318,7 +271,7 @@ media_player:
     on_idle:
       - script.execute: mp_idle_debounce
 
-# --- BACKLIGHT ----------------------------------------------------------------
+# --- BACKLIGHT & AUX LED ------------------------------------------------------
 output:
   - platform: ledc
     id: backlight_output
@@ -332,7 +285,7 @@ light:
     icon: "mdi:television"
     entity_category: config
     output: backlight_output
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON
     default_transition_length: 250ms
 
   - platform: esp32_rmt_led_strip
@@ -344,7 +297,7 @@ light:
     default_transition_length: 0s
     chipset: WS2812
     num_leds: 1
-    rgb_order: grb
+    channel_colors: GRB
     effects:
       - pulse:
           name: "Slow Pulse"
@@ -358,6 +311,32 @@ light:
           update_interval: 100ms
           min_brightness: 50%
           max_brightness: 100%
+
+# --- SCRIPTS ------------------------------------------------------------------
+script:
+  - id: tap_playing_hold_action
+    then:
+      - media_player.stop: sendspin_group_media_player
+
+  - id: tap_idle_hold_action
+    then:
+      - script.execute: stop_wake_word
+      - media_player.play: sendspin_group_media_player
+
+  - id: mp_idle_debounce
+    mode: restart
+    then:
+      - delay: 1s
+      - if:
+          condition:
+            and:
+              - media_player.is_idle: external_media_player
+              - not:
+                  voice_assistant.is_running:
+          then:
+            - script.execute: start_wake_word
+            - script.execute: set_idle_or_mute_phase
+            - script.execute: draw_display
 
 # --- BATTERY ADC --------------------------------------------------------------
 sensor:
