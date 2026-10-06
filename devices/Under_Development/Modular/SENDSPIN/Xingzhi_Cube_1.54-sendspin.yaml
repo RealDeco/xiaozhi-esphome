@@ -12,6 +12,7 @@ substitutions:
   screenwidth:  "240"
   screenheight: "240"
   rotate_display: "0"
+  albumsize: "180x180" # album art size on the now playing page
 
   startup_sound: "Home_Connected" # (options are: available, Home_Connected, Home_Connected_Male, Computer_Ready)
   wakeup_sound: "popup" # (options are: popup, wake_word_triggered)
@@ -57,7 +58,7 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2026.5.0
+  min_version: 2026.9.0
   name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
@@ -91,7 +92,7 @@ packages:
     ref: main
     refresh: 0s
     files:
-      - devices/Under_Development/Modular/core-sendspin.yaml
+      - devices/Under_Development/Modular/core-sendspin_2026.9.0.yaml
   hw:
     url: https://github.com/RealDeco/xiaozhi-esphome.git
     ref: main
@@ -103,14 +104,14 @@ packages:
     ref: main
     refresh: 0s
     files:
-      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
+      - devices/Under_Development/Modular/HW/sendspin-external_components_2026.8.0.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
-#  core: !include localtest/core-sendspin.yaml
+#  core: !include localtest/core-sendspin_2026.9.0.yaml
 #  hw:   !include localtest/HW/xingzhi-cube-1.54-sendspin_hw.yaml
-#  extcomp: !include localtest/HW/sendspin-external_components.yaml
+#  extcomp: !include localtest/HW/sendspin-external_components_2026.8.0.yaml
 
 ### Debug logging, Uncomment ONLY if debugging, defaults to WARN
 #logger:
