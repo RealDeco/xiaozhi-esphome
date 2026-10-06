@@ -2,7 +2,7 @@ substitutions:
   name: esphome-web-c0c120
   friendly_name: Touch-LCD-3.49
 
-## Modular version Main v1.08
+## Modular version with sendspin
 
 ## SETTINGS ######################################################################################################################################
 
@@ -54,7 +54,7 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2026.8.0
+  min_version: 2026.9.0
   name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
@@ -89,7 +89,7 @@ packages:
     ref: main
     refresh: 0s
     files:
-      - devices/Under_Development/Modular/core-sendspin_2026.8.0.yaml
+      - devices/Under_Development/Modular/core-sendspin_2026.9.0.yaml
   hw:
     url: https://github.com/RealDeco/xiaozhi-esphome.git
     ref: main
@@ -106,7 +106,7 @@ packages:
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
-#  core: !include localtest/core-sendspin_2026.8.0.yaml
+#  core: !include localtest/core-sendspin_2026.9.0.yaml
 #  hw:   !include localtest/HW/waveshare_349-sendspin_hw.yaml
 #  extcomp: !include localtest/HW/sendspin-external_components_2026.8.0.yaml
 
