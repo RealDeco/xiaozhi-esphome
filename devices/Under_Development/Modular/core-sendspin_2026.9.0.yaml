@@ -455,7 +455,6 @@ voice_assistant:
     - script.execute:
         id: set_phase
         phase: ${voice_assist_replying_phase_id}
-    - lambda: 'id(playing_internal_sound) = true;'
     - script.execute: draw_display
 
   on_tts_end:
@@ -668,6 +667,9 @@ script:
                                 break;
                               case ${voice_assist_timer_finished_phase_id}:
                                 id(main_display).show_page(timer_finished_page);
+                                break;
+                              case ${voice_assist_playing_phase_id}:
+                                id(main_display).show_page(now_playing_page);
                                 break;
                               default:
                                 id(main_display).show_page(idle_page);
