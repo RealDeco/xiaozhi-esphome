@@ -571,6 +571,22 @@ voice_assistant:
         phase: ${voice_assist_timer_finished_phase_id}
     - script.execute: draw_display
 
+
+# tts_media_player is defined in the hw file. Half-duplex devices: release the mic
+# before VA replies / HA announcements need the I2S bus (mWW keeps running after a
+# manual VA start, and announcements play before any VA start)
+media_player:
+  - id: !extend tts_media_player
+    on_announcement:
+      - if:
+          condition:
+            microphone.is_capturing:
+          then:
+            - script.execute: stop_wake_word
+    on_idle:
+      # Restart wake word after HA announcements (VA replies are handled by on_end)
+      - script.execute: mp_idle_debounce
+
 interval:
   - interval: 1s
     then:
