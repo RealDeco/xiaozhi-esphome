@@ -17,6 +17,7 @@ This is the version that will be developed going forward. For now, only a few se
 * Spotpear Ball **v3**
 * Spotpear Ball **v3 LOW** (lower cam resolution and no es7210)
 * Breadboard DIY **(240×320)**
+* Breadboard Mini **(little purple)**
 * Guition **1.80 v1**
 * Guition **1.80 v2**
 * Spotpear TV 3.5"
@@ -24,26 +25,21 @@ This is the version that will be developed going forward. For now, only a few se
 * Waveshare 3.49"
 * Waveshare 3.5"
 * Spotpear Muma (all 4)
-
-## 📦 Devices Updated to `2026.5.0`
-
 * Freenove 2.8
-* Guition **1.80 v1**
-* Guition **1.80 v2**
-* Spotpear Ball **v2**
-* Spotpear Ball **v3**
-* Spotpear Ball **v3 LOW** (lower cam resolution and no es7210)
-* Spotpear TV 3.5"
-* Spotpear Muma **(all 4 versions)**
-* Waveshare **1.75 Amoled**
+* Xiaozhi Cube **1.54**
+* Xiaozhi Cube **1.83 2mic**
+
+
+## 📦 Devices on todo
+
 * Waveshare **1.85C v1-1**
 * Waveshare **1.85C v1-2**
 * Waveshare **1.85C v2**
+..
+* Spotpear Ball **v1**
+* Waveshare **1.75 Amoled**
 * Waveshare 4.0 P4 86 eth
-* Breadboard DIY **(240×320)**
-* Breadboard Mini **(little purple)**
-* Xiaozhi Cube **1.54**
-* Xiaozhi Cube **1.83 2mic**
+* Waveshare Audio Board
 
 
 ---
