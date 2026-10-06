@@ -58,7 +58,7 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  min_version: 2026.6.0
+  min_version: 2026.9.0
   name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
@@ -91,13 +91,13 @@ packages:
   core:
     url: https://github.com/RealDeco/xiaozhi-esphome.git
     ref: main
-    refresh: 1d
+    refresh: 0s
     files:
-      - devices/Under_Development/Modular/core-sendspin.yaml
+      - devices/Under_Development/Modular/core-sendspin_2026.9.0.yaml
   hw:
     url: https://github.com/RealDeco/xiaozhi-esphome.git
     ref: main
-    refresh: 1d
+    refresh: 0s
     files:
       - devices/Under_Development/Modular/HW/Waveshare-3.5-sendspin_hw.yaml
   extcomp:
@@ -105,14 +105,14 @@ packages:
     ref: main
     refresh: 0s
     files:
-      - devices/Under_Development/Modular/HW/sendspin-external_components.yaml
+      - devices/Under_Development/Modular/HW/sendspin-external_components_2026.8.0.yaml
 
 ### USE LOCAL MODULES (read description https://github.com/RealDeco/xiaozhi-esphome/blob/main/devices/Under_Development/Modular/README.md) #######
 
 #packages: # Local
-#  core: !include localtest/core-sendspin.yaml
+#  core: !include localtest/core-sendspin_2026.9.0.yaml
 #  hw:   !include localtest/HW/Waveshare-3.5-sendspin_hw.yaml
-#  extcomp: !include localtest/HW/sendspin-external_components.yaml
+#  extcomp: !include localtest/HW/sendspin-external_components_2026.8.0.yaml
 
 ## ENABLE / DISABLE WAKE WORDS ## IF LOW ON MEMORY, USE LESS WAKE WORDS ##########################################################################
 
