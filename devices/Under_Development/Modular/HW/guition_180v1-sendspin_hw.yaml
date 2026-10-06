@@ -487,6 +487,10 @@ display:
     data_rate: 40MHz
     update_interval: never
     dimensions:
-        height: ${screenheight}
-        width: ${screenwidth}
+      height: ${screenheight}
+      width: ${screenwidth}
+      offset_width: 4
+      offset_height: 0
+      pad_width: 0
+      pad_height: 0
     pages: !include ../display_pages-sendspin.yaml
