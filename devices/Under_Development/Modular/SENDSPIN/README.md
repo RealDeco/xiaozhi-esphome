@@ -28,19 +28,9 @@ This is the version that will be developed going forward. For now, only a few se
 * Freenove 2.8
 * Xiaozhi Cube **1.54**
 * Xiaozhi Cube **1.83 2mic**
-
-
-## 📦 Devices on todo
-
 * Waveshare **1.85C v1-1**
 * Waveshare **1.85C v1-2**
 * Waveshare **1.85C v2**
-..
-* Spotpear Ball **v1**
-* Waveshare **1.75 Amoled**
-* Waveshare 4.0 P4 86 eth
-* Waveshare Audio Board
-
 
 ---
 
