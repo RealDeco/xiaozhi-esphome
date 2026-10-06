@@ -21,61 +21,6 @@ select:
             }
             return id(external_speaker);
 
-# --- SENDSPIN -----------------------------------------------------------------
-globals:
-  - id: sendspin_album_art_valid
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-  - id: gs_hold_fired
-    type: bool
-    restore_value: no
-    initial_value: "false"
-
-image:
-  - file: ${playing_illustration_file}
-    id: !extend casita_playing
-    resize: 480x320
-    type: RGB565
-
-generic_image:
-  - platform: sendspin
-    id: sendspin_album_art
-    format: jpeg
-    type: RGB565
-    resize: 480x320
-    source: ALBUM
-    on_image_display:
-      - lambda: |-
-          id(sendspin_album_art_valid) = true;
-      - component.update: main_display
-    on_image_error:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-text_sensor:
-  - platform: sendspin
-    id: sendspin_title
-    type: title
-    on_value:
-      - lambda: |-
-          id(sendspin_album_art_valid) = false;
-      - component.update: main_display
-
-  - platform: sendspin
-    id: sendspin_artist
-    type: artist
-    on_value:
-      - component.update: main_display
-
-  - platform: sendspin
-    id: sendspin_album
-    type: album
-    on_value:
-      - component.update: main_display
-
 # --- AUDIO DEVICES ------------------------------------------------------------
 i2c:
   - id: bus_a
@@ -160,6 +105,7 @@ speaker:
     source_speakers:
       - id: announcement_mixing_input
       - id: media_mixing_input
+      - id: tts_mixing_input
 
   - platform: resampler
     id: announcement_resampling_speaker
@@ -171,6 +117,13 @@ speaker:
     id: media_resampling_speaker
     output_speaker: media_mixing_input
     sample_rate: 48000
+
+  # VA replies (TTS) via platform: speaker media player
+  - platform: resampler
+    id: tts_resampling_speaker
+    output_speaker: tts_mixing_input
+    sample_rate: 48000
+    bits_per_sample: 16
 
 sendspin:
   id: sendspin_hub
@@ -200,6 +153,21 @@ media_player:
     id: sendspin_group_media_player
     name: Sendspin Group Media Player
 
+  # VA replies only. Reports ANNOUNCING as soon as the TTS URL arrives,
+  # so the VA's 2s playback timeout can't fire while HA is still generating
+  - platform: speaker
+    id: tts_media_player
+    name: VA Reply Player
+    internal: true
+    volume_increment: 0.05
+    volume_min: 0.5
+    volume_max: 0.8
+    announcement_pipeline:
+      speaker: tts_resampling_speaker
+      format: FLAC
+      num_channels: 1
+      sample_rate: 48000
+
   - platform: speaker_source
     id: external_media_player
     name: Media Player
@@ -224,6 +192,16 @@ media_player:
     volume_increment: 0.05
     volume_min: 0.5
     volume_max: 0.8
+
+    # Keep VA reply volume/mute in step with the main player
+    on_volume:
+      - media_player.volume_set:
+          id: tts_media_player
+          volume: !lambda return x;
+    on_mute:
+      - media_player.mute: tts_media_player
+    on_unmute:
+      - media_player.unmute: tts_media_player
 
     on_announcement:
       - script.stop: mp_idle_debounce
@@ -475,7 +453,7 @@ script:
   - id: mp_idle_debounce
     mode: restart
     then:
-      - delay: 2s
+      - delay: 3s
       - if:
           condition:
             and:
