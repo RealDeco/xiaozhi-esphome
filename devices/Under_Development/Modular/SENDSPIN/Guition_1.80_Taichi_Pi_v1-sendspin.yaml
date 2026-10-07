@@ -64,7 +64,7 @@ esphome:
   name_add_mac_suffix: true
   project:
     name: realdeco.xiaozhi-esphome
-    version: "2026.8.0"
+    version: "2026.9.0"
 
 esp32:
   variant: ESP32S3
