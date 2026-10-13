@@ -985,7 +985,7 @@ script:
   - id: play_sound
     parameters:
       priority: bool
-      sound_file: "audio::AudioFile*"
+      sound_file: "std::add_const_t<audio::AudioFile>*"
     then:
       - lambda: |-
           id(playing_internal_sound) = true;
@@ -997,7 +997,7 @@ script:
               .perform();
           }
           if ((id(external_media_player).state != media_player::MediaPlayerState::MEDIA_PLAYER_STATE_ANNOUNCING) || priority) {
-            id(external_media_player)->play_file(sound_file, true, false);
+            id(external_media_player)->play_file(const_cast<audio::AudioFile*>(sound_file), true, false);
           }
 
   - id: reset_screensaver
