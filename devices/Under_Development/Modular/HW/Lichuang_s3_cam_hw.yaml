@@ -10,6 +10,7 @@ i2c:
     sda: 1
     scl: 2
     scan: true
+    frequency: 400kHz
 
 spi:
   - id: spi_bus
@@ -131,30 +132,6 @@ light:
     restore_mode: ALWAYS_ON
     default_transition_length: 250ms
 
-  - platform: esp32_rmt_led_strip
-    id: led
-    name: none
-    disabled_by_default: false
-    entity_category: config
-    pin: GPIO48
-    default_transition_length: 0s
-    chipset: WS2812
-    num_leds: 1
-    rgb_order: grb
-    effects:
-      - pulse:
-          name: "Slow Pulse"
-          transition_length: 250ms
-          update_interval: 250ms
-          min_brightness: 50%
-          max_brightness: 100%
-      - pulse:
-          name: "Fast Pulse"
-          transition_length: 100ms
-          update_interval: 100ms
-          min_brightness: 50%
-          max_brightness: 100%
-
 # --- TOUCHSCREEN --------------------------------------------------------------
 touchscreen:
   - platform: ft5x06
@@ -162,6 +139,10 @@ touchscreen:
     display: main_display
     i2c_id: bus_a
     address: 0x38
+    transform:
+      swap_xy: true
+      mirror_x: false
+      mirror_y: true
     on_touch:
       then:
         - lambda: |-
@@ -263,26 +244,20 @@ touchscreen:
               if (is_down)  id(swipe_down_action).execute();
             }
 
-# --- BATTERY ADC --------------------------------------------------------------
+# --- BATTERY ADC (fake)--------------------------------------------------------
 sensor:
-  - platform: adc
-    pin: GPIO4
-    name: "Battery Voltage"
+  - platform: template
     id: battery_voltage
-    attenuation: 12db
-    accuracy_decimals: 2
-    update_interval: 10s
+    name: "Battery Voltage"
+    lambda: |-
+      return 4.20;   // fake constant voltage
     unit_of_measurement: "V"
-    icon: mdi:battery-medium
-    filters:
-      - multiply: 2.0
-      - median:
-          window_size: 7
-          send_every: 7
-          send_first_at: 1
-      - throttle: 1min
+    device_class: voltage
+    state_class: measurement
+    update_interval: 24h
     on_value:
       then:
+        # Feed the shared battery_percentage template sensor
         - sensor.template.publish:
             id: battery_percentage
             state: !lambda 'return x;'
@@ -302,33 +277,51 @@ switch:
     restore_mode: RESTORE_DEFAULT_ON
 
   - platform: gpio
-    id: lcd_en
-    name: "LCD EN (PCA bit0)"
-    pin:
-      pca9554: pca9557
-      number: 0
-      mode: { output: true }
-      inverted: true
-    restore_mode: ALWAYS_ON 
-
-  - platform: gpio
-    name: "Camera Power (PCA bit2)"
     id: cam_power
-    entity_category: config
+    internal: true
     pin:
       pca9554: pca9557
       number: 2
       mode: { output: true }
       inverted: true
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: ALWAYS_ON
 
-# --- DISPLAY DRIVER (ILI9xxx round GC9A01A) ----------------------------------
+# --- CAMERA -------------------------------------------------------------------
+esp32_camera:
+  name: Camera
+  i2c_id: bus_a
+  external_clock:
+    pin: GPIO5
+    frequency: 20MHz
+  data_pins: [GPIO16, GPIO18, GPIO8, GPIO17, GPIO15, GPIO6, GPIO4, GPIO9]
+  vsync_pin: GPIO3
+  href_pin: GPIO46
+  pixel_clock_pin: GPIO7
+  pixel_format: rgb565       # GC0308 has no hardware JPEG
+  jpeg_quality: 12           # nonzero = software JPEG conversion for HA
+  resolution: 320x240
+  max_framerate: 5 fps
+  idle_framerate: 0.5 fps
+  setup_priority: 300
+ 
+# --- DISPLAY DRIVER ST7789V 320x240 (CS via PCA9557 bit0, RST tied to EN)------
 display:
   - platform: mipi_spi
     id: main_display
     model: ST7789V
-    data_rate: 80MHz
+    spi_mode: MODE0
+    data_rate: 40MHz
     dc_pin: GPIO39
+    cs_pin:
+      pca9554: pca9557
+      number: 0
     invert_colors: true
+    dimensions:
+      width: 320
+      height: 240
+    transform:
+      swap_xy: true
+      mirror_x: true
+      mirror_y: false
     update_interval: never
     pages: !include ../display_pages.yaml
