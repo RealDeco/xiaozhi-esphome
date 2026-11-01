@@ -1537,7 +1537,10 @@ text_sensor:
       lambda: |-
         auto &s = id(text_request).state;
         if (s.length() > 30) {
-          s.resize(30);
+          // step back to a UTF-8 character boundary (multi-byte languages)
+          size_t cut = 30;
+          while (cut > 0 && (static_cast<uint8_t>(s[cut]) & 0xC0) == 0x80) cut--;
+          s.resize(cut);
           s += "...";
         }
 
@@ -1548,7 +1551,10 @@ text_sensor:
       lambda: |-
         auto &s = id(text_response).state;
         if (s.length() > 30) {
-          s.resize(30);
+          // step back to a UTF-8 character boundary (multi-byte languages)
+          size_t cut = 30;
+          while (cut > 0 && (static_cast<uint8_t>(s[cut]) & 0xC0) == 0x80) cut--;
+          s.resize(cut);
           s += "...";
         }
 
