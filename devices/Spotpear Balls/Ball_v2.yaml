@@ -134,7 +134,7 @@ api:
         if (!id(boot_sound_played)) {
           id(boot_sound_played) = true;
           if (id(startup_sound_switch).state) {
-            id(play_sound)->execute(true, id(ready_sound));
+            id(play_sound)->execute(true, const_cast<esphome::audio::AudioFile*>(id(ready_sound)));
           }
         }
   on_client_disconnected:
@@ -457,7 +457,7 @@ micro_wake_word:
           - script.execute:
               id: play_sound
               priority: true
-              sound_file: !lambda return id(wake_word_triggered_sound);
+              sound_file: !lambda return const_cast<esphome::audio::AudioFile*>(id(wake_word_triggered_sound));
           - delay: 300ms
     - voice_assistant.start:
         wake_word: !lambda return wake_word;
